@@ -92,7 +92,7 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
    // L = length of the pencil iPencil
    int L = pencils.lengthOfPencils[iPencil];
    vector<CellID> ids = pencils.getIds(iPencil);
-   
+
    int neighborhood = getNeighborhood(dimension,2);
  
    // Get pointers for each cell id of the pencil
@@ -394,9 +394,9 @@ setOfPencils buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Ca
       }
    }
 
-   if (!grid.is_local(id)) {
-     std::cerr<<" id "<<id<<" seedId "<<seedId<<" pathL "<<path.size()<<" startingpathL "<<startingPathSize<<" startingreflev "<<startingRefLvl<<std::endl;
-   }
+   // if (!grid.is_local(id)) {
+   //   std::cerr<<" id "<<id<<" seedId "<<seedId<<" pathL "<<path.size()<<" startingpathL "<<startingPathSize<<" startingreflev "<<startingRefLvl<<std::endl;
+   // }
    
    while (id != INVALID_CELLID) {
 
@@ -506,7 +506,8 @@ setOfPencils buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Ca
 
    pencils.addPencil(ids,x,y,periodic,path);
    if (!grid.is_local(id)) {
-     std::cerr<<"Finished pencil id "<<id<<" seedId "<<seedId<<" pathL "<<path.size()<<" startingpathL "<<startingPathSize<<" startingreflev "<<startingRefLvl<<std::endl;
+     //std::cerr<<"FINPEN "<<id<<" seedId "<<seedId<<" pathL "<<path.size()<<" startingpathL "<<startingPathSize<<" startingreflev "<<startingRefLvl<<std::endl;
+     std::cerr<<"FINPEN "<<id<<std::endl;
    }
    
    //std::cout<<"finish buildPencilsWithNeighbors "<<seedId<<std::endl;
@@ -1006,7 +1007,7 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    
    phiprof::start("setup");
 
-   const bool printPencils = true;
+   const bool printPencils = false;
    uint cell_indices_to_id[3]; /*< used when computing id of target cell in block*/
    unsigned char  cellid_transpose[WID3]; /*< defines the transpose for the solver internal (transposed) id: i + j*WID + k*WID2 to actual one*/
    // return if there's no cells to propagate
@@ -1076,7 +1077,7 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    // Output vectors for ready pencils
    setOfPencils pencils;
    
-   std::cerr<<myRank<<" begin parallel, seedIds "<<seedIds.size()<<std::endl;
+   std::cerr<<myRank<<" begin parallel, seedIds "<<seedIds.size()<<" localpropcells "<<localPropagatedCells.size()<<std::endl;
 #pragma omp parallel
    {
       // Empty vectors for internal use of buildPencilsWithNeighbors. Could be default values but
@@ -1096,7 +1097,7 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
          thread_pencils = buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedId, ids, dimension, path, seedIds);
       }
       
-      std::cerr<<myRank<<" critical sum pencils"<<std::endl;
+      std::cerr<<myRank<<" CRITICAL"<<std::endl;
       // accumulate thread results in global set of pencils
 #pragma omp critical
       {

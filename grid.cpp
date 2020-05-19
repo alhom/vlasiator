@@ -1037,56 +1037,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
    mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL, neighborhood);
 
    neighborhood.clear();
-   // Test neighbourhood for all-local propagation
-   for (int x = -(VLASOV_STENCIL_WIDTH+1); x <= (VLASOV_STENCIL_WIDTH+1); ++x) {
-     for (int y = -(VLASOV_STENCIL_WIDTH+1); y <= (VLASOV_STENCIL_WIDTH+1); ++y) {
-       for (int z = -(VLASOV_STENCIL_WIDTH+1); z <= (VLASOV_STENCIL_WIDTH+1); ++z) {
-	 if (abs(x) <= VLASOV_STENCIL_WIDTH && abs(y) <= VLASOV_STENCIL_WIDTH && abs(z) <= VLASOV_STENCIL_WIDTH) {
-	   continue;
-	 }	    
-	 neigh_t offsets = {{x, y, z}};
-	 neighborhood.push_back(offsets);
-       }
-     }
-   }
-   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_OUTER, neighborhood);
-
-   std::vector<neigh_t> neighborhood2;
-   std::vector<neigh_t> neighborhood3;
-   std::vector<neigh_t> neighborhood4;
-   int neigh_flip=1;
-   neighborhood.clear();
-   // Test neighbourhood for all-local propagation
-   for (int x = -(VLASOV_STENCIL_WIDTH); x <= (VLASOV_STENCIL_WIDTH); ++x) {
-     for (int y = -(VLASOV_STENCIL_WIDTH); y <= (VLASOV_STENCIL_WIDTH); ++y) {
-       for (int z = -(VLASOV_STENCIL_WIDTH); z <= (VLASOV_STENCIL_WIDTH); ++z) {
-	 if (abs(x) < VLASOV_STENCIL_WIDTH && abs(y) < VLASOV_STENCIL_WIDTH && abs(z) < VLASOV_STENCIL_WIDTH) {
-	   continue;
-	 }	    
-	 neigh_t offsets = {{x, y, z}};
-	 if (neigh_flip==1) {
-	   neighborhood.push_back(offsets);
-	   neigh_flip = 2;
-	 } else if (neigh_flip==2) {
-	   neighborhood2.push_back(offsets);
-	   neigh_flip = 3;
-	 } else if (neigh_flip==3) {
-	   neighborhood3.push_back(offsets);
-	   neigh_flip = 4;
-	 } else {
-	   neighborhood4.push_back(offsets);
-	   neigh_flip = 1;
-	 }
-       }
-     }
-   }
-   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_MEDIUM1, neighborhood);
-   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_MEDIUM2, neighborhood2);
-   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_MEDIUM3, neighborhood3);
-   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_MEDIUM4, neighborhood4);
-   std::cerr<<"lengths "<<neighborhood.size()<<" "<<neighborhood2.size()<<" "<<neighborhood3.size()<<" "<<neighborhood4.size()<<std::endl;
-
-   neighborhood.clear();
    for (int y = -2; y <= 2; ++y) {
      if (y != 0) {
        neighborhood.push_back({{0, y, 0}});

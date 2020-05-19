@@ -111,49 +111,6 @@ void calculateSpatialTranslation(
     phiprof::start(trans_timer);
     //SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA);
     SpatialCell::set_mpi_transfer_type(Transfer::ALL_SPATIAL_DATA);
-    // Field solver neighborhood is simple
-    //mpiGrid.update_copies_of_remote_neighbors(FIELD_SOLVER_NEIGHBORHOOD_ID);
-    //mpiGrid.update_copies_of_remote_neighbors(SYSBOUNDARIES_NEIGHBORHOOD_ID);
-    //mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL);
-    std::cerr<<"BARRIER "<<myRank<<std::endl;
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    // std::cerr<<"Update FULL_NEIGHBORHOOD "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(FULL_NEIGHBORHOOD_ID);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // std::cerr<<"Update NEAREST_NEIGHBORHOOD_ID "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(NEAREST_NEIGHBORHOOD_ID);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-
-    // std::cerr<<"Update VLASOV_ALLPROPLOCAL_MEDIUM "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_MEDIUM1);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-
-    // std::cerr<<"Update VLASOV_ALLPROPLOCAL_MEDIUM2 "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_MEDIUM2);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-
-    // std::cerr<<"Update VLASOV_ALLPROPLOCAL_MEDIUM3 "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_MEDIUM3);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-
-    // std::cerr<<"Update VLASOV_ALLPROPLOCAL_MEDIUM4 "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_MEDIUM4);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // std::cerr<<"Update VLASOV_ALLPROPLOCAL_OUTER "<<myRank<<std::endl;
-    // mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_OUTER);
-    // std::cerr<<"DONE "<<myRank<<std::endl;
 
     std::cerr<<"Update VLASOV_ALLPROPLOCAL "<<myRank<<std::endl;
     mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL);

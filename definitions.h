@@ -116,11 +116,6 @@ typedef Realf (*AmrVelRefinement)(const Realf* velBlock);
 #define VLASOV_ALLPROPLOCAL_X 21 // for only local propagation
 #define VLASOV_ALLPROPLOCAL_Y 22 // for only local propagation
 #define VLASOV_ALLPROPLOCAL_Z 23 // for only local propagation
-#define VLASOV_ALLPROPLOCAL_OUTER 24 //Outer shell of neighbourhood for only local propagation
-#define VLASOV_ALLPROPLOCAL_MEDIUM1 25 //Medium shell of neighbourhood for only local propagation
-#define VLASOV_ALLPROPLOCAL_MEDIUM2 26 //Medium shell of neighbourhood for only local propagation
-#define VLASOV_ALLPROPLOCAL_MEDIUM3 27 //Medium shell of neighbourhood for only local propagation
-#define VLASOV_ALLPROPLOCAL_MEDIUM4 28 //Medium shell of neighbourhood for only local propagation
 
 //fieldsolver stencil.
 #define FS_STENCIL_WIDTH 2
