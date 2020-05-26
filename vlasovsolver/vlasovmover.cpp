@@ -101,21 +101,15 @@ void calculateSpatialTranslation(
     **/
 
     std::cerr<<"MPI "<<myRank<<" dt "<<dt<<" time "<<time<<" pop "<<popID<<" npencils "<<nPencils.size()<<std::endl;
-    std::cerr<<"lengths "<<local_propagated_cells_x.size()
-	     <<" "<<local_propagated_cells_y.size()
-	     <<" "<<local_propagated_cells_z.size()
-	     <<" "<<remoteTargetCellsx.size()
-	     <<" "<<remoteTargetCellsy.size()
-	     <<" "<<remoteTargetCellsz.size()<<std::endl;
     trans_timer=phiprof::initializeTimer("transfer-stencil-data-all","MPI");
     phiprof::start(trans_timer);
     //SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA);
-    SpatialCell::set_mpi_transfer_type(Transfer::ALL_SPATIAL_DATA);
+    //SpatialCell::set_mpi_transfer_type(Transfer::ALL_DATA);
 
     std::cerr<<"Update VLASOV_ALLPROPLOCAL "<<myRank<<std::endl;
+    SpatialCell::set_mpi_transfer_type(Transfer::ALL_DATA);
     mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL);
-    std::cerr<<"DONE "<<myRank<<std::endl;
-
+    std::cerr<<"DONE "<<myRank<<std::endl;    
     phiprof::stop(trans_timer);
     
     std::cerr<<"Z"<<std::endl;
@@ -235,31 +229,43 @@ void calculateSpatialTranslation(
      For this, correct values need to exist in cells y\pm(1+VLASOV_STENCIL) x\pm(1+VLASOV_STENCIL) z\pm(1+VLASOV_STENCIL) (but the z\pm(1+VLASOV_STENCIL) already is ok)
      and remote target cells need to be y\pm(1+VLASOV_STENCIL) x\pm(1+VLASOV_STENCIL) z\pm2
     */
+   SpatialCell::set_mpi_transfer_type(Transfer::ALL_SPATIAL_DATA);
+   mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_NEIGH);
    
    // result independent of particle species.
    for (size_t c=0; c<localCells.size(); ++c) {
       if (do_translate_cell(mpiGrid[localCells[c]])) {
 	 local_propagated_cells_y.push_back(localCells[c]);
       }
-      // Add first ghost cells in y direction to get rid of remote updates
-      const auto faceNbrs = mpiGrid.get_face_neighbors_of(localCells[c]);      
-      for (const auto nbr : faceNbrs) {
+   }
+   std::cerr<<"lengths start "<<local_propagated_cells_y.size()<<std::endl;
+   
+   for (size_t c=0; c<local_propagated_cells_y.size(); ++c) {
+     // Add first ghost cells in y direction to get rid of remote updates
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(localCells[c],VLASOV_ALLPROPLOCAL_NEIGH);
+     if (faceNbrs.size()>0) {
+       for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
 	 if (mpiGrid.is_local(nbr.first)) continue;
 	 if (!do_translate_cell(mpiGrid[nbr.first])) continue;
 	 if ((abs(nbr.second) == 2) && (std::find(local_propagated_cells_y.begin(),
 						  local_propagated_cells_y.end(), nbr.first) == local_propagated_cells_y.end())) {
 	   local_propagated_cells_y.push_back(nbr.first);
+	   if (!mpiGrid.is_local(local_propagated_cells_y[c])) {
+	     std::cerr<<"yremote1 "<<local_propagated_cells_y[c]<<" neigh "<<nbr.first<<std::endl;
+	   }
 	 }
-      }      
+       }
+     }
    }  
    
    local_propagated_cells_x = local_propagated_cells_y; // is a deep copy
    // Add VLASOV_STENCIL cells in the y-direction
    for (uint vs=0; vs<VLASOV_STENCIL_WIDTH; ++vs) {
      for (size_t c=0; c<local_propagated_cells_x.size(); ++c) {
-       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c]);      
-       for (const auto nbr : faceNbrs) {
+       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+       if (faceNbrs.size()>0) {
+	for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
 	 if (mpiGrid.is_local(nbr.first)) continue;
 	 if (!do_translate_cell(mpiGrid[nbr.first])) {
@@ -269,54 +275,71 @@ void calculateSpatialTranslation(
 	 if ((abs(nbr.second) == 2) && (std::find(local_propagated_cells_x.begin(),
 						  local_propagated_cells_x.end(), nbr.first) == local_propagated_cells_x.end())) {
 	   local_propagated_cells_x.push_back(nbr.first);
-	   //std::cerr<<"X_y "<<vs<<" "<< local_propagated_cells_x[c]<<" add "<<nbr.second<<" nbr "<<nbr.first<<std::endl; //MCB
+	   if (!mpiGrid.is_local(local_propagated_cells_x[c])) {
+	     std::cerr<<"xremote1 "<<local_propagated_cells_x[c]<<" neigh "<<nbr.first<<std::endl;
+	   }
 	 }
+	}
        }
      }
    }
    // Add \pm 1 cells in x-direction
    for (size_t c=0; c<local_propagated_cells_x.size(); ++c) {
-     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c]);      
-     for (const auto nbr : faceNbrs) {
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     if (faceNbrs.size()>0) {
+      for (const auto nbr : faceNbrs) {
        if (nbr.first==NULL) continue;
        if (mpiGrid.is_local(nbr.first)) continue;
        if (!do_translate_cell(mpiGrid[nbr.first])) continue;
        if ((abs(nbr.second) == 1) && (std::find(local_propagated_cells_x.begin(),
 						local_propagated_cells_x.end(), nbr.first) == local_propagated_cells_x.end())) {
 	 local_propagated_cells_x.push_back(nbr.first);
-	 //std::cerr<<"X_x "<< local_propagated_cells_x[c]<<" add "<<nbr.second<<" nbr "<<nbr.first<<std::endl; //MCB
+	 if (!mpiGrid.is_local(local_propagated_cells_x[c])) {
+	   std::cerr<<"xremote2 "<<local_propagated_cells_x[c]<<" neigh "<<nbr.first<<std::endl;
+	 }
        }
-     }
+      }
+     } 
    }
      
    local_propagated_cells_z = local_propagated_cells_x;
    // Add VLASOV_STENCIL cells in the x-direction
    for (uint vs=0; vs<VLASOV_STENCIL_WIDTH; ++vs) {
      for (size_t c=0; c<local_propagated_cells_z.size(); ++c) {
-       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c]);      
-       for (const auto nbr : faceNbrs) {
+       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+       if (faceNbrs.size()>0) {
+	for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
 	 if (mpiGrid.is_local(nbr.first)) continue;
 	 if (!do_translate_cell(mpiGrid[nbr.first])) continue;
 	 if ((abs(nbr.second) == 1) && (std::find(local_propagated_cells_z.begin(),
 						  local_propagated_cells_z.end(), nbr.first) == local_propagated_cells_z.end())) {
 	   local_propagated_cells_z.push_back(nbr.first);
+	   if (!mpiGrid.is_local(local_propagated_cells_z[c])) {
+	     std::cerr<<"zremote1 "<<local_propagated_cells_z[c]<<" neigh "<<nbr.first<<std::endl;
+	   }
 	 }
+	}
        }
      }
    }
    // Add \pm 1 cells in z-direction
    for (size_t c=0; c<local_propagated_cells_z.size(); ++c) {
-     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c]);      
-     for (const auto nbr : faceNbrs) {
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     if (faceNbrs.size()>0) {
+      for (const auto nbr : faceNbrs) {
        if (nbr.first==NULL) continue;
        if (mpiGrid.is_local(nbr.first)) continue;
        if (!do_translate_cell(mpiGrid[nbr.first])) continue;
        if ((abs(nbr.second) == 3) && (std::find(local_propagated_cells_z.begin(),
 						local_propagated_cells_z.end(), nbr.first) == local_propagated_cells_z.end())) {
 	 local_propagated_cells_z.push_back(nbr.first);
+	 if (!mpiGrid.is_local(local_propagated_cells_z[c])) {
+	   std::cerr<<"zremote2 "<<local_propagated_cells_z[c]<<" neigh "<<nbr.first<<std::endl;
+	 }
        }
-     }
+      }
+     } 
    }
 
    if (P::prepareForRebalance == true && P::amrMaxSpatialRefLevel != 0) {
@@ -326,7 +349,15 @@ void calculateSpatialTranslation(
       }
    }
    phiprof::stop("compute_cell_lists");
-   
+
+   std::cerr<<"lengths "<<localCells.size()
+	    <<" "<<local_propagated_cells_x.size()
+	    <<" "<<local_propagated_cells_y.size()
+	    <<" "<<local_propagated_cells_z.size()
+	    <<" "<<remoteTargetCellsx.size()
+	    <<" "<<remoteTargetCellsy.size()
+	    <<" "<<remoteTargetCellsz.size()<<std::endl;
+
    // Translate all particle species
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       string profName = "translate "+getObjectWrapper().particleSpecies[popID].name;

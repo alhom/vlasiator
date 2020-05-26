@@ -109,7 +109,7 @@ void initializeGrids(
    }
    
    MPI_Comm comm = MPI_COMM_WORLD;
-   int neighborhood_size = max(FS_STENCIL_WIDTH, VLASOV_STENCIL_WIDTH+1); 
+   int neighborhood_size = max(FS_STENCIL_WIDTH, VLASOV_STENCIL_WIDTH+4); 
 
    const std::array<uint64_t, 3> grid_length = {{P::xcells_ini, P::ycells_ini, P::zcells_ini}};
    dccrg::Cartesian_Geometry::Parameters geom_params;
@@ -305,7 +305,7 @@ void initializeGrids(
    // update complete cell spatial data for full stencil (
    SpatialCell::set_mpi_transfer_type(Transfer::ALL_SPATIAL_DATA);
    //mpiGrid.update_copies_of_remote_neighbors(FULL_NEIGHBORHOOD_ID);
-   mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL);
+   mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_NEIGH);
 
    phiprof::stop("Fetch Neighbour data");
    
@@ -552,7 +552,7 @@ void balanceLoad(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, S
    // includes all data with the exception of dist function data
    SpatialCell::set_mpi_transfer_type(Transfer::ALL_SPATIAL_DATA);
    //mpiGrid.update_copies_of_remote_neighbors(FULL_NEIGHBORHOOD_ID);
-   mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL);
+   mpiGrid.update_copies_of_remote_neighbors(VLASOV_ALLPROPLOCAL_NEIGH);
 
    phiprof::start("update block lists");
    //new partition, re/initialize blocklists of remote cells.
@@ -1023,9 +1023,10 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
 
    neighborhood.clear();
    // Test neighbourhood for all-local propagation
-   for (int x = -(VLASOV_STENCIL_WIDTH+1); x <= (VLASOV_STENCIL_WIDTH+1); ++x) {
-     for (int y = -(VLASOV_STENCIL_WIDTH+1); y <= (VLASOV_STENCIL_WIDTH+1); ++y) {
-       for (int z = -(VLASOV_STENCIL_WIDTH+1); z <= (VLASOV_STENCIL_WIDTH+1); ++z) {
+   // Note had to add extra +1 in x and Z due to AMR neighborhoods
+   for (int y = -(VLASOV_STENCIL_WIDTH+1); y <= (VLASOV_STENCIL_WIDTH+1); ++y) {
+     for (int x = -(VLASOV_STENCIL_WIDTH+2); x <= (VLASOV_STENCIL_WIDTH+2); ++x) {
+       for (int z = -(VLASOV_STENCIL_WIDTH+2); z <= (VLASOV_STENCIL_WIDTH+2); ++z) {
 	 if (x == 0 && y == 0 && z == 0) {
 	   continue;
 	 }
@@ -1036,6 +1037,21 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
    }
    mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL, neighborhood);
 
+   neighborhood.clear();
+   // Test neighbourhood for all-local propagation
+   for (int y = -(VLASOV_STENCIL_WIDTH+2); y <= (VLASOV_STENCIL_WIDTH+2); ++y) {
+     for (int x = -(VLASOV_STENCIL_WIDTH+3); x <= (VLASOV_STENCIL_WIDTH+3); ++x) {
+       for (int z = -(VLASOV_STENCIL_WIDTH+3); z <= (VLASOV_STENCIL_WIDTH+3); ++z) {
+	 if (x == 0 && y == 0 && z == 0) {
+	   continue;
+	 }
+	 neigh_t offsets = {{x, y, z}};
+	 neighborhood.push_back(offsets);
+       }
+     }
+   }
+   mpiGrid.add_neighborhood(VLASOV_ALLPROPLOCAL_NEIGH, neighborhood);
+   
    neighborhood.clear();
    for (int y = -2; y <= 2; ++y) {
      if (y != 0) {

@@ -116,6 +116,7 @@ typedef Realf (*AmrVelRefinement)(const Realf* velBlock);
 #define VLASOV_ALLPROPLOCAL_X 21 // for only local propagation
 #define VLASOV_ALLPROPLOCAL_Y 22 // for only local propagation
 #define VLASOV_ALLPROPLOCAL_Z 23 // for only local propagation
+#define VLASOV_ALLPROPLOCAL_NEIGH 24 // for only local propagation
 
 //fieldsolver stencil.
 #define FS_STENCIL_WIDTH 2
