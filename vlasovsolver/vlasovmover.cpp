@@ -242,7 +242,8 @@ void calculateSpatialTranslation(
    
    for (size_t c=0; c<local_propagated_cells_y.size(); ++c) {
      // Add first ghost cells in y direction to get rid of remote updates
-     const auto faceNbrs = mpiGrid.get_face_neighbors_of(localCells[c],VLASOV_ALLPROPLOCAL_NEIGH);
+     //const auto faceNbrs = mpiGrid.get_face_neighbors_of(localCells[c],VLASOV_ALLPROPLOCAL_NEIGH);
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(localCells[c]);
      if (faceNbrs.size()>0) {
        for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
@@ -263,7 +264,8 @@ void calculateSpatialTranslation(
    // Add VLASOV_STENCIL cells in the y-direction
    for (uint vs=0; vs<VLASOV_STENCIL_WIDTH; ++vs) {
      for (size_t c=0; c<local_propagated_cells_x.size(); ++c) {
-       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+       //const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);
+       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c]);
        if (faceNbrs.size()>0) {
 	for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
@@ -285,7 +287,8 @@ void calculateSpatialTranslation(
    }
    // Add \pm 1 cells in x-direction
    for (size_t c=0; c<local_propagated_cells_x.size(); ++c) {
-     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     //const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_x[c]);
      if (faceNbrs.size()>0) {
       for (const auto nbr : faceNbrs) {
        if (nbr.first==NULL) continue;
@@ -306,7 +309,8 @@ void calculateSpatialTranslation(
    // Add VLASOV_STENCIL cells in the x-direction
    for (uint vs=0; vs<VLASOV_STENCIL_WIDTH; ++vs) {
      for (size_t c=0; c<local_propagated_cells_z.size(); ++c) {
-       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+       //const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+       const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c]);
        if (faceNbrs.size()>0) {
 	for (const auto nbr : faceNbrs) {
 	 if (nbr.first==NULL) continue;
@@ -325,7 +329,8 @@ void calculateSpatialTranslation(
    }
    // Add \pm 1 cells in z-direction
    for (size_t c=0; c<local_propagated_cells_z.size(); ++c) {
-     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     //const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c],VLASOV_ALLPROPLOCAL_NEIGH);      
+     const auto faceNbrs = mpiGrid.get_face_neighbors_of(local_propagated_cells_z[c]);
      if (faceNbrs.size()>0) {
       for (const auto nbr : faceNbrs) {
        if (nbr.first==NULL) continue;
