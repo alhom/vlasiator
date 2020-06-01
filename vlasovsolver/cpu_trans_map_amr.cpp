@@ -171,18 +171,20 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
    /*loop to negative side and replace all invalid cells with the closest good cell*/
    SpatialCell* lastGoodCell = mpiGrid[ids.front()];
    for(int i = VLASOV_STENCIL_WIDTH - 1; i >= 0 ;i--){
-      if(sourceCells[i] == NULL) 
-         sourceCells[i] = lastGoodCell;
-      else
-         lastGoodCell = sourceCells[i];
+     if (sourceCells[i] == NULL) {
+       sourceCells[i] = lastGoodCell;
+     } else {
+       lastGoodCell = sourceCells[i];
+     }
    }
    /*loop to positive side and replace all invalid cells with the closest good cell*/
    lastGoodCell = mpiGrid[ids.back()];
    for(int i = L + VLASOV_STENCIL_WIDTH; i < L + 2*VLASOV_STENCIL_WIDTH; i++){
-      if(sourceCells[i] == NULL) 
-         sourceCells[i] = lastGoodCell;
-      else
-         lastGoodCell = sourceCells[i];
+     if(sourceCells[i] == NULL) { 
+       sourceCells[i] = lastGoodCell;
+     } else {
+       lastGoodCell = sourceCells[i];
+     }
    }
 }
 
