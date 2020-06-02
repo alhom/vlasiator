@@ -343,6 +343,7 @@ setOfPencils buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Ca
    CellID id = seedId;
    int startingRefLvl = grid.get_refinement_level(id);
    bool periodic = false;
+   // If this is a new pencil (instead of being a result of a pencil being split
    if( ids.size() == 0 )
       ids.push_back(seedId);
 
@@ -1057,6 +1058,11 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    // Output vectors for ready pencils
    setOfPencils pencils;
    
+   // thread-internal pencil set to be accumulated at the end
+   static setOfPencils *thread_pencils;
+#pragma omp threadprivate(thread_pencils)
+   //setOfPencils thread_pencils;
+
 #pragma omp parallel
    {
       // Empty vectors for internal use of buildPencilsWithNeighbors. Could be default values but
@@ -1064,42 +1070,43 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
       // https://stackoverflow.com/questions/3147274/c-default-argument-for-vectorint
       vector<CellID> ids;
       vector<uint> path;
-      // thread-internal pencil set to be accumulated at the end
-      setOfPencils thread_pencils;
       // iterators used in the accumulation
       std::vector<CellID>::iterator ibeg, iend;
+
+      thread_pencils = new setOfPencils();
       
 #pragma omp for schedule(guided)
       for (uint i=0; i<seedIds.size(); i++) {
          cuint seedId = seedIds[i];
          // Construct pencils from the seedIds into a set of pencils.
-         thread_pencils = buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedId, ids, dimension, path, seedIds);
+         *thread_pencils = buildPencilsWithNeighbors(mpiGrid, *thread_pencils, seedId, ids, dimension, path, seedIds);
       }
       
       // accumulate thread results in global set of pencils
 #pragma omp critical
       {
-         for (uint i=0; i<thread_pencils.N; i++) {
+         for (uint i=0; i<thread_pencils->N; i++) {
             // Use vector range constructor
-            ibeg = thread_pencils.ids.begin() + thread_pencils.idsStart[i];
-            iend = ibeg + thread_pencils.lengthOfPencils[i];
+            ibeg = thread_pencils->ids.begin() + thread_pencils->idsStart[i];
+            iend = ibeg + thread_pencils->lengthOfPencils[i];
             std::vector<CellID> pencilIds(ibeg, iend);
-            pencils.addPencil(pencilIds,thread_pencils.x[i],thread_pencils.y[i],thread_pencils.periodic[i],thread_pencils.path[i]);
+            pencils.addPencil(pencilIds,thread_pencils->x[i],thread_pencils->y[i],thread_pencils->periodic[i],thread_pencils->path[i]);
          }
       }
+      delete thread_pencils;
+   }
 
-      // init cellid_transpose (moved here to take advantage of the omp parallel region)
-#pragma omp for collapse(3)
-      for (uint k=0; k<WID; ++k) {
-         for (uint j=0; j<WID; ++j) {
-            for (uint i=0; i<WID; ++i) {
-               const uint cell =
-                  i * cell_indices_to_id[0] +
-                  j * cell_indices_to_id[1] +
-                  k * cell_indices_to_id[2];
-               cellid_transpose[ i + j * WID + k * WID2] = cell;
-            }
-         }
+   // init cellid_transpose (moved here to take advantage of the omp parallel region)
+#pragma omp parallel for collapse(3)
+   for (uint k=0; k<WID; ++k) {
+      for (uint j=0; j<WID; ++j) {
+	 for (uint i=0; i<WID; ++i) {
+	    const uint cell =
+	       i * cell_indices_to_id[0] +
+	       j * cell_indices_to_id[1] +
+	       k * cell_indices_to_id[2];
+	    cellid_transpose[ i + j * WID + k * WID2] = cell;
+	 }
       }
    }
    
