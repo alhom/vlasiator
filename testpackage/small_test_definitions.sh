@@ -16,7 +16,8 @@ run_dir="run"
 test_dir="tests"
 
 # choose tests to run
-run_tests=( 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+#run_tests=( 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+run_tests=( 17 )
 
 # acceleration test
 test_name[1]="acctest_2_maxw_500k_100k_20kms_10deg"
@@ -125,14 +126,14 @@ variable_components[15]="0 0 1 2 0 1 2 0 1 2"
 ##AMR tests
 # translation test
 test_name[16]="transtest_amr"
-comparison_vlsv[3]="fullf.0000001.vlsv"
-comparison_phiprof[3]="phiprof_0.txt"
-variable_names[3]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v proton"
-variable_components[3]="0 0 1 2"
+comparison_vlsv[16]="fullf.0000001.vlsv"
+comparison_phiprof[16]="phiprof_0.txt"
+variable_names[16]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v proton"
+variable_components[16]="0 0 1 2"
 
 # Flowthrough test
 test_name[17]="Flowthrough_amr"
-comparison_vlsv[12]="bulk.0000001.vlsv"
-comparison_phiprof[12]="phiprof_0.txt"
-variable_names[12]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v fg_b fg_b fg_b fg_e fg_e fg_e"
-variable_components[12]="0 0 1 2 0 1 2 0 1 2"
+comparison_vlsv[17]="bulk.0000001.vlsv"
+comparison_phiprof[17]="phiprof_0.txt"
+variable_names[17]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v fg_b fg_b fg_b fg_e fg_e fg_e"
+variable_components[17]="0 0 1 2 0 1 2 0 1 2"
