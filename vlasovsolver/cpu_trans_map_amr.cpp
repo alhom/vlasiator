@@ -1062,6 +1062,7 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    setOfPencils pencilSet;
    vector<setOfPencils> pencilSets;
 
+   std::reverse(seedIds.begin(),seedIds.end());
    for (const auto seedId : seedIds) {
       // Construct pencils from the seedIds into a set of pencils.
       pencilSet = buildPencilsWithNeighbors(mpiGrid, pencilSet, seedId, ids, dimension, path, seedIds);
