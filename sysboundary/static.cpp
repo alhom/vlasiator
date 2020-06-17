@@ -305,6 +305,7 @@ namespace SBC {
       const uint popID,
       const bool calculate_V_moments
    ) { 
+     vlasovBoundaryCopyFromTheClosestNbr(mpiGrid, cellID, false, popID, calculate_V_moments);
      return;
    }
 
