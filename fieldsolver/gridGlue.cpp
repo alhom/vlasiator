@@ -145,7 +145,7 @@ void feedMomentsIntoFsGrid(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
       if(!dt2) {
         sendBuffer.push_back(cellParams[CellParams::RHOM]);
 	sendBuffer.push_back(cellParams[CellParams::RHOQ]);
-	sendBuffer.push_back(cellParams[CellParams::RHOQE]);
+	sendBuffer.push_back(cellParams[CellParams::RHOQE_R]);
 	sendBuffer.push_back(cellParams[CellParams::VX]);
 	sendBuffer.push_back(cellParams[CellParams::VY]);
         sendBuffer.push_back(cellParams[CellParams::VZ]);
