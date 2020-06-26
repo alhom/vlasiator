@@ -169,12 +169,17 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       spatial_cell->parameters[CellParams::EXJE],
       spatial_cell->parameters[CellParams::EYJE],
       spatial_cell->parameters[CellParams::EZJE]);
-   // Calculate E from charge density imbalance
+   // Get E from charge density imbalance
    Eigen::Matrix<Real,3,1> Efromrq(
       spatial_cell->parameters[CellParams::ERHOQX],
       spatial_cell->parameters[CellParams::ERHOQY],
       spatial_cell->parameters[CellParams::ERHOQZ]);
    //   Eigen::Matrix<Real,3,1> Efromrq(0.0, 0.0, 0.0);
+   Eigen::Matrix<Real,3,1> ERQ_parallel(Efromrq.dot(unit_B)*unit_B);
+   Eigen::Matrix<Real,3,1> ERQ_perpendicular(Efromrq-ERQ_parallel);
+   Eigen::Matrix<Real,3,1> unit_ERQperp(ERQ_perpendicular.normalized());
+   Real ERQperpperB = ERQ_perpendicular.norm() / B.norm();
+
       
    const Real q = getObjectWrapper().particleSpecies[popID].charge;
    const Real mass = getObjectWrapper().particleSpecies[popID].mass;
@@ -240,16 +245,16 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
             const Eigen::Matrix<Real,3,1> beta  = -q * Ji / (mass * physicalconstants::EPS_0);
             const Real alpha = -pow(q, 2.) * rho / (mass * physicalconstants::EPS_0);
 	    // derivative estimates for acceleration and field changes at start of step
-            k11 = h * q / mass * (EfromJe+Efromrq);  // h * dv/dt
+            k11 = h * q / mass * EfromJe;  // h * dv/dt
             k12 = h * (beta + alpha * electronVcurr); // h * (-q/m eps) * J_tot  ==  h * d^2 v / dt^2 == (q/m) dE/dt
 
-            k21 = h * (q / mass * (EfromJe+Efromrq) + k12/2); // estimate acceleration using k12 field estimate (at half interval)
+            k21 = h * (q / mass * EfromJe + k12/2); // estimate acceleration using k12 field estimate (at half interval)
             k22 = h * (beta + alpha * (electronVcurr + k11/2)); // estimate field change using k11 current estimate (at half interval)
 
-            k31 = h * (q / mass * (EfromJe+Efromrq) + k22/2); // estimate acceleration using k22 field estimate (at half interval)
+            k31 = h * (q / mass * EfromJe + k22/2); // estimate acceleration using k22 field estimate (at half interval)
             k32 = h * (beta + alpha * (electronVcurr + k21/2)); // estimate field change using k21 current estimate (at half interval)
 
-            k41 = h * (q / mass * (EfromJe+Efromrq) + k32); // estimate acceleration using k32 field estimate (at full interval)
+            k41 = h * (q / mass * EfromJe + k32); // estimate acceleration using k32 field estimate (at full interval)
             k42 = h * (beta + alpha * (electronVcurr + k31)); // estimate field change using k31 current estimate (at full interval)
 	    
             deltaV = (k11 + 2*k21 + 2*k31 + k41) / 6.; // Finally update velocity based on weighted acceleration estimate
@@ -324,13 +329,24 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
 	  //Eigen::Matrix<Real,3,1> deltaVpar(deltaV.dot(unit_B)*unit_B);
 	  //total_transform = Translation<Real,3>(deltaVpar) * total_transform;
 
-	} else {
-	  // If using the Eulerian scheme, then the rotation algorithm is used
-	  // and only the B-parallel nudge from EJE is required:
-	  Eigen::Matrix<Real,3,1> EfromJe_parallel(EfromJe.dot(unit_B)*unit_B);
+          // Add a parallel nudge from ERQ
 	  total_transform=Translation<Real,3>( (getObjectWrapper().particleSpecies[popID].charge/
 						getObjectWrapper().particleSpecies[popID].mass) * 
-					       EfromJe_parallel * substeps_dt) * total_transform;	  
+					       ERQ_parallel * substeps_dt) * total_transform;	  
+
+          // Perpendicular 'motional' ERQ treatment to rotation pivot
+          rotation_pivot[0]-= ERQperpperB * (unit_B[1]*unit_ERQperp[2] - unit_B[2]*unit_ERQperp[1]);
+          rotation_pivot[1]-= ERQperpperB * (unit_B[2]*unit_ERQperp[0] - unit_B[0]*unit_ERQperp[2]);
+          rotation_pivot[2]-= ERQperpperB * (unit_B[0]*unit_ERQperp[1] - unit_B[1]*unit_ERQperp[0]);
+
+	} else {
+	  // If using the Eulerian scheme, then the rotation algorithm is used
+	  // and only the B-parallel nudge from EJE+ERQ is required:
+	  Eigen::Matrix<Real,3,1> EfromJe_parallel(EfromJe.dot(unit_B)*unit_B);
+          Eigen::Matrix<Real,3,1> Enudge_parallel(EfromJe_parallel + ERQ_parallel);
+	  total_transform=Translation<Real,3>( (getObjectWrapper().particleSpecies[popID].charge/
+						getObjectWrapper().particleSpecies[popID].mass) * 
+					       Enudge_parallel * substeps_dt) * total_transform;	  
 	  /* The alternative to decomposing the EJE field into parallel and perpendicular components is to
 	     treat it a simple acceleration term. This acceleration was found by integrating over
 	     the time-varying electric field. */
@@ -339,6 +355,12 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
 	  //   EfromJe * substeps_dt) * total_transform;	  
 	  // Update the stored EJE value to match the end of the step
 	  EfromJe += dEJEt*0.5*substeps_dt;
+
+          // Perpendicular 'motional' ERQ treatment to 
+          rotation_pivot[0]-= ERQperpperB * (unit_B[1]*unit_ERQperp[2] - unit_B[2]*unit_ERQperp[1]);
+          rotation_pivot[1]-= ERQperpperB * (unit_B[2]*unit_ERQperp[0] - unit_B[0]*unit_ERQperp[2]);
+          rotation_pivot[2]-= ERQperpperB * (unit_B[0]*unit_ERQperp[1] - unit_B[1]*unit_ERQperp[0]);
+
 	}
       }
       // add to transform matrix the small rotation around  pivot
