@@ -899,6 +899,7 @@ int main(int argn,char* args[]) {
          CellParams::VZ_DT2,
          CellParams::RHOQ_DT2,
          CellParams::RHOQE_DT2,
+         CellParams::RHONE_DT2,
          CellParams::P_11_DT2,
          CellParams::P_22_DT2,
          CellParams::P_33_DT2
@@ -998,6 +999,7 @@ int main(int argn,char* args[]) {
          CellParams::VZ,
          CellParams::RHOQ,
          CellParams::RHOQE,
+         CellParams::RHONE,
          CellParams::P_11,
          CellParams::P_22,
          CellParams::P_33

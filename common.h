@@ -137,12 +137,14 @@ namespace CellParams {
       VZ,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQ,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQE,    /*!< Total charge density including test species. Calculated by Vlasov propagator, used to track charge non-neutrality.*/
+      RHONE,    /*!< Electron density, to obtain gradient for non-neutrality. Should be population-specific! */
       RHOM_DT2,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VX_DT2,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VY_DT2,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VZ_DT2,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQ_DT2,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQE_DT2,    /*!< Total charge density including test species. Calculated by Vlasov propagator, used to track charge non-neutrality.*/
+      RHONE_DT2,
       BGBXVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBYVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBZVOL,   /*!< background magnetic field averaged over spatial cell.*/
@@ -158,18 +160,23 @@ namespace CellParams {
       ERHOQX,           /*!< Electric field from e- charge separation term x.*/
       ERHOQY,           /*!< Electric field from e- charge separation term y.*/
       ERHOQZ,           /*!< Electric field from e- charge separation term z.*/
+      dRHONEx, 
+      dRHONEy,
+      dRHONEz,
       RHOM_R,     /*!< RHO after propagation in ordinary space*/
       VX_R,   /*!< VX after propagation in ordinary space*/
       VY_R,   /*!< VY after propagation in ordinary space*/
       VZ_R,   /*!< VZ after propagation in ordinary space*/
       RHOQ_R,     /*!< RHOQ after propagation in ordinary space*/
       RHOQE_R,    /*!< RHOQE after propagation in ordinary space*/
+      RHONE_R,
       RHOM_V,     /*!< RHOM after propagation in velocity space*/
       VX_V,   /*!< VX after propagation in velocity space*/
       VY_V,   /*!< VY after propagation in velocity space*/
       VZ_V,   /*!< VZ after propagation in velocity space*/
       RHOQ_V,     /*!< RHOQ after propagation in velocity space*/
       RHOQE_V,    /*!< RHOQE after propagation in velocity space*/
+      RHONE_V,
       P_11,     /*!< Pressure P_xx component, computed by Vlasov propagator. */
       P_22,     /*!< Pressure P_yy component, computed by Vlasov propagator. */
       P_33,     /*!< Pressure P_zz component, computed by Vlasov propagator. */
@@ -275,15 +282,16 @@ namespace fsgrids {
    };
    
    enum moments {
-      RHOM, /*!< Overall mass density. Calculated by Vlasov propagator, used to propagate fields.*/
-      RHOQ, /*!< Overall charge density. Calculated by Vlasov propagator, used to propagate fields.*/
-      RHOQE, /*!< Electron charge density. Calculated from e- test particles, used to even out e- charge imbalances .*/
-      VX,   /*!< Vx. Calculated by Vlasov propagator, used to propagate fields.*/
-      VY,   /*!< Vy. Calculated by Vlasov propagator, used to propagate fields.*/
-      VZ,   /*!< Vz. Calculated by Vlasov propagator, used to propagate fields.*/
-      P_11, /*!< Pressure P_xx component, computed by Vlasov propagator. */
-      P_22, /*!< Pressure P_yy component, computed by Vlasov propagator. */
-      P_33, /*!< Pressure P_zz component, computed by Vlasov propagator. */
+      RHOM,  /*!< Overall mass density. Calculated by Vlasov propagator, used to propagate fields.*/
+      RHOQ,  /*!< Overall charge density (of positive, non-test populations, ~plasma n_e). Calculated by Vlasov propagator, used to propagate fields.*/
+      RHOQE, /*!< Total charge density, including test particles. Used to even out e- charge imbalances.*/
+      RHONE, /*!< Electron density, used to estimate charge imbalance E changes */
+      VX,    /*!< Vx. Calculated by Vlasov propagator, used to propagate fields.*/
+      VY,    /*!< Vy. Calculated by Vlasov propagator, used to propagate fields.*/
+      VZ,    /*!< Vz. Calculated by Vlasov propagator, used to propagate fields.*/
+      P_11,  /*!< Pressure P_xx component, computed by Vlasov propagator. */
+      P_22,  /*!< Pressure P_yy component, computed by Vlasov propagator. */
+      P_33,  /*!< Pressure P_zz component, computed by Vlasov propagator. */
       N_MOMENTS
    };
    
@@ -334,6 +342,9 @@ namespace fsgrids {
       RHOQEx,    /*!< Cell-averaged Ex field from charge imbalance. Move these to some other place? */
       RHOQEy,    /*!< Cell-averaged Ey field from charge imbalance. Move these to some other place? */
       RHOQEz,    /*!< Cell-averaged Ez field from charge imbalance. Move these to some other place? */
+      dRHONEx,      /*!< Derivative of charge density (incl. test species) to x-direction. */
+      dRHONEy,      /*!< Derivative of charge density (incl. test species) to y-direction. */
+      dRHONEz,      /*!< Derivative of charge density (incl. test species) to z-direction. */
       N_DMOMENTS
    };
    

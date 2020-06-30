@@ -59,13 +59,18 @@ void calculateDerivatives(
    // const Real Erhoqk_100 = 0.0470811 * pow3(technicalGrid.DX)*technicalGrid.DX / physicalconstants::EPS_0;
    // const Real Erhoqk_110 = 0.0284809 * pow3(technicalGrid.DX)*technicalGrid.DX / physicalconstants::EPS_0;
    // const Real Erhoqk_111 = 0.0154994 * pow3(technicalGrid.DX)*technicalGrid.DX / physicalconstants::EPS_0;
+   //!warning TODO DX to to DX,DY,DZ in these and dRHONEi
    const Real Erhoqk_100 = 0.0470811 * technicalGrid.DX / physicalconstants::EPS_0;
    const Real Erhoqk_110 = 0.0284809 * technicalGrid.DX / physicalconstants::EPS_0;
    const Real Erhoqk_111 = 0.0154994 * technicalGrid.DX / physicalconstants::EPS_0;
+   const Real DX = technicalGrid.DX;
    // Zero RHOQ electric fields, accumulated during the rest of this call
    dMoments->at(fsgrids::dmoments::RHOQEx) = 0.0;
    dMoments->at(fsgrids::dmoments::RHOQEy) = 0.0;
    dMoments->at(fsgrids::dmoments::RHOQEz) = 0.0;
+   dMoments->at(fsgrids::dmoments::dRHONEx) = 0.0;
+   dMoments->at(fsgrids::dmoments::dRHONEy) = 0.0;
+   dMoments->at(fsgrids::dmoments::dRHONEz) = 0.0;
 
    // Get boundary flag for the cell:
    cuint sysBoundaryFlag  = technicalGrid.get(i,j,k)->sysBoundaryFlag;
@@ -166,6 +171,11 @@ void calculateDerivatives(
                                                                 leftMoments->at(fsgrids::moments::RHOQE) -
                                                                 rghtMoments->at(fsgrids::moments::RHOQE)
                                                                );
+
+      dMoments->at(fsgrids::dmoments::dRHONEx) += (
+                                                  rghtMoments->at(fsgrids::moments::RHONE) -
+                                                  leftMoments->at(fsgrids::moments::RHONE)
+                                                 ) / (2 * DX);
    }
 
    // Calculate y-derivatives (is not TVD for AMR mesh):
@@ -214,6 +224,11 @@ void calculateDerivatives(
                                                                 leftMoments->at(fsgrids::moments::RHOQE) -
                                                                 rghtMoments->at(fsgrids::moments::RHOQE)
                                                                );
+      dMoments->at(fsgrids::dmoments::dRHONEy) += (
+                                                  rghtMoments->at(fsgrids::moments::RHONE) -
+                                                  leftMoments->at(fsgrids::moments::RHONE)
+                                                 ) / (2 * DX);
+
    }
 
 
@@ -261,7 +276,11 @@ void calculateDerivatives(
       dMoments->at(fsgrids::dmoments::RHOQEz) += Erhoqk_100 * (
                                                                 leftMoments->at(fsgrids::moments::RHOQE) -
                                                                 rghtMoments->at(fsgrids::moments::RHOQE)
-                                                               );
+                                                              );
+      dMoments->at(fsgrids::dmoments::dRHONEz) += (
+                                                  rghtMoments->at(fsgrids::moments::RHONE) -
+                                                  leftMoments->at(fsgrids::moments::RHONE)
+                                                 ) / (2 * DX);
    }
 
 

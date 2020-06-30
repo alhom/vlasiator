@@ -60,6 +60,7 @@ void calculateInterpolatedVelocityMoments(
    const int cp_vz,
    const int cp_rhoq,
    const int cp_rhoqe,
+   const int cp_rhone,
    const int cp_p11,
    const int cp_p22,
    const int cp_p33

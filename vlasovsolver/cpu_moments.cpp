@@ -53,6 +53,7 @@ void calculateCellMoments(spatial_cell::SpatialCell* cell,
         cell->parameters[CellParams::VZ] = 0.0;
         cell->parameters[CellParams::RHOQ  ] = 0.0;
         cell->parameters[CellParams::RHOQE ] = 0.0;
+        cell->parameters[CellParams::RHONE ] = 0.0;
         cell->parameters[CellParams::P_11] = 0.0;
         cell->parameters[CellParams::P_22] = 0.0;
         cell->parameters[CellParams::P_33] = 0.0;
@@ -99,6 +100,11 @@ void calculateCellMoments(spatial_cell::SpatialCell* cell,
 	  /* RHOQE is accumulated for test species as well. This is only used for calculating
 	     electric field due to charge imbalance in electron runs. */
 	  cell->parameters[CellParams::RHOQE  ] += array[0]*charge;
+          /* RHONE is accumulated for electrons. Used to estimate electron density gradient
+             and subsequent changes to PQN-ERQ. */
+          if(mass < 0.5*physicalconstants::MASS_PROTON){
+             cell->parameters[CellParams::RHONE] += array[0];
+          }
 	  
        } // for-loop over particle species
        
@@ -172,6 +178,7 @@ void calculateMoments_R(
         cell->parameters[CellParams::VZ_R] = 0.0;
         cell->parameters[CellParams::RHOQ_R  ] = 0.0;
         cell->parameters[CellParams::RHOQE_R  ] = 0.0;
+        cell->parameters[CellParams::RHONE_R  ] = 0.0;
         cell->parameters[CellParams::P_11_R] = 0.0;
         cell->parameters[CellParams::P_22_R] = 0.0;
         cell->parameters[CellParams::P_33_R] = 0.0;
@@ -242,6 +249,10 @@ void calculateMoments_R(
 	    // RHOQE is accumulated for test species as well. This is only used for calculating
 	    // electric field due to charge imbalance in electron runs.
 	    cell->parameters[CellParams::RHOQE_R  ] += array[0]*charge;
+            if(mass < 0.5*physicalconstants::MASS_PROTON){
+               cell->parameters[CellParams::RHONE_R  ] += array[0];
+            }
+
 
 	} // for-loop over spatial cells
     } // for-loop over particle species
@@ -337,6 +348,7 @@ void calculateMoments_V(
 	cell->parameters[CellParams::VZ_V] = 0.0;
 	cell->parameters[CellParams::RHOQ_V  ] = 0.0;
 	cell->parameters[CellParams::RHOQE_V  ] = 0.0;
+        cell->parameters[CellParams::RHONE_V] = 0.0;
 	cell->parameters[CellParams::P_11_V] = 0.0;
 	cell->parameters[CellParams::P_22_V] = 0.0;
 	cell->parameters[CellParams::P_33_V] = 0.0;
@@ -391,7 +403,9 @@ void calculateMoments_V(
 	    // RHOQE is accumulated for test species as well. This is only used for calculating
 	    // electric field due to charge imbalance in electron runs.
 	    cell->parameters[CellParams::RHOQE_V  ] += array[0]*charge;
-
+            if(mass < 0.5*physicalconstants::MASS_PROTON){
+               cell->parameters[CellParams::RHONE_V  ] += array[0];
+            }
 	} // for-loop over spatial cells
     } // for-loop over particle species
    

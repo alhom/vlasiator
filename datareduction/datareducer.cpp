@@ -217,6 +217,11 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
 	 outputReducer->addMetadata(outputReducer->size()-1,"C/m^3","$\\mathrm{C}\\,\\mathrm{m}^{-3}$","$\\rho_\\mathrm{q}$","1.0");
          continue;
       }
+      if(lowercase == "vg_cellid" || lowercase == "cellid") { // vg CellID
+         outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_cellid",CellParams::CELLID,1));
+         outputReducer->addMetadata(outputReducer->size()-1, "#", "$\\#$", "$\\mathrm{CellID}$", "1.0");
+         continue;
+      }
       if(lowercase == "fg_rhoq") { // Overall charge density (summed over all populations)
          outputReducer->addOperator(new DRO::DataReductionOperatorFsGrid("fg_rhoq",[](
                       FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2>& perBGrid,

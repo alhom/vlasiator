@@ -548,6 +548,7 @@ void calculateInterpolatedVelocityMoments(
    const int cp_vz,
    const int cp_rhoq,
    const int cp_rhoqe,
+   const int cp_rhone,
    const int cp_p11,
    const int cp_p22,
    const int cp_p33
@@ -565,6 +566,7 @@ void calculateInterpolatedVelocityMoments(
       SC->parameters[cp_vz] = 0.5* ( SC->parameters[CellParams::VZ_R] + SC->parameters[CellParams::VZ_V] );
       SC->parameters[cp_rhoq  ] = 0.5* ( SC->parameters[CellParams::RHOQ_R] + SC->parameters[CellParams::RHOQ_V] );
       SC->parameters[cp_rhoqe  ] = 0.5* ( SC->parameters[CellParams::RHOQE_R] + SC->parameters[CellParams::RHOQE_V] );
+      SC->parameters[cp_rhoqe  ] = 0.5* ( SC->parameters[CellParams::RHONE_R] + SC->parameters[CellParams::RHONE_V] );
       SC->parameters[cp_p11]   = 0.5* ( SC->parameters[CellParams::P_11_R] + SC->parameters[CellParams::P_11_V] );
       SC->parameters[cp_p22]   = 0.5* ( SC->parameters[CellParams::P_22_R] + SC->parameters[CellParams::P_22_V] );
       SC->parameters[cp_p33]   = 0.5* ( SC->parameters[CellParams::P_33_R] + SC->parameters[CellParams::P_33_V] );
@@ -600,6 +602,7 @@ void calculateInitialVelocityMoments(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_G
       SC->parameters[CellParams::VZ_DT2] = SC->parameters[CellParams::VZ];
       SC->parameters[CellParams::RHOQ_DT2] = SC->parameters[CellParams::RHOQ];
       SC->parameters[CellParams::RHOQE_DT2] = SC->parameters[CellParams::RHOQE];
+      SC->parameters[CellParams::RHONE_DT2] = SC->parameters[CellParams::RHONE];
       SC->parameters[CellParams::P_11_DT2] = SC->parameters[CellParams::P_11];
       SC->parameters[CellParams::P_22_DT2] = SC->parameters[CellParams::P_22];
       SC->parameters[CellParams::P_33_DT2] = SC->parameters[CellParams::P_33];
