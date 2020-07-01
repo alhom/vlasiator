@@ -112,9 +112,13 @@ Eigen::Matrix<Real,3,1> calcDeltaERhoQ(Eigen::Matrix<Real,3,1> U, Real dt, Real 
         }
      }
    // These are for a volume charge, so these are somehow spread over a much larger (and undescriptive) volume
-   deltaE[0] += Erhoqk_100 * (stencilQs[2][1][1] - stencilQs[0][1][1])/dx3;
-   deltaE[1] += Erhoqk_100 * (stencilQs[1][2][1] - stencilQs[1][0][1])/dx3;
-   deltaE[2] += Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0])/dx3;
+   //deltaE[0] += Erhoqk_100 * (stencilQs[2][1][1] - stencilQs[0][1][1])/dx3;
+   //deltaE[1] += Erhoqk_100 * (stencilQs[1][2][1] - stencilQs[1][0][1])/dx3;
+   //deltaE[2] += Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0])/dx3;
+   //Parallel plates
+   deltaE[0] += (stencilQs[2][1][1] - stencilQs[0][1][1])/(2*dx2*physicalconstants::EPS_0);
+   deltaE[1] += (stencilQs[1][2][1] - stencilQs[1][0][1])/(2*dx2*physicalconstants::EPS_0);
+   deltaE[2] += (stencilQs[1][1][2] - stencilQs[1][1][0])/(2*dx2*physicalconstants::EPS_0);
    bool out = cellID == 1690;
    if(out) std::cout << eqFluxDt << " " << stencilQs[2][1][1] << " " << stencilQs[0][1][1] << " "<< stencilQs[1][2][1] << " " << deltaE[0] << " " << deltaE[1] << " " << deltaE[2] << "\n";
    return deltaE;
