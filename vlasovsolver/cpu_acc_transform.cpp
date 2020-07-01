@@ -111,12 +111,13 @@ Eigen::Matrix<Real,3,1> calcDeltaERhoQ(Eigen::Matrix<Real,3,1> U, Real dt, Real 
            stencilQs[x][y][z] += U[2]*dt * dx2 * eqFluxDt;
         }
      }
+   // These are for a volume charge, so these are somehow spread over a much larger (and undescriptive) volume
    deltaE[0] += Erhoqk_100 * (stencilQs[2][1][1] - stencilQs[0][1][1])/dx3;
    deltaE[1] += Erhoqk_100 * (stencilQs[1][2][1] - stencilQs[1][0][1])/dx3;
    deltaE[2] += Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0])/dx3;
    bool out = cellID == 1690;
    if(out) std::cout << eqFluxDt << " " << stencilQs[2][1][1] << " " << stencilQs[0][1][1] << " "<< stencilQs[1][2][1] << " " << deltaE[0] << " " << deltaE[1] << " " << deltaE[2] << "\n";
-   return deltaE*0.0;
+   return deltaE;
 
 }
 
@@ -317,16 +318,16 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
             k11 = h * q / mass * (EfromJe + ERQcurr);  // h * dv/dt
             k12 = h * (beta + alpha * electronVcurr); // h * (-q/m eps) * J_tot  ==  h * d^2 v / dt^2 == (q/m) dE/dt
             k13 = calcDeltaERhoQ(electronVcurr, 
-                                 substeps_dt, 
-                                 gradne.dot(electronVcurr) * substeps_dt * q,
+                                 h, 
+                                 gradne.dot(electronVcurr) * h * q,
                                  spatial_cell->get_cell_parameters()[CellParams::DX],
 		                 spatial_cell->get_cell_parameters()[CellParams::CELLID]);
 
             k21 = h * (q / mass * (EfromJe + ERQcurr + k13/2) + k12/2); // estimate acceleration using k12 field estimate (at half interval)
             k22 = h * (beta + alpha * (electronVcurr + k11/2)); // estimate field change using k11 current estimate (at half interval)
             k23 = h * calcDeltaERhoQ(electronVcurr + k11/2,
-                                substeps_dt,
-                                gradne.dot(electronVcurr + k13/2) * substeps_dt * q,
+                                h,
+                                gradne.dot(electronVcurr + k13/2) * h * q,
                                 spatial_cell->get_cell_parameters()[CellParams::DX],
                                 spatial_cell->get_cell_parameters()[CellParams::CELLID]);
 
@@ -334,8 +335,8 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
             k31 = h * (q / mass * (EfromJe + ERQcurr + k23/2) + k22/2); // estimate acceleration using k22 field estimate (at half interval)
             k32 = h * (beta + alpha * (electronVcurr + k21/2)); // estimate field change using k21 current estimate (at half interval)
             k33 = calcDeltaERhoQ(electronVcurr + k21/2,
-                                substeps_dt,
-                                gradne.dot(electronVcurr + k23/2) * substeps_dt * q,
+                                h,
+                                gradne.dot(electronVcurr + k23/2) * h * q,
                                 spatial_cell->get_cell_parameters()[CellParams::DX],
 				spatial_cell->get_cell_parameters()[CellParams::CELLID]);
 
@@ -343,8 +344,8 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
             k41 = h * (q / mass * (EfromJe + ERQcurr + k33) + k32); // estimate acceleration using k32 field estimate (at full interval)
             k42 = h * (beta + alpha * (electronVcurr + k31)); // estimate field change using k31 current estimate (at full interval)
             k43 = calcDeltaERhoQ(electronVcurr + k31,
-                                substeps_dt,
-                                gradne.dot(electronVcurr + k33) * substeps_dt * q,
+                                h,
+                                gradne.dot(electronVcurr + k33) * h * q,
                                 spatial_cell->get_cell_parameters()[CellParams::DX],
 				spatial_cell->get_cell_parameters()[CellParams::CELLID]);
 
