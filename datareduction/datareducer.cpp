@@ -284,6 +284,37 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
          continue;
       }
 
+      if(lowercase == "fg_rhone") { // Electron simulation charge density
+         outputReducer->addOperator(new DRO::DataReductionOperatorFsGrid("fg_rhone",[](
+                      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2>& perBGrid,
+                      FsGrid< std::array<Real, fsgrids::efield::N_EFIELD>, 2>& EGrid,
+                      FsGrid< std::array<Real, fsgrids::ehall::N_EHALL>, 2>& EHallGrid,
+                      FsGrid< std::array<Real, fsgrids::egradpe::N_EGRADPE>, 2>& EGradPeGrid,
+                      FsGrid< std::array<Real, fsgrids::moments::N_MOMENTS>, 2>& momentsGrid,
+                      FsGrid< std::array<Real, fsgrids::dperb::N_DPERB>, 2>& dPerBGrid,
+                      FsGrid< std::array<Real, fsgrids::dmoments::N_DMOMENTS>, 2>& dMomentsGrid,
+                      FsGrid< std::array<Real, fsgrids::bgbfield::N_BGB>, 2>& BgBGrid,
+                      FsGrid< std::array<Real, fsgrids::volfields::N_VOL>, 2>& volGrid,
+                      FsGrid< fsgrids::technical, 2>& technicalGrid)->std::vector<double> {
+
+               std::array<int32_t,3>& gridSize = technicalGrid.getLocalSize();
+               std::vector<double> retval(gridSize[0]*gridSize[1]*gridSize[2]);
+
+               // Iterate through fsgrid cells and extract electron density
+               for(int z=0; z<gridSize[2]; z++) {
+                  for(int y=0; y<gridSize[1]; y++) {
+                     for(int x=0; x<gridSize[0]; x++) {
+                        retval[gridSize[1]*gridSize[0]*z + gridSize[0]*y + x] = (*momentsGrid.get(x,y,z))[fsgrids::RHONE];
+                     }
+                  }
+               }
+               return retval;
+         }
+         ));
+         outputReducer->addMetadata(outputReducer->size()-1,"1/m^3","$\\mathrm{1}\\,\\mathrm{m}^{-3}$","$\\rho_\\mathrm{ne}$","1.0");
+         continue;
+      }
+
       if(lowercase == "populations_rho" || lowercase == "populations_vg_rho") { // Per-population particle number density
          for(unsigned int i =0; i < getObjectWrapper().particleSpecies.size(); i++) {
             species::Species& species=getObjectWrapper().particleSpecies[i];
@@ -695,14 +726,21 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
          continue;
       }
 
-      if(lowercase == "rhoqe" || lowercase == "vg_rhoqe") {
-         // Volume-averaged E field
+      if(lowercase == "erhoqe" || lowercase == "vg_rhoqe") {
          outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_erhoqe",CellParams::ERHOQX,3));
          outputReducer->addMetadata(outputReducer->size()-1,"V/m","$\\mathrm{V}\\,\\mathrm{m}^{-1}$","$E_{\\rho_q}$","1.0");
          outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_rhoqe",CellParams::RHOQE,1));
          outputReducer->addMetadata(outputReducer->size()-1,"C/m^3","$\\mathrm{C}\\,\\mathrm{m}^{-3}$","$\\rho_\\mathrm{qe}$","1.0");
          continue;
       }
+      if(lowercase == "rhone" || lowercase == "vg_rhone") {
+         outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_gradrhone",CellParams::dRHONEx,3));
+         outputReducer->addMetadata(outputReducer->size()-1,"1/m^4","$\\mathrm{m}^{-4}$","$\\nabla{\\rho_{ne}}$","1.0");
+         outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_rhone",CellParams::RHONE,1));
+         outputReducer->addMetadata(outputReducer->size()-1,"1/m^3","$\\mathrm{m}^{-3}$","$\\rho_\\mathrm{ne}$","1.0");
+         continue;
+      }
+
 
       if(lowercase == "volb" || lowercase == "vg_volb" || lowercase == "b_vol" || lowercase == "bvol" || lowercase == "vg_bvol" || lowercase == "vg_b_vol") {
          // Volume-averaged magnetic field

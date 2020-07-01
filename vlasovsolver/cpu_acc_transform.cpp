@@ -70,6 +70,7 @@ Eigen::Matrix<Real,3,1> calcDeltaERhoQ(Eigen::Matrix<Real,3,1> U, Real dt, Real 
    
    Eigen::Matrix<Real,3,1> deltaE(0.0, 0.0, 0.0);
    Real dx2 = dx*dx;
+   Real dx3 = dx*dx*dx;
    Real stencilQs[3][3][3];
    const Real Erhoqk_100 = 0.0470811 * dx / physicalconstants::EPS_0;
    const Real Erhoqk_110 = 0.0284809 * dx / physicalconstants::EPS_0;
@@ -110,12 +111,13 @@ Eigen::Matrix<Real,3,1> calcDeltaERhoQ(Eigen::Matrix<Real,3,1> U, Real dt, Real 
            stencilQs[x][y][z] += U[2]*dt * dx2 * eqFluxDt;
         }
      }
-   deltaE[0] -= Erhoqk_100 * (stencilQs[2][1][1] - stencilQs[0][1][1]);
-   deltaE[1] -= Erhoqk_100 * (stencilQs[1][2][1] - stencilQs[1][0][1]);
-   deltaE[2] -= Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0]);
+   deltaE[0] += Erhoqk_100 * (stencilQs[2][1][1] - stencilQs[0][1][1])/dx3;
+   deltaE[1] += Erhoqk_100 * (stencilQs[1][2][1] - stencilQs[1][0][1])/dx3;
+   deltaE[2] += Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0])/dx3;
    bool out = cellID == 1690;
    if(out) std::cout << eqFluxDt << " " << stencilQs[2][1][1] << " " << stencilQs[0][1][1] << " "<< stencilQs[1][2][1] << " " << deltaE[0] << " " << deltaE[1] << " " << deltaE[2] << "\n";
    return deltaE;
+
 }
 
 
@@ -237,7 +239,8 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       spatial_cell->parameters[CellParams::dRHONEx],
       spatial_cell->parameters[CellParams::dRHONEy],
       spatial_cell->parameters[CellParams::dRHONEz]);
-   
+   bool out = spatial_cell->get_cell_parameters()[CellParams::CELLID] == 1690;
+   if(out) std::cout << "gradRhone: " << gradne[0] << " " << gradne[1] << " " << gradne[2] << endl;
    const Real q = getObjectWrapper().particleSpecies[popID].charge;
    const Real mass = getObjectWrapper().particleSpecies[popID].mass;
    const Real rho = spatial_cell->get_population(popID).RHO;
@@ -260,7 +263,7 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
    Ji[1] += (dBXdz - dBZdx)/physicalconstants::MU_0;
    Ji[2] += (dBYdx - dBXdy)/physicalconstants::MU_0;
 
-   bool out = spatial_cell->get_cell_parameters()[CellParams::CELLID] == 1690;
+   
 
    bool RKN = true; // Select electron propagation method
    for (uint i=0; i<transformation_substeps; ++i) {
@@ -290,15 +293,17 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       }
       // NB: Alternatively we could just go to the ion + Hall frame and assume it is the same as
       // the electron frame.
-      
+      Real t = P::t == 0 ? i*substeps_dt + P::t : i*substeps_dt + P::t + 0.5*P::dt;
       // Calculate EJE only for the electron population
       if ((smallparticle) && (fabs(substeps_dt) > EPSILON)) {
 	 // First find the current electron moments, this results in leapfrog-like propagation of EJE
 	 Eigen::Matrix<Real,3,1> electronVcurr(total_transform*electronV);
-	 if (out) { std::cerr << transformation_substeps*substeps_dt + P::t << " "
+	 if (out) { std::cerr << i*substeps_dt + P::t << " "
                     << EfromJe[0] << " " << EfromJe[1] << " " << EfromJe[2] << " " 
                     << ERQcurr[0] << " " << ERQcurr[1] << " " << ERQcurr[2] << " "
-	  	    << electronVcurr[0] << " " << electronVcurr[1] << " " << electronVcurr[2] << " " << endl;}
+	  	    << electronVcurr[0] << " " << electronVcurr[1] << " " << electronVcurr[2] << " " ;
+//<< endl;
+  }
 	    
 	 if (RKN) {
             // This is a traditional RK4 integrator 
@@ -311,14 +316,14 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
             k11 = h * q / mass * (EfromJe + ERQcurr);  // h * dv/dt
             k12 = h * (beta + alpha * electronVcurr); // h * (-q/m eps) * J_tot  ==  h * d^2 v / dt^2 == (q/m) dE/dt
             k13 = calcDeltaERhoQ(electronVcurr, 
-                                substeps_dt, 
-                                gradne.dot(electronVcurr) * substeps_dt * q,
-                                spatial_cell->get_cell_parameters()[CellParams::DX],
-				spatial_cell->get_cell_parameters()[CellParams::CELLID]);
+                                 substeps_dt, 
+                                 gradne.dot(electronVcurr) * substeps_dt * q,
+                                 spatial_cell->get_cell_parameters()[CellParams::DX],
+		                 spatial_cell->get_cell_parameters()[CellParams::CELLID]);
 
             k21 = h * (q / mass * (EfromJe + ERQcurr + k13/2) + k12/2); // estimate acceleration using k12 field estimate (at half interval)
             k22 = h * (beta + alpha * (electronVcurr + k11/2)); // estimate field change using k11 current estimate (at half interval)
-            k23 = calcDeltaERhoQ(electronVcurr + k11/2,
+            k23 = h * calcDeltaERhoQ(electronVcurr + k11/2,
                                 substeps_dt,
                                 gradne.dot(electronVcurr + k13/2) * substeps_dt * q,
                                 spatial_cell->get_cell_parameters()[CellParams::DX],
@@ -345,8 +350,9 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
 	    
             deltaV = (k11 + 2*k21 + 2*k31 + k41) / 6.; // Finally update velocity based on weighted acceleration estimate
 	    EfromJe += mass / q * (k12 + 2*k22 + 2*k32 + k42) / 6.; // And update fields based on weighted velocity (current) estimate
-
-            ERQcurr += (k13 + 2*k23 + 2*k33 + k43) / 6.;
+            Eigen::Matrix<Real,3,1> dERQcurr((k13 + 2*k23 + 2*k33 + k43) / 6.);
+            if(out) std::cerr << dERQcurr[0] << " " << dERQcurr[1] << " " << dERQcurr[2] << endl;
+            ERQcurr += dERQcurr;
 
 	    // Thiago's original version (works the same)
 	    // const Eigen::Matrix<Real,3,1> beta  = -q / mass / physicalconstants::EPS_0 * Ji;
