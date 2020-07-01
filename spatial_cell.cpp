@@ -699,16 +699,6 @@ namespace spatial_cell {
             block_lengths.push_back(sizeof(Real));
          }
 
-         // send RHONE
-         if ((SpatialCell::mpi_transfer_type & Transfer::CELL_RHONE)!=0){
-            displacements.push_back((uint8_t*) &(this->parameters[CellParams::RHONE]) - (uint8_t*) this);
-            block_lengths.push_back(sizeof(Real));
-         }
-         if ((SpatialCell::mpi_transfer_type & Transfer::CELL_RHONE_DT2)!=0){
-            displacements.push_back((uint8_t*) &(this->parameters[CellParams::RHONE_DT2]) - (uint8_t*) this);
-            block_lengths.push_back(sizeof(Real));
-         }
-
          // send  spatial cell BVOL derivatives
          if ((SpatialCell::mpi_transfer_type & Transfer::CELL_BVOL_DERIVATIVES)!=0){
             displacements.push_back((uint8_t*) &(this->derivativesBVOL[0]) - (uint8_t*) this);

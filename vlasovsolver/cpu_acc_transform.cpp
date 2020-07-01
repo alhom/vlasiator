@@ -116,7 +116,7 @@ Eigen::Matrix<Real,3,1> calcDeltaERhoQ(Eigen::Matrix<Real,3,1> U, Real dt, Real 
    deltaE[2] += Erhoqk_100 * (stencilQs[1][1][2] - stencilQs[1][1][0])/dx3;
    bool out = cellID == 1690;
    if(out) std::cout << eqFluxDt << " " << stencilQs[2][1][1] << " " << stencilQs[0][1][1] << " "<< stencilQs[1][2][1] << " " << deltaE[0] << " " << deltaE[1] << " " << deltaE[2] << "\n";
-   return deltaE;
+   return deltaE*0.0;
 
 }
 
@@ -230,7 +230,7 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       spatial_cell->parameters[CellParams::ERHOQX],
       spatial_cell->parameters[CellParams::ERHOQY],
       spatial_cell->parameters[CellParams::ERHOQZ]);
-   // Efromrq, updated along with EJE in substepping
+   // Efromrq estimate, updated along with EJE in substepping
    Eigen::Matrix<Real,3,1> ERQcurr(Efromrq);
    // Estimate for change in charge density in the neighbouring cells due to electronVcurr
    Eigen::Matrix<Real,3,1> RQdelta(0.0, 0.0, 0.0);
@@ -240,6 +240,7 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       spatial_cell->parameters[CellParams::dRHONEy],
       spatial_cell->parameters[CellParams::dRHONEz]);
    bool out = spatial_cell->get_cell_parameters()[CellParams::CELLID] == 1690;
+   if(out) std::cout << "Efromrq: " << Efromrq[0] << " " << Efromrq[1] << " " << Efromrq[2] << endl;
    if(out) std::cout << "gradRhone: " << gradne[0] << " " << gradne[1] << " " << gradne[2] << endl;
    const Real q = getObjectWrapper().particleSpecies[popID].charge;
    const Real mass = getObjectWrapper().particleSpecies[popID].mass;
@@ -293,12 +294,12 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       }
       // NB: Alternatively we could just go to the ion + Hall frame and assume it is the same as
       // the electron frame.
-      Real t = P::t == 0 ? i*substeps_dt + P::t : i*substeps_dt + P::t + 0.5*P::dt;
+      Real t = (P::dt > dt ? i*substeps_dt + P::t : i*substeps_dt + P::t + 0.5*P::dt);
       // Calculate EJE only for the electron population
       if ((smallparticle) && (fabs(substeps_dt) > EPSILON)) {
 	 // First find the current electron moments, this results in leapfrog-like propagation of EJE
 	 Eigen::Matrix<Real,3,1> electronVcurr(total_transform*electronV);
-	 if (out) { std::cerr << i*substeps_dt + P::t << " "
+	 if (out) { std::cerr << t << " "
                     << EfromJe[0] << " " << EfromJe[1] << " " << EfromJe[2] << " " 
                     << ERQcurr[0] << " " << ERQcurr[1] << " " << ERQcurr[2] << " "
 	  	    << electronVcurr[0] << " " << electronVcurr[1] << " " << electronVcurr[2] << " " ;
