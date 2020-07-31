@@ -21,6 +21,7 @@
  */
 
 #include "fs_common.h"
+#define E_FSDROP_TEMP_MARGIN 3
 
 /*! \brief Helper function
  * 
@@ -79,6 +80,8 @@ void reconstructionCoefficients(
    if (params->get(i,j,k+1) != NULL) cep_i1j1k2 = params->get(i,j,k+1);
    
    #ifndef FS_1ST_ORDER_SPACE
+//   cuint cellSysBoundaryLayer = technicalGrid.get(i,j,k)->sysBoundaryLayer;
+//   cuint sysBoundarySolverMargin = E_FSDROP_TEMP_MARGIN;
 
    // Create a dummy array for containing zero values for derivatives on non-existing cells:
    std::array<Real, fsgrids::dperb::N_DPERB> dummyDerivatives;
