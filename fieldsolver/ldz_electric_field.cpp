@@ -29,6 +29,8 @@
    #define DEBUG_FSOLVER
 #endif
 
+#define E_FSDROP_TEMP_MARGIN 3
+
 namespace pc = physicalconstants;
 using namespace std;
 
@@ -460,6 +462,10 @@ void calculateEdgeElectricFieldX(
    Real maxV = 0.0;                 // Max velocity for CFL purposes
    Real c_y, c_z;                   // Wave speeds to yz-directions
 
+   // For checking whether or not to use 1st degree solver next to sysBoundary
+   cuint cellSysBoundaryLayer = technicalGrid.get(i,j,k)->sysBoundaryLayer;
+   cuint sysBoundarySolverMargin = E_FSDROP_TEMP_MARGIN;
+
    // Get values at all four neighbours, result is written to SW.
    std::array<Real, fsgrids::bfield::N_BFIELD> * perb_SW = perBGrid.get(i  ,j  ,k  );
    std::array<Real, fsgrids::bfield::N_BFIELD> * perb_SE = perBGrid.get(i  ,j-1,k  );
@@ -559,8 +565,11 @@ void calculateEdgeElectricFieldX(
 
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ex_SW += +HALF*((By_S - HALF*dBydz_S)*(-dmoments_SW->at(fsgrids::dmoments::dVzdy) - dmoments_SW->at(fsgrids::dmoments::dVzdz)) - dBydz_S*Vz0 + SIXTH*dBydx_S*dmoments_SW->at(fsgrids::dmoments::dVzdx));
-      Ex_SW += -HALF*((Bz_W - HALF*dBzdy_W)*(-dmoments_SW->at(fsgrids::dmoments::dVydy) - dmoments_SW->at(fsgrids::dmoments::dVydz)) - dBzdy_W*Vy0 + SIXTH*dBzdx_W*dmoments_SW->at(fsgrids::dmoments::dVydx));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin)
+      {
+         Ex_SW += +HALF*((By_S - HALF*dBydz_S)*(-dmoments_SW->at(fsgrids::dmoments::dVzdy) - dmoments_SW->at(fsgrids::dmoments::dVzdz)) - dBydz_S*Vz0 + SIXTH*dBydx_S*dmoments_SW->at(fsgrids::dmoments::dVzdx));
+         Ex_SW += -HALF*((Bz_W - HALF*dBzdy_W)*(-dmoments_SW->at(fsgrids::dmoments::dVydy) - dmoments_SW->at(fsgrids::dmoments::dVydz)) - dBzdy_W*Vy0 + SIXTH*dBzdx_W*dmoments_SW->at(fsgrids::dmoments::dVydx));
+      }
    #endif
    calculateWaveSpeedYZ(
       perBGrid,
@@ -614,8 +623,11 @@ void calculateEdgeElectricFieldX(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ex_SE += +HALF*((By_S - HALF*dBydz_S)*(+dmoments_SE->at(fsgrids::dmoments::dVzdy) - dmoments_SE->at(fsgrids::dmoments::dVzdz)) - dBydz_S*Vz0 + SIXTH*dBydx_S*dmoments_SE->at(fsgrids::dmoments::dVzdx));
-      Ex_SE += -HALF*((Bz_E + HALF*dBzdy_E)*(+dmoments_SE->at(fsgrids::dmoments::dVydy) - dmoments_SE->at(fsgrids::dmoments::dVydz)) + dBzdy_E*Vy0 + SIXTH*dBzdx_E*dmoments_SE->at(fsgrids::dmoments::dVydx));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin)
+      {
+         Ex_SE += +HALF*((By_S - HALF*dBydz_S)*(+dmoments_SE->at(fsgrids::dmoments::dVzdy) - dmoments_SE->at(fsgrids::dmoments::dVzdz)) - dBydz_S*Vz0 + SIXTH*dBydx_S*dmoments_SE->at(fsgrids::dmoments::dVzdx));
+         Ex_SE += -HALF*((Bz_E + HALF*dBzdy_E)*(+dmoments_SE->at(fsgrids::dmoments::dVydy) - dmoments_SE->at(fsgrids::dmoments::dVydz)) + dBzdy_E*Vy0 + SIXTH*dBzdx_E*dmoments_SE->at(fsgrids::dmoments::dVydx));
+      }
    #endif
    
    calculateWaveSpeedYZ(
@@ -670,8 +682,11 @@ void calculateEdgeElectricFieldX(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ex_NW += +HALF*((By_N + HALF*dBydz_N)*(-dmoments_NW->at(fsgrids::dmoments::dVzdy) + dmoments_NW->at(fsgrids::dmoments::dVzdz)) + dBydz_N*Vz0 + SIXTH*dBydx_N*dmoments_NW->at(fsgrids::dmoments::dVzdx));
-      Ex_NW += -HALF*((Bz_W - HALF*dBzdy_W)*(-dmoments_NW->at(fsgrids::dmoments::dVydy) + dmoments_NW->at(fsgrids::dmoments::dVydz)) - dBzdy_W*Vy0 + SIXTH*dBzdx_W*dmoments_NW->at(fsgrids::dmoments::dVydx));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin)
+      {
+         Ex_NW += +HALF*((By_N + HALF*dBydz_N)*(-dmoments_NW->at(fsgrids::dmoments::dVzdy) + dmoments_NW->at(fsgrids::dmoments::dVzdz)) + dBydz_N*Vz0 + SIXTH*dBydx_N*dmoments_NW->at(fsgrids::dmoments::dVzdx));
+         Ex_NW += -HALF*((Bz_W - HALF*dBzdy_W)*(-dmoments_NW->at(fsgrids::dmoments::dVydy) + dmoments_NW->at(fsgrids::dmoments::dVydz)) - dBzdy_W*Vy0 + SIXTH*dBzdx_W*dmoments_NW->at(fsgrids::dmoments::dVydx));
+      }
    #endif
    
    calculateWaveSpeedYZ(
@@ -726,8 +741,11 @@ void calculateEdgeElectricFieldX(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ex_NE += +HALF*((By_N + HALF*dBydz_N)*(+dmoments_NE->at(fsgrids::dmoments::dVzdy) + dmoments_NE->at(fsgrids::dmoments::dVzdz)) + dBydz_N*Vz0 + SIXTH*dBydx_N*dmoments_NE->at(fsgrids::dmoments::dVzdx));
-      Ex_NE += -HALF*((Bz_E + HALF*dBzdy_E)*(+dmoments_NE->at(fsgrids::dmoments::dVydy) + dmoments_NE->at(fsgrids::dmoments::dVydz)) + dBzdy_E*Vy0 + SIXTH*dBzdx_E*dmoments_NE->at(fsgrids::dmoments::dVydx));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin)
+      {
+         Ex_NE += +HALF*((By_N + HALF*dBydz_N)*(+dmoments_NE->at(fsgrids::dmoments::dVzdy) + dmoments_NE->at(fsgrids::dmoments::dVzdz)) + dBydz_N*Vz0 + SIXTH*dBydx_N*dmoments_NE->at(fsgrids::dmoments::dVzdx));
+         Ex_NE += -HALF*((Bz_E + HALF*dBzdy_E)*(+dmoments_NE->at(fsgrids::dmoments::dVydy) + dmoments_NE->at(fsgrids::dmoments::dVydz)) + dBzdy_E*Vy0 + SIXTH*dBzdx_E*dmoments_NE->at(fsgrids::dmoments::dVydx));
+      }
    #endif
    
    calculateWaveSpeedYZ(
@@ -757,8 +775,14 @@ void calculateEdgeElectricFieldX(
       efield_SW->at(fsgrids::efield::EX) += ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*(perBz_W-perBz_E);
 #else
       // 2nd     order diffusive terms
-      efield_SW->at(fsgrids::efield::EX) -= az_pos*az_neg/(az_pos+az_neg+EPS)*((perBy_S-HALF*dperBydz_S) - (perBy_N+HALF*dperBydz_N));
-      efield_SW->at(fsgrids::efield::EX) += ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*((perBz_W-HALF*dperBzdy_W) - (perBz_E+HALF*dperBzdy_E));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         efield_SW->at(fsgrids::efield::EX) -= az_pos*az_neg/(az_pos+az_neg+EPS)*(perBy_S-perBy_N);
+         efield_SW->at(fsgrids::efield::EX) += ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*(perBz_W-perBz_E);
+      }
+      else {
+         efield_SW->at(fsgrids::efield::EX) -= az_pos*az_neg/(az_pos+az_neg+EPS)*((perBy_S-HALF*dperBydz_S) - (perBy_N+HALF*dperBydz_N));
+         efield_SW->at(fsgrids::efield::EX) += ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*((perBz_W-HALF*dperBzdy_W) - (perBz_E+HALF*dperBzdy_E));
+      }
 #endif
    }
    
@@ -808,7 +832,10 @@ void calculateEdgeElectricFieldY(
       exit(1);
    }
    #endif
-   
+
+   cuint cellSysBoundaryLayer = technicalGrid.get(i,j,k)->sysBoundaryLayer;
+   cuint sysBoundarySolverMargin = E_FSDROP_TEMP_MARGIN;
+  
    // An edge has four neighbouring spatial cells. Calculate
    // electric field in each of the four cells per edge.
    Real ax_pos,ax_neg;              // Max. characteristic velocities to x-direction
@@ -916,8 +943,10 @@ void calculateEdgeElectricFieldY(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms
-      Ey_SW += +HALF*((Bz_S - HALF*dBzdx_S)*(-dmoments_SW->at(fsgrids::dmoments::dVxdx) - dmoments_SW->at(fsgrids::dmoments::dVxdz)) - dBzdx_S*Vx0 + SIXTH*dBzdy_S*dmoments_SW->at(fsgrids::dmoments::dVxdy));
-      Ey_SW += -HALF*((Bx_W - HALF*dBxdz_W)*(-dmoments_SW->at(fsgrids::dmoments::dVzdx) - dmoments_SW->at(fsgrids::dmoments::dVzdz)) - dBxdz_W*Vz0 + SIXTH*dBxdy_W*dmoments_SW->at(fsgrids::dmoments::dVzdy));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ey_SW += +HALF*((Bz_S - HALF*dBzdx_S)*(-dmoments_SW->at(fsgrids::dmoments::dVxdx) - dmoments_SW->at(fsgrids::dmoments::dVxdz)) - dBzdx_S*Vx0 + SIXTH*dBzdy_S*dmoments_SW->at(fsgrids::dmoments::dVxdy));
+         Ey_SW += -HALF*((Bx_W - HALF*dBxdz_W)*(-dmoments_SW->at(fsgrids::dmoments::dVzdx) - dmoments_SW->at(fsgrids::dmoments::dVzdz)) - dBxdz_W*Vz0 + SIXTH*dBxdy_W*dmoments_SW->at(fsgrids::dmoments::dVzdy));
+      }
    #endif
    
    calculateWaveSpeedXZ(
@@ -972,8 +1001,10 @@ void calculateEdgeElectricFieldY(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ey_SE += +HALF*((Bz_S - HALF*dBzdx_S)*(-dmoments_SE->at(fsgrids::dmoments::dVxdx) + dmoments_SE->at(fsgrids::dmoments::dVxdz)) - dBzdx_S*Vx0 + SIXTH*dBzdy_S*dmoments_SE->at(fsgrids::dmoments::dVxdy));
-      Ey_SE += -HALF*((Bx_E + HALF*dBxdz_E)*(-dmoments_SE->at(fsgrids::dmoments::dVzdx) + dmoments_SE->at(fsgrids::dmoments::dVzdz)) + dBxdz_E*Vz0 + SIXTH*dBxdy_E*dmoments_SE->at(fsgrids::dmoments::dVzdy));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ey_SE += +HALF*((Bz_S - HALF*dBzdx_S)*(-dmoments_SE->at(fsgrids::dmoments::dVxdx) + dmoments_SE->at(fsgrids::dmoments::dVxdz)) - dBzdx_S*Vx0 + SIXTH*dBzdy_S*dmoments_SE->at(fsgrids::dmoments::dVxdy));
+         Ey_SE += -HALF*((Bx_E + HALF*dBxdz_E)*(-dmoments_SE->at(fsgrids::dmoments::dVzdx) + dmoments_SE->at(fsgrids::dmoments::dVzdz)) + dBxdz_E*Vz0 + SIXTH*dBxdy_E*dmoments_SE->at(fsgrids::dmoments::dVzdy));
+      }
    #endif
    
    calculateWaveSpeedXZ(
@@ -1028,8 +1059,10 @@ void calculateEdgeElectricFieldY(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ey_NW += +HALF*((Bz_N + HALF*dBzdx_N)*(+dmoments_NW->at(fsgrids::dmoments::dVxdx) - dmoments_NW->at(fsgrids::dmoments::dVxdz)) + dBzdx_N*Vx0 + SIXTH*dBzdy_N*dmoments_NW->at(fsgrids::dmoments::dVxdy));
-      Ey_NW += -HALF*((Bx_W - HALF*dBxdz_W)*(+dmoments_NW->at(fsgrids::dmoments::dVzdx) - dmoments_NW->at(fsgrids::dmoments::dVzdz)) - dBxdz_W*Vz0 + SIXTH*dBxdy_W*dmoments_NW->at(fsgrids::dmoments::dVzdy));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ey_NW += +HALF*((Bz_N + HALF*dBzdx_N)*(+dmoments_NW->at(fsgrids::dmoments::dVxdx) - dmoments_NW->at(fsgrids::dmoments::dVxdz)) + dBzdx_N*Vx0 + SIXTH*dBzdy_N*dmoments_NW->at(fsgrids::dmoments::dVxdy));
+         Ey_NW += -HALF*((Bx_W - HALF*dBxdz_W)*(+dmoments_NW->at(fsgrids::dmoments::dVzdx) - dmoments_NW->at(fsgrids::dmoments::dVzdz)) - dBxdz_W*Vz0 + SIXTH*dBxdy_W*dmoments_NW->at(fsgrids::dmoments::dVzdy));
+      }
    #endif
    
    calculateWaveSpeedXZ(
@@ -1084,8 +1117,10 @@ void calculateEdgeElectricFieldY(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ey_NE += +HALF*((Bz_N + HALF*dBzdx_N)*(+dmoments_NE->at(fsgrids::dmoments::dVxdx) + dmoments_NE->at(fsgrids::dmoments::dVxdz)) + dBzdx_N*Vx0 + SIXTH*dBzdy_N*dmoments_NE->at(fsgrids::dmoments::dVxdy));
-      Ey_NE += -HALF*((Bx_E + HALF*dBxdz_E)*(+dmoments_NE->at(fsgrids::dmoments::dVzdx) + dmoments_NE->at(fsgrids::dmoments::dVzdz)) + dBxdz_E*Vz0 + SIXTH*dBxdy_E*dmoments_NE->at(fsgrids::dmoments::dVzdy));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ey_NE += +HALF*((Bz_N + HALF*dBzdx_N)*(+dmoments_NE->at(fsgrids::dmoments::dVxdx) + dmoments_NE->at(fsgrids::dmoments::dVxdz)) + dBzdx_N*Vx0 + SIXTH*dBzdy_N*dmoments_NE->at(fsgrids::dmoments::dVxdy));
+         Ey_NE += -HALF*((Bx_E + HALF*dBxdz_E)*(+dmoments_NE->at(fsgrids::dmoments::dVzdx) + dmoments_NE->at(fsgrids::dmoments::dVzdz)) + dBxdz_E*Vz0 + SIXTH*dBxdy_E*dmoments_NE->at(fsgrids::dmoments::dVzdy));
+      }
    #endif
    
    calculateWaveSpeedXZ(
@@ -1114,8 +1149,14 @@ void calculateEdgeElectricFieldY(
       efield_SW->at(fsgrids::efield::EY) -= ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*(perBz_S-perBz_N);
       efield_SW->at(fsgrids::efield::EY) += az_pos*az_neg/(az_pos+az_neg+EPS)*(perBx_W-perBx_E);
 #else
-      efield_SW->at(fsgrids::efield::EY) -= ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*((perBz_S-HALF*dperBzdx_S) - (perBz_N+HALF*dperBzdx_N));
-      efield_SW->at(fsgrids::efield::EY) += az_pos*az_neg/(az_pos+az_neg+EPS)*((perBx_W-HALF*dperBxdz_W) - (perBx_E+HALF*dperBxdz_E));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         efield_SW->at(fsgrids::efield::EY) -= ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*(perBz_S-perBz_N);
+         efield_SW->at(fsgrids::efield::EY) += az_pos*az_neg/(az_pos+az_neg+EPS)*(perBx_W-perBx_E);
+      }
+      else {
+         efield_SW->at(fsgrids::efield::EY) -= ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*((perBz_S-HALF*dperBzdx_S) - (perBz_N+HALF*dperBzdx_N));
+         efield_SW->at(fsgrids::efield::EY) += az_pos*az_neg/(az_pos+az_neg+EPS)*((perBx_W-HALF*dperBxdz_W) - (perBx_E+HALF*dperBxdz_E));
+      }
 #endif
    }
    
@@ -1165,6 +1206,9 @@ void calculateEdgeElectricFieldZ(
       exit(1);
    }
    #endif
+
+   cuint cellSysBoundaryLayer = technicalGrid.get(i,j,k)->sysBoundaryLayer;
+   cuint sysBoundarySolverMargin = E_FSDROP_TEMP_MARGIN;
 
    // An edge has four neighbouring spatial cells. Calculate 
    // electric field in each of the four cells per edge.
@@ -1275,8 +1319,10 @@ void calculateEdgeElectricFieldZ(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ez_SW  += +HALF*((Bx_S - HALF*dBxdy_S)*(-dmoments_SW->at(fsgrids::dmoments::dVydx) - dmoments_SW->at(fsgrids::dmoments::dVydy)) - dBxdy_S*Vy0 + SIXTH*dBxdz_S*dmoments_SW->at(fsgrids::dmoments::dVydz));
-      Ez_SW  += -HALF*((By_W - HALF*dBydx_W)*(-dmoments_SW->at(fsgrids::dmoments::dVxdx) - dmoments_SW->at(fsgrids::dmoments::dVxdy)) - dBydx_W*Vx0 + SIXTH*dBydz_W*dmoments_SW->at(fsgrids::dmoments::dVxdz));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ez_SW  += +HALF*((Bx_S - HALF*dBxdy_S)*(-dmoments_SW->at(fsgrids::dmoments::dVydx) - dmoments_SW->at(fsgrids::dmoments::dVydy)) - dBxdy_S*Vy0 + SIXTH*dBxdz_S*dmoments_SW->at(fsgrids::dmoments::dVydz));
+         Ez_SW  += -HALF*((By_W - HALF*dBydx_W)*(-dmoments_SW->at(fsgrids::dmoments::dVxdx) - dmoments_SW->at(fsgrids::dmoments::dVxdy)) - dBydx_W*Vx0 + SIXTH*dBydz_W*dmoments_SW->at(fsgrids::dmoments::dVxdz));
+      }
    #endif
    
    // Calculate maximum wave speed (fast magnetosonic speed) on SW cell. In order 
@@ -1333,8 +1379,10 @@ void calculateEdgeElectricFieldZ(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ez_SE  += +HALF*((Bx_S - HALF*dBxdy_S)*(+dmoments_SE->at(fsgrids::dmoments::dVydx) - dmoments_SE->at(fsgrids::dmoments::dVydy)) - dBxdy_S*Vy0 + SIXTH*dBxdz_S*dmoments_SE->at(fsgrids::dmoments::dVydz));
-      Ez_SE  += -HALF*((By_E + HALF*dBydx_E)*(+dmoments_SE->at(fsgrids::dmoments::dVxdx) - dmoments_SE->at(fsgrids::dmoments::dVxdy)) + dBydx_E*Vx0 + SIXTH*dBydz_E*dmoments_SE->at(fsgrids::dmoments::dVxdz));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ez_SE  += +HALF*((Bx_S - HALF*dBxdy_S)*(+dmoments_SE->at(fsgrids::dmoments::dVydx) - dmoments_SE->at(fsgrids::dmoments::dVydy)) - dBxdy_S*Vy0 + SIXTH*dBxdz_S*dmoments_SE->at(fsgrids::dmoments::dVydz));
+         Ez_SE  += -HALF*((By_E + HALF*dBydx_E)*(+dmoments_SE->at(fsgrids::dmoments::dVxdx) - dmoments_SE->at(fsgrids::dmoments::dVxdy)) + dBydx_E*Vx0 + SIXTH*dBydz_E*dmoments_SE->at(fsgrids::dmoments::dVxdz));
+      }
    #endif
    
    calculateWaveSpeedXY(
@@ -1389,8 +1437,10 @@ void calculateEdgeElectricFieldZ(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ez_NW  += +HALF*((Bx_N + HALF*dBxdy_N)*(-dmoments_NW->at(fsgrids::dmoments::dVydx) + dmoments_NW->at(fsgrids::dmoments::dVydy)) + dBxdy_N*Vy0 + SIXTH*dBxdz_N*dmoments_NW->at(fsgrids::dmoments::dVydz));
-      Ez_NW  += -HALF*((By_W - HALF*dBydx_W)*(-dmoments_NW->at(fsgrids::dmoments::dVxdx) + dmoments_NW->at(fsgrids::dmoments::dVxdy)) - dBydx_W*Vx0 + SIXTH*dBydz_W*dmoments_NW->at(fsgrids::dmoments::dVxdz));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ez_NW  += +HALF*((Bx_N + HALF*dBxdy_N)*(-dmoments_NW->at(fsgrids::dmoments::dVydx) + dmoments_NW->at(fsgrids::dmoments::dVydy)) + dBxdy_N*Vy0 + SIXTH*dBxdz_N*dmoments_NW->at(fsgrids::dmoments::dVydz));
+         Ez_NW  += -HALF*((By_W - HALF*dBydx_W)*(-dmoments_NW->at(fsgrids::dmoments::dVxdx) + dmoments_NW->at(fsgrids::dmoments::dVxdy)) - dBydx_W*Vx0 + SIXTH*dBydz_W*dmoments_NW->at(fsgrids::dmoments::dVxdz));
+      }
    #endif
    
    calculateWaveSpeedXY(
@@ -1445,8 +1495,10 @@ void calculateEdgeElectricFieldZ(
    
    #ifndef FS_1ST_ORDER_SPACE
       // 2nd order terms:
-      Ez_NE  += +HALF*((Bx_N + HALF*dBxdy_N)*(+dmoments_NE->at(fsgrids::dmoments::dVydx) + dmoments_NE->at(fsgrids::dmoments::dVydy)) + dBxdy_N*Vy0 + SIXTH*dBxdz_N*dmoments_NE->at(fsgrids::dmoments::dVydz));
-      Ez_NE  += -HALF*((By_E + HALF*dBydx_E)*(+dmoments_NE->at(fsgrids::dmoments::dVxdx) + dmoments_NE->at(fsgrids::dmoments::dVxdy)) + dBydx_E*Vx0 + SIXTH*dBydz_E*dmoments_NE->at(fsgrids::dmoments::dVxdz));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         Ez_NE  += +HALF*((Bx_N + HALF*dBxdy_N)*(+dmoments_NE->at(fsgrids::dmoments::dVydx) + dmoments_NE->at(fsgrids::dmoments::dVydy)) + dBxdy_N*Vy0 + SIXTH*dBxdz_N*dmoments_NE->at(fsgrids::dmoments::dVydz));
+         Ez_NE  += -HALF*((By_E + HALF*dBydx_E)*(+dmoments_NE->at(fsgrids::dmoments::dVxdx) + dmoments_NE->at(fsgrids::dmoments::dVxdy)) + dBydx_E*Vx0 + SIXTH*dBydz_E*dmoments_NE->at(fsgrids::dmoments::dVxdz));
+      }
    #endif
    
    calculateWaveSpeedXY(
@@ -1476,8 +1528,14 @@ void calculateEdgeElectricFieldZ(
       efield_SW->at(fsgrids::efield::EZ) -= ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*(perBx_S-perBx_N);
       efield_SW->at(fsgrids::efield::EZ) += ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*(perBy_W-perBy_E);
 #else
-      efield_SW->at(fsgrids::efield::EZ) -= ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*((perBx_S-HALF*dperBxdy_S) - (perBx_N+HALF*dperBxdy_N));
-      efield_SW->at(fsgrids::efield::EZ) += ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*((perBy_W-HALF*dperBydx_W) - (perBy_E+HALF*dperBydx_E));
+      if(cellSysBoundaryLayer <= sysBoundarySolverMargin) {
+         efield_SW->at(fsgrids::efield::EZ) -= ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*(perBx_S-perBx_N);
+         efield_SW->at(fsgrids::efield::EZ) += ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*(perBy_W-perBy_E);
+      }
+      else {
+         efield_SW->at(fsgrids::efield::EZ) -= ay_pos*ay_neg/(ay_pos+ay_neg+EPS)*((perBx_S-HALF*dperBxdy_S) - (perBx_N+HALF*dperBxdy_N));
+         efield_SW->at(fsgrids::efield::EZ) += ax_pos*ax_neg/(ax_pos+ax_neg+EPS)*((perBy_W-HALF*dperBydx_W) - (perBy_E+HALF*dperBydx_E));
+      }
 #endif
    }
    
