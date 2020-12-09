@@ -123,7 +123,7 @@ void sortBlocklistByDimension( //const spatial_cell::SpatialCell* spatial_cell,
    // Put in the sorted blocks, and also compute column offsets and lengths:
    columnBlockOffsets.push_back(0); //first offset
    setColumnOffsets.push_back(0); //first offset   
-   uint prev_column_id, prev_dimension_id;
+   uint prev_column_id = 0, prev_dimension_id = 0;
 
    for (vmesh::LocalID i=0; i<nBlocks; ++i) {
        // identifies a particular column
