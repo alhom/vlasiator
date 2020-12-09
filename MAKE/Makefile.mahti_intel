@@ -42,8 +42,8 @@ CC_BRAND_VERSION = 19.1.1
 #CXXFLAGS += -g -O3 -fopenmp -funroll-loops -std=c++17 -W -Wall -Wno-unused -fabi-version=0 -march=native -mfma -mavx2
 #testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -mfma
 
-CXXFLAGS += -g -O3 -qopenmp -std=c++11 -W -w2 -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
-testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
+CXXFLAGS += -g -O3 -qopenmp -std=c++17 -W -w2 -Wno-unused -march=core-avx2 -qopt-zmm-usage=high -gxx-name=/appl/spack/v014/install-tree/gcc-4.8.5/gcc-7.5.0-hc2aey/bin/g++
+testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2 -gxx-name
 
 MATHFLAGS = -ffast-math
 LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
