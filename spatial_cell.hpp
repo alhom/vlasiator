@@ -984,9 +984,10 @@ namespace spatial_cell {
       uint8_t ref = refLevel;
 
       vmesh::LocalID i_child,j_child,k_child;
-      i_child = 2*i_child + i_cell/2;
-      j_child = 2*j_child + j_cell/2;
-      k_child = 2*k_child + k_cell/2;
+      // #warning 2*[ijk]_cell is an ad_hoc fix from using uninitialized [ijk]_child
+      i_child = 2*i_cell + i_cell/2;
+      j_child = 2*j_cell + j_cell/2;
+      k_child = 2*k_cell + k_cell/2;
 
       while (ref != populations[popID].vmesh.getMaxAllowedRefinementLevel()) {
          vmesh::LocalID i_child,j_child,k_child;
