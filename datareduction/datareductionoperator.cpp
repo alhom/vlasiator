@@ -25,6 +25,8 @@
 #include <iostream>
 #include <limits>
 #include <array>
+#include <unistd.h>
+
 #include "datareductionoperator.h"
 #include "../object_wrapper.h"
 
@@ -250,7 +252,46 @@ namespace DRO {
       mpiRank = intRank;
       return true;
    }
-   
+
+   //hostname
+   HostName::HostName(): DataReductionOperator() { }
+   HostName::~HostName() { }
+
+   bool HostName::getDataVectorInfo(std::string& dataType,unsigned int& dataSize,unsigned int& vectorSize) const {
+      dataType = "int";
+      dataSize = sizeof(int);
+      vectorSize = 1;
+      return true;
+   }
+
+   std::string HostName::getName() const {return "vg_hostname";}
+
+   bool HostName::reduceData(const SpatialCell* cell,char* buffer) {
+      const char* ptr = reinterpret_cast<const char*>(&hostnum);
+      for (uint i = 0; i < sizeof(int); ++i) buffer[i] = ptr[i];
+      return true;
+   }
+
+   bool HostName::setSpatialCell(const SpatialCell* cell) {
+      long int intRank;
+     // int mpirank;
+     // MPI_Comm_rank(MPI_COMM_WORLD,&mpirank);
+      char hostname[HOST_NAME_MAX];
+      char *end;
+      gethostname(hostname, HOST_NAME_MAX);
+      char intRankc[5]; // Mahti: hostname of the form cXXXX.csc.mahti.fi, take the chars 'XXXX'
+      intRankc[0] = hostname[1];
+      intRankc[1] = hostname[2];
+      intRankc[2] = hostname[3];
+      intRankc[3] = hostname[4];
+      intRankc[4] = '\0';
+      intRank = strtol(intRankc, &end, 10);
+      hostnum = (int)intRank;
+      //if(mpirank == 0) cout << "(DRO): MPI rank 0: intRankc = "<< intRankc <<", hostname = " << hostname << ", hostNum = " << hostnum << ", intRank = " << intRank << endl;
+      return true;
+   }
+
+
    // BoundaryType
    BoundaryType::BoundaryType(): DataReductionOperator() { }
    BoundaryType::~BoundaryType() { }
@@ -451,6 +492,7 @@ namespace DRO {
    
    bool VariablePTensorOffDiagonal::reduceData(const SpatialCell* cell,char* buffer) {
       const Real HALF = 0.5;
+      bool pr = cell->parameters[CellParams::CELLID] == 36333;
       # pragma omp parallel
       {
          Real thread_nvxvy_sum = 0.0;
@@ -480,12 +522,15 @@ namespace DRO {
 	       thread_nvxvy_sum += block_data[n * SIZE_VELBLOCK+cellIndex(i,j,k)] * (VX - averageVX) * (VY - averageVY) * DV3;
 	       thread_nvzvx_sum += block_data[n * SIZE_VELBLOCK+cellIndex(i,j,k)] * (VZ - averageVZ) * (VX - averageVX) * DV3;
 	       thread_nvyvz_sum += block_data[n * SIZE_VELBLOCK+cellIndex(i,j,k)] * (VY - averageVY) * (VZ - averageVZ) * DV3;
+               if(pr) cerr << "datum cellID 36333 = " << thread_nvxvy_sum << endl;
+            //   if(pr) cerr << "datum cellID 36333 = " << block_data[n * SIZE_VELBLOCK+cellIndex(i,j,k)] * (VX - averageVX) * (VY - averageVY) * DV3 << endl;
             }
          }
          thread_nvxvy_sum *= getObjectWrapper().particleSpecies[popID].mass;
          thread_nvzvx_sum *= getObjectWrapper().particleSpecies[popID].mass;
          thread_nvyvz_sum *= getObjectWrapper().particleSpecies[popID].mass;
-         
+         if(pr) cerr << "datum scaled cellID 36333 = " << thread_nvxvy_sum << endl;
+
          // Accumulate contributions coming from this velocity block to the 
          // spatial cell velocity moments. If multithreading / OpenMP is used, 
          // these updates need to be atomic:
@@ -496,8 +541,10 @@ namespace DRO {
             PTensor[2] += thread_nvxvy_sum;
          }
       }
+      if(pr) cerr << "PTensor " << PTensor[0] << " " << PTensor[1] << " " << PTensor[2] << endl;
       const char* ptr = reinterpret_cast<const char*>(&PTensor);
-      for (uint i = 0; i < 3*sizeof(Real); ++i) buffer[i] = ptr[i];
+      for (uint i = 0; i < 3*sizeof(Real); ++i) {buffer[i] = ptr[i]; if(pr) cerr << " buffer " << buffer[i];}
+      if(pr) cerr << endl;
       return true;
    }
    

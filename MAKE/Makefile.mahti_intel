@@ -16,8 +16,8 @@ ifeq ($(DISTRIBUTION_FP_PRECISION),SPF)
 #Single-precision        
 	VECTORCLASS = VEC8F_AGNER
 	INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
-	#VECTORCLASS = VEC8F_FALLBACK
-	#INC_VECTORCLASS = -I$(HOME)/vlasiator/vlasovsolver
+#       VECTORCLASS = VEC8F_FALLBACK
+#       INC_VECTORCLASS = -I$(HOME)/vlasiator/vlasovsolver
 else
 #Double-precision
 	VECTORCLASS = VEC4D_AGNER
@@ -37,20 +37,16 @@ endif
 FLAGS = 
 
 #GNU flags:
-CC_BRAND = gcc
-CC_BRAND_VERSION = 9.3.0
-#CXXFLAGS += -g -O3 -fopenmp -funroll-loops -std=c++71 -W -Wall -Wno-unused -fabi-version=0 -march=native -mfma -mavx2
-#from Vorna
-CXXFLAGS += -O3 -fopenmp -funroll-loops -std=c++17 -W -Wall -Wno-unused -mavx
+CC_BRAND = intel
+CC_BRAND_VERSION = 19.1.1
+#CXXFLAGS += -g -O3 -fopenmp -funroll-loops -std=c++17 -W -Wall -Wno-unused -fabi-version=0 -march=native -mfma -mavx2
+#testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -mfma
 
-testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -mfma
-
-#CXXFLAGS += -g -O3 -qopenmp -std=c++11 -W -Wall -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
-#testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
+CXXFLAGS += -g -O3 -qopenmp -traceback -std=c++11 -W -Wall -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
+testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
 
 MATHFLAGS = -ffast-math
-LDFLAGS = -lrt
-#LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
+LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
 LIB_MPI = -lgomp 
 
 # BOOST_VERSION = current trilinos version
@@ -58,14 +54,14 @@ LIB_MPI = -lgomp
 #
 #======== Libraries ===========
 
-MPT_VERSION = 3.1.6
+MPT_VERSION = 4.0.3
 JEMALLOC_VERSION = 5.2.1
 LIBRARY_PREFIX = /projappl/project_2002873/vlasiatorlib/
 
 
 #======== PAPI ==========
 #Add PAPI_MEM define to use papi to report memory consumption?
-CXXFLAGS += -DPAPI_MEM
+#CXXFLAGS +=  -DPAPI_MEM
 
 
 #======== Allocator =========
@@ -78,25 +74,27 @@ LIB_JEMALLOC = -ljemalloc
 BOOST_VERSION = 
 
 #compiled libraries
-
-LIB_PAPI = -lpapi
+#INC_PAPI = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/papi/include
+#LIB_PAPI = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/papi/lib -lpapi
 
 INC_VLSV = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/vlsv
 LIB_VLSV = -L$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/vlsv -lvlsv
 
-LIB_BOOST = -lboost_program_options
+INC_BOOST = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/boost/include
+LIB_BOOST = -L$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/boost/lib -lboost_program_options -Wl,-rpath=$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/boost/lib
 
 INC_ZOLTAN = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/zoltan/include
 LIB_ZOLTAN = -L$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/zoltan/lib -lzoltan
 
-LIB_PROFILE = -L$(LIBRARY_PREFIX)/phiprof/lib -lphiprof -lgfortran -Wl,-rpath=$(LIBRARY_PREFIX)/phiprof/lib
-INC_PROFILE = -I$(LIBRARY_PREFIX)/phiprof/include
+#INC_JEMALLOC = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/jemalloc/$(JEMALLOC_VERSION)/include
+#LIB_JEMALLOC = -L$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/jemalloc/$(JEMALLOC_VERSION)/lib -ljemalloc
+
+LIB_PROFILE = -L$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/phiprof/lib -lphiprof -lgfortran -Wl,-rpath=$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/phiprof/lib
+INC_PROFILE = -I$(LIBRARY_PREFIX)/openmpi/$(MPT_VERSION)/$(CC_BRAND)/$(CC_BRAND_VERSION)/phiprof/include 
 
 #header libraries
 
 INC_FSGRID = -I$(LIBRARY_PREFIX)/fsgrid/
 INC_EIGEN = -I$(LIBRARY_PREFIX)/eigen-3.2.8/
 INC_DCCRG = -I$(LIBRARY_PREFIX)/dccrg/
-INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
-
 

@@ -28,6 +28,8 @@
 #include <ctime>
 #include <omp.h>
 
+#include <unistd.h>
+
 #ifdef _OPENMP
    #include <omp.h>
 #endif
@@ -308,9 +310,13 @@ int main(int argn,char* args[]) {
    
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Comm_rank(comm,&myRank);
+
+   char hostname[HOST_NAME_MAX];
+   gethostname(hostname, HOST_NAME_MAX);
+   cout << "(MAIN): MPI rank " << myRank << " from node " << hostname << endl;
+
    SysBoundary sysBoundaries;
    bool isSysBoundaryCondDynamic;
-   
    #ifdef CATCH_FPE
    // WARNING FE_INEXACT is too sensitive to be used. See man fenv.
    //feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW|FE_UNDERFLOW);

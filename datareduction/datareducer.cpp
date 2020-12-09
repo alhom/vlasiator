@@ -484,6 +484,12 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
 	 outputReducer->addMetadata(outputReducer->size()-1,"","","$\\mathrm{MPI rank}$","");
          continue;
       }
+      if(lowercase == "vg_hostname") {
+         // Map of spatial decomposition of the DCCRG grid into MPI ranks
+         outputReducer->addOperator(new DRO::HostName);
+         outputReducer->addMetadata(outputReducer->size()-1,"","","$\\mathrm{hostname_int}$","");
+         continue;
+      }
       if(lowercase == "fsgridrank" || lowercase == "fg_rank") {
          // Map of spatial decomposition of the FsGrid into MPI ranks
          outputReducer->addOperator(new DRO::DataReductionOperatorFsGrid("fg_rank",[](

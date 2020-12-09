@@ -1121,7 +1121,7 @@ bool writeGrid(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
       MPI_Info_free(&MPIinfo);
    }
    
-   vlsvWriter.setBuffer(P::vlsvBufferSize);
+//   vlsvWriter.setBuffer(P::vlsvBufferSize);
 
    phiprof::start("metadataIO");
 
@@ -1303,7 +1303,7 @@ bool writeRestart(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
 
    phiprof::stop("open");
 
-   vlsvWriter.setBuffer(P::vlsvBufferSize);
+//   vlsvWriter.setBuffer(P::vlsvBufferSize);
 
    phiprof::start("metadataIO");
    
