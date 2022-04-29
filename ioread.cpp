@@ -30,6 +30,7 @@
 #include <array>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>
 
 #include "ioread.h"
 #include "phiprof.hpp"
@@ -780,6 +781,8 @@ bool readCellParamsVariable(
 template<unsigned long int N> bool readFsGridVariable(
    vlsv::ParallelReader& file, const string& variableName, int numWritingRanks, FsGrid<std::array<Real, N>,FS_STENCIL_WIDTH> & targetGrid) {
 
+   phiprof::start("preparations");
+
    uint64_t arraySize;
    uint64_t vectorSize;
    vlsv::datatype::type dataType;
@@ -790,14 +793,18 @@ template<unsigned long int N> bool readFsGridVariable(
    attribs.push_back(make_pair("name",variableName));
    attribs.push_back(make_pair("mesh","fsgrid"));
 
+   phiprof::start("getArrayInfo");
    if (file.getArrayInfo("VARIABLE",attribs,arraySize,vectorSize,dataType,byteSize) == false) {
       logFile << "(RESTART)  ERROR: Failed to read " << endl << write;
+      phiprof::stop("getArrayInfo");
       return false;
    }
    if(! (dataType == vlsv::datatype::type::FLOAT && byteSize == sizeof(Real))) {
       logFile << "(RESTART) Converting floating point format of fsgrid variable " << variableName << " from " << byteSize * 8 << " bits to " << sizeof(Real) * 8 << " bits." << endl << write;
       convertFloatType = true;
+      // Note: this implicitly assumes that Real is of type double, and we either read a double in directly, or read a float and convert it to double.
    }
+   phiprof::stop("getArrayInfo");
 
    // Are we restarting from the same number of tasks, or a different number?
    int size, myRank;
@@ -810,6 +817,9 @@ template<unsigned long int N> bool readFsGridVariable(
 
    // Determine our tasks storage size
    size_t storageSize = localSize[0]*localSize[1]*localSize[2];
+
+   phiprof::stop("preparations");
+
 
    if(size == numWritingRanks) {
       // Easy case: same number of tasks => slurp it in.
@@ -882,13 +892,26 @@ template<unsigned long int N> bool readFsGridVariable(
       // |            |                |
       // +------------+----------------+
 
+      phiprof::start("computeDomainDecomposition");
       // Determine the decomposition in the file and the one in RAM for our restart
       std::array<int,3> fileDecomposition;
       targetGrid.computeDomainDecomposition(globalSize, numWritingRanks, fileDecomposition);
+      phiprof::stop("computeDomainDecomposition");
 
       // Iterate through tasks and find their overlap with our domain.
-      size_t fileOffset = 0;
+      uint64_t fileOffset = 0, offset=0;
+
+      phiprof::start("startMultiread");
+      file.startMultiread("VARIABLE", attribs);
+      phiprof::stop("startMultiread");
+
+      std::vector<std::vector<Real>> vectorOfBuffers;
+      std::vector<std::vector<float>> vectorOfFloatBuffers; // needed when convertFloatType is true
+
       for(int task = 0; task < numWritingRanks; task++) {
+
+         phiprof::start("task shebang 1");
+
          std::array<int32_t,3> thatTasksSize;
          std::array<int32_t,3> thatTasksStart;
          thatTasksSize[0] = targetGrid.calcLocalSize(globalSize[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
@@ -913,32 +936,89 @@ template<unsigned long int N> bool readFsGridVariable(
          overlapSize[1] = max(overlapEnd[1]-overlapStart[1],0);
          overlapSize[2] = max(overlapEnd[2]-overlapStart[2],0);
 
+         phiprof::stop("task shebang 1");
+
          // Read into buffer
-         std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
 
-         phiprof::start("readArray");
+         phiprof::start("multiRead");
 
-         file.startMultiread("VARIABLE", attribs);
          // Read every source rank that we have an overlap with.
          if(overlapSize[0]*overlapSize[1]*overlapSize[2] > 0) {
-
+         std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
+         vectorOfBuffers.push_back(buffer);
 
             if(!convertFloatType) {
-               if(file.addMultireadUnit((char*)buffer.data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2])==false) {
-                  logFile << "(RESTART)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
+               if(file.addMultireadUnit((char*)vectorOfBuffers.at(task).data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2], offset)==false) {
+                  logFile << "(RESTART)  ERROR: Failed to addMultireadUnit when reading fsgrid variable " << variableName << endl << write;
                   return false;
                }
-               file.endMultiread(fileOffset);
             } else {
-               std::vector<float> readBuffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
-               if(file.addMultireadUnit((char*)readBuffer.data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2])==false) {
-                  logFile << "(RESTART)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
+               std::vector<float> floatBuffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
+               vectorOfFloatBuffers.push_back(floatBuffer);
+               if(file.addMultireadUnit((char*)vectorOfFloatBuffers.at(task).data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2], offset)==false) {
+                  logFile << "(RESTART)  ERROR: Failed to addMultireadUnit when reading fsgrid variable " << variableName << endl << write;
                   return false;
                }
-               file.endMultiread(fileOffset);
+            }
+         } else {
+            std::vector<Real> buffer(1);
+            vectorOfBuffers.push_back(buffer);
+         }
 
+         if(!convertFloatType) {
+            offset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2] * N * sizeof(double);
+         } else {
+            offset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2] * N * sizeof(float);
+         }
+         phiprof::stop("multiRead");
+      }
+      
+      phiprof::start("endMultiread");
+      // Pass boolean true to indicate we're reading fsgrid values and providin manual offsetsxs
+      if(file.endMultiread(fileOffset, true) == false) {
+         logFile << "(RESTART)  ERROR: Failed to endMultiread while reading fsgrid variable " << variableName << endl << write;
+         return false;
+      }
+      phiprof::stop("endMultiread");
+      
+      for(int task = 0; task < numWritingRanks; task++) {
+
+         phiprof::start("task shebang 2");
+
+         std::array<int32_t,3> thatTasksSize;
+         std::array<int32_t,3> thatTasksStart;
+         thatTasksSize[0] = targetGrid.calcLocalSize(globalSize[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+         thatTasksSize[1] = targetGrid.calcLocalSize(globalSize[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+         thatTasksSize[2] = targetGrid.calcLocalSize(globalSize[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+         thatTasksStart[0] = targetGrid.calcLocalStart(globalSize[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+         thatTasksStart[1] = targetGrid.calcLocalStart(globalSize[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+         thatTasksStart[2] = targetGrid.calcLocalStart(globalSize[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+         // Iterate through overlap area
+         std::array<int,3> overlapStart,overlapEnd,overlapSize;
+         overlapStart[0] = max(localStart[0],thatTasksStart[0]);
+         overlapStart[1] = max(localStart[1],thatTasksStart[1]);
+         overlapStart[2] = max(localStart[2],thatTasksStart[2]);
+
+         overlapEnd[0] = min(localStart[0]+localSize[0], thatTasksStart[0]+thatTasksSize[0]);
+         overlapEnd[1] = min(localStart[1]+localSize[1], thatTasksStart[1]+thatTasksSize[1]);
+         overlapEnd[2] = min(localStart[2]+localSize[2], thatTasksStart[2]+thatTasksSize[2]);
+
+         overlapSize[0] = max(overlapEnd[0]-overlapStart[0],0);
+         overlapSize[1] = max(overlapEnd[1]-overlapStart[1],0);
+         overlapSize[2] = max(overlapEnd[2]-overlapStart[2],0);
+
+         phiprof::stop("task shebang 2");
+
+         // Read into buffer
+         phiprof::start("memcpy");
+
+         // Read every source rank that we have an overlap with.
+         if(overlapSize[0]*overlapSize[1]*overlapSize[2] > 0) {
+            if(convertFloatType) {
                for(uint64_t i=0; i< thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N; i++) {
-                  buffer[i]=readBuffer[i];
+                  vectorOfBuffers.at(task).at(i)=vectorOfFloatBuffers.at(task).at(i);
                }
             }
 
@@ -950,15 +1030,12 @@ template<unsigned long int N> bool readFsGridVariable(
                         + (y - thatTasksStart[1]) * thatTasksSize[0]
                         + (x - thatTasksStart[0]);
 
-                     memcpy(targetGrid.get(x - localStart[0], y - localStart[1], z - localStart[2]), &buffer[index*N], N*sizeof(Real));
+                     memcpy(targetGrid.get(x - localStart[0], y - localStart[1], z - localStart[2]), &(vectorOfBuffers.at(task).at(index*N)), N*sizeof(Real));
                   }
                }
             }
-         } else {
-            // If we don't overlap, just perform a dummy read.
-            file.endMultiread(fileOffset);
          }
-         fileOffset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2];
+
          phiprof::stop("memcpy");
       }
    }
@@ -1221,9 +1298,11 @@ bool exec_readGrid(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
    phiprof::start("readFsGrid");
    // Read fsgrid data back in
    int fsgridInputRanks=0;
+   phiprof::start("readScalarParameter");
    if(readScalarParameter(file,"numWritingRanks",fsgridInputRanks, MASTER_RANK, MPI_COMM_WORLD) == false) {
       exitOnError(false, "(RESTART) FSGrid writing rank number not found in restart file", MPI_COMM_WORLD);
    }
+   phiprof::stop("readScalarParameter");
    
    if(success) { success = readFsGridVariable(file, "fg_PERB", fsgridInputRanks, perBGrid); }
    if(success) { success = readFsGridVariable(file, "fg_E", fsgridInputRanks, EGrid); }
