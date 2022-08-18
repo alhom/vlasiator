@@ -47,6 +47,8 @@
 using namespace std;
 using namespace spatial_cell;
 
+extern Logger logFile, diagnostic;
+
 creal ZERO    = 0.0;
 creal HALF    = 0.5;
 creal FOURTH  = 1.0/4.0;
@@ -305,24 +307,25 @@ void calculateSpatialTranslation(
    
    // Translate all particle species
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
-      string profName = "translate "+getObjectWrapper().particleSpecies[popID].name;
-      phiprof::start(profName);
-      SpatialCell::setCommunicatedSpecies(popID);
-      //      std::cout << "I am at line " << __LINE__ << " of " << __FILE__ << std::endl;
-      calculateSpatialTranslation(
-         mpiGrid,
-         localCells,
-         local_propagated_cells,
-         local_target_cells,
-         remoteTargetCellsx,
-         remoteTargetCellsy,
-         remoteTargetCellsz,
-         nPencils,
-         dt,
-         popID,
-         time
-      );
-      phiprof::stop(profName);
+      if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
+         string profName = "translate "+getObjectWrapper().particleSpecies[popID].name;
+         phiprof::start(profName);
+         SpatialCell::setCommunicatedSpecies(popID);
+         calculateSpatialTranslation(
+            mpiGrid,
+            localCells,
+            local_propagated_cells,
+            local_target_cells,
+            remoteTargetCellsx,
+            remoteTargetCellsy,
+            remoteTargetCellsz,
+            nPencils,
+            dt,
+            popID,
+            time
+            );
+         phiprof::stop(profName);
+      }
    }
    
    if (Parameters::prepareForRebalance == true) {
@@ -375,11 +378,6 @@ void calculateAcceleration(const uint popID,const uint globalMaxSubcycles,const 
    // Set active population
    SpatialCell::setCommunicatedSpecies(popID);
    
-   // Calculate velocity moments, these are needed to 
-   // calculate the transforms used in the accelerations.
-   // Calculated moments are stored in the "_V" variables.
-   calculateMoments_V(mpiGrid, propagatedCells, false);
-
    // Semi-Lagrangian acceleration for those cells which are subcycled
    #pragma omp parallel for schedule(dynamic,1)
    for (size_t c=0; c<propagatedCells.size(); ++c) {
@@ -444,10 +442,9 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
                           ) {    
    typedef Parameters P;
    const vector<CellID>& cells = getLocalCells();
-
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
-   
+
    if (dt == 0.0 && P::tstep > 0) {
       
       // Even if acceleration is turned off we need to adjust velocity blocks 
@@ -461,60 +458,66 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
    }
    phiprof::start("semilag-acc");
     
+   // Calculate velocity moments, these are needed to 
+   // calculate the transforms used in the accelerations.
+   // Calculated moments are stored in the "_V" variables.
+   calculateMoments_V(mpiGrid,cells,false);
+
    // Accelerate all particle species
     for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
-       int maxSubcycles=0;
-       int globalMaxSubcycles;
-
-       // Set active population
-       SpatialCell::setCommunicatedSpecies(popID);
+       if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
+           int maxSubcycles=0;
+           int globalMaxSubcycles;
        
-       // Iterate through all local cells and collect cells to propagate.
-       // Ghost cells (spatial cells at the boundary of the simulation 
-       // volume) do not need to be propagated:
-       vector<CellID> propagatedCells;
-       for (size_t c=0; c<cells.size(); ++c) {
-          SpatialCell* SC = mpiGrid[cells[c]];
-          const vmesh::VelocityMesh<vmesh::GlobalID,vmesh::LocalID>& vmesh = SC->get_velocity_mesh(popID);
-          // disregard boundary cells, in preparation for acceleration 
-          if (SC->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ) {
-             if(vmesh.size() != 0){
-                //do not propagate spatial cells with no blocks
-                propagatedCells.push_back(cells[c]);
-             }
-             //prepare for acceleration, updates max dt for each cell, it
-             //needs to be set to somthing sensible for _all_ cells, even if
-             //they are not propagated
-             prepareAccelerateCell(SC, popID);
-             //update max subcycles for all cells in this process
-             maxSubcycles = max((int)getAccelerationSubcycles(SC, dt, popID), maxSubcycles);
-             spatial_cell::Population& pop = SC->get_population(popID);
-             pop.ACCSUBCYCLES = getAccelerationSubcycles(SC, dt, popID);
-          }
+           // Set active population
+           SpatialCell::setCommunicatedSpecies(popID);
+           
+           // Iterate through all local cells and collect cells to propagate.
+           // Ghost cells (spatial cells at the boundary of the simulation 
+           // volume) do not need to be propagated:
+           vector<CellID> propagatedCells;
+           for (size_t c=0; c<cells.size(); ++c) {
+              SpatialCell* SC = mpiGrid[cells[c]];
+              const vmesh::VelocityMesh<vmesh::GlobalID,vmesh::LocalID>& vmesh = SC->get_velocity_mesh(popID);
+              // disregard boundary cells, in preparation for acceleration 
+              if (SC->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ) {
+                 if(vmesh.size() != 0){
+                    //do not propagate spatial cells with no blocks
+                    propagatedCells.push_back(cells[c]);
+                 }
+                 //prepare for acceleration, updates max dt for each cell, it
+                 //needs to be set to somthing sensible for _all_ cells, even if
+                 //they are not propagated
+                 prepareAccelerateCell(SC, popID);
+                 //update max subcycles for all cells in this process
+                 maxSubcycles = max((int)getAccelerationSubcycles(SC, dt, popID), maxSubcycles);
+                 spatial_cell::Population& pop = SC->get_population(popID);
+                 pop.ACCSUBCYCLES = getAccelerationSubcycles(SC, dt, popID);
+              }
+           }       
+           // Compute global maximum for number of subcycles
+           MPI_Allreduce(&maxSubcycles, &globalMaxSubcycles, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+
+           // substep global max times
+           for(uint step=0; step<(uint)globalMaxSubcycles; ++step) {
+              if(step > 0) {
+                 // prune list of cells to propagate to only contained those which are now subcycled
+                 vector<CellID> temp;
+                 for (const auto& cell: propagatedCells) {
+                    if (step < getAccelerationSubcycles(mpiGrid[cell], dt, popID) ) {
+                       temp.push_back(cell);
+                    }
+                 }
+                 
+                 propagatedCells.swap(temp);
+              }
+              // Accelerate population over one subcycle step
+              calculateAcceleration(popID,(uint)globalMaxSubcycles,step,mpiGrid,propagatedCells,dt);
+           } // for-loop over acceleration substeps
+           
+           // final adjust for all cells, also fixing remote cells.
+           adjustVelocityBlocks(mpiGrid, cells, true, popID);
        }
-
-       // Compute global maximum for number of subcycles
-       MPI_Allreduce(&maxSubcycles, &globalMaxSubcycles, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-       
-       // substep global max times
-       for(uint step=0; step<(uint)globalMaxSubcycles; ++step) {
-          if(step > 0) {
-             // prune list of cells to propagate to only contained those which are now subcycled
-             vector<CellID> temp;
-             for (const auto& cell: propagatedCells) {
-                if (step < getAccelerationSubcycles(mpiGrid[cell], dt, popID) ) {
-                   temp.push_back(cell);
-                }
-             }
-             
-             propagatedCells.swap(temp);
-          }
-          // Accelerate population over one subcycle step
-          calculateAcceleration(popID,(uint)globalMaxSubcycles,step,mpiGrid,propagatedCells,dt);
-       } // for-loop over acceleration substeps
-       
-       // final adjust for all cells, also fixing remote cells.
-       adjustVelocityBlocks(mpiGrid, cells, true, popID);
     } // for-loop over particle species
 
     phiprof::stop("semilag-acc");
@@ -529,8 +532,10 @@ momentCalculation:
       SpatialCell* cell = mpiGrid[cells[c]];
       cell->parameters[CellParams::MAXVDT] = numeric_limits<Real>::max();
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
-         cell->parameters[CellParams::MAXVDT]
-           = min(cell->get_max_v_dt(popID), cell->parameters[CellParams::MAXVDT]);
+         if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
+            cell->parameters[CellParams::MAXVDT]
+            = min(cell->get_max_v_dt(popID), cell->parameters[CellParams::MAXVDT]);
+         }
       }
    }
 }
@@ -546,9 +551,13 @@ void calculateInterpolatedVelocityMoments(
    const int cp_vy,
    const int cp_vz,
    const int cp_rhoq,
+   const int cp_rhoqe,
    const int cp_p11,
    const int cp_p22,
-   const int cp_p33
+   const int cp_p33,
+   const int cp_p23,
+   const int cp_p13,
+   const int cp_p12
 ) {
    const vector<CellID>& cells = getLocalCells();
    
@@ -562,16 +571,22 @@ void calculateInterpolatedVelocityMoments(
       SC->parameters[cp_vy] = 0.5* ( SC->parameters[CellParams::VY_R] + SC->parameters[CellParams::VY_V] );
       SC->parameters[cp_vz] = 0.5* ( SC->parameters[CellParams::VZ_R] + SC->parameters[CellParams::VZ_V] );
       SC->parameters[cp_rhoq  ] = 0.5* ( SC->parameters[CellParams::RHOQ_R] + SC->parameters[CellParams::RHOQ_V] );
+      SC->parameters[cp_rhoqe  ] = 0.5* ( SC->parameters[CellParams::RHOQE_R] + SC->parameters[CellParams::RHOQE_V] );
       SC->parameters[cp_p11]   = 0.5* ( SC->parameters[CellParams::P_11_R] + SC->parameters[CellParams::P_11_V] );
       SC->parameters[cp_p22]   = 0.5* ( SC->parameters[CellParams::P_22_R] + SC->parameters[CellParams::P_22_V] );
       SC->parameters[cp_p33]   = 0.5* ( SC->parameters[CellParams::P_33_R] + SC->parameters[CellParams::P_33_V] );
+      SC->parameters[cp_p23]   = 0.5* ( SC->parameters[CellParams::P_23_R] + SC->parameters[CellParams::P_23_V] );
+      SC->parameters[cp_p13]   = 0.5* ( SC->parameters[CellParams::P_13_R] + SC->parameters[CellParams::P_13_V] );
+      SC->parameters[cp_p12]   = 0.5* ( SC->parameters[CellParams::P_12_R] + SC->parameters[CellParams::P_12_V] );
 
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
          spatial_cell::Population& pop = SC->get_population(popID);
          pop.RHO = 0.5 * ( pop.RHO_R + pop.RHO_V );
          for(int i=0; i<3; i++) {
             pop.V[i] = 0.5 * ( pop.V_R[i] + pop.V_V[i] );
-            pop.P[i]    = 0.5 * ( pop.P_R[i] + pop.P_V[i] );
+         }
+         for(int i=0; i<6; i++) {
+            pop.P[i] = 0.5 * ( pop.P_R[i] + pop.P_V[i] );
          }
       }
    }
@@ -596,9 +611,13 @@ void calculateInitialVelocityMoments(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_G
       SC->parameters[CellParams::VY_DT2] = SC->parameters[CellParams::VY];
       SC->parameters[CellParams::VZ_DT2] = SC->parameters[CellParams::VZ];
       SC->parameters[CellParams::RHOQ_DT2] = SC->parameters[CellParams::RHOQ];
+      SC->parameters[CellParams::RHOQE_DT2] = SC->parameters[CellParams::RHOQE];
       SC->parameters[CellParams::P_11_DT2] = SC->parameters[CellParams::P_11];
       SC->parameters[CellParams::P_22_DT2] = SC->parameters[CellParams::P_22];
       SC->parameters[CellParams::P_33_DT2] = SC->parameters[CellParams::P_33];
+      SC->parameters[CellParams::P_23_DT2] = SC->parameters[CellParams::P_23];
+      SC->parameters[CellParams::P_13_DT2] = SC->parameters[CellParams::P_13];
+      SC->parameters[CellParams::P_12_DT2] = SC->parameters[CellParams::P_12];
    } // for-loop over spatial cells
    phiprof::stop("Calculate moments"); 
 }

@@ -149,12 +149,12 @@ do
                 absoluteValue=$($run_command_tools $diffbin ${result_dir}/${comparison_vlsv[$run]} ${vlsv_dir}/${comparison_vlsv[$run]} ${variables[$i]} ${indices[$i]} |grep "The absolute 0-distance between both datasets" |gawk '{print $8}'  )
 #print the results      
                 echo "${variables[$i]}_${indices[$i]}                $absoluteValue                 $relativeValue    "
-            elif [ "${variables[$i]}" == "proton" ]
+            elif [[ "${variables[$i]}" == "proton" || "${variables[$i]}" == "antiproton" || "${variables[$i]}" == "helium" || "${variables[$i]}" == "electron" ]]
             then
                 echo "--------------------------------------------------------------------------------------------" 
                 echo "   Distribution function diff                                                               "
                 echo "--------------------------------------------------------------------------------------------" 
-                $run_command_tools $diffbin ${result_dir}/${comparison_vlsv[$run]} ${vlsv_dir}/${comparison_vlsv[$run]} proton 0
+                $run_command_tools $diffbin ${result_dir}/${comparison_vlsv[$run]} ${vlsv_dir}/${comparison_vlsv[$run]} ${variables[$i]} 0
             fi 
         done # loop over variables
 

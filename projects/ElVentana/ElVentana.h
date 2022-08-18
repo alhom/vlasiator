@@ -20,39 +20,43 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef MAGNETOSPHERE_H
-#define MAGNETOSPHERE_H
+#ifndef ELVENTANA_H
+#define ELVENTANA_H
+
+#include "vlsv_reader_parallel.h"
+#include "vlsv_reader.h"
 
 #include "../../definitions.h"
 #include "../projectTriAxisSearch.h"
+#include "../../spatial_cell.hpp"
 
 namespace projects {
 
-   struct MagnetosphereSpeciesParameters {
+   struct ElVentanaSpeciesParameters {
       Real rho;
       Real T;
       Real V0[3];
       Real ionosphereV0[3];
       Real ionosphereRho;
-      Real ionosphereT;
-      Real taperInnerRadius;
-      Real taperOuterRadius;
       uint nSpaceSamples;
       uint nVelocitySamples;
+      Real Temperatureratio;
    };
 
-   class Magnetosphere: public TriAxisSearch {
+   class ElVentana: public TriAxisSearch {
+   friend class Magnetosphere;
     public:
-      Magnetosphere();
-      virtual ~Magnetosphere();
+      ElVentana();
+      virtual ~ElVentana();
       
       virtual bool initialize(void);
       static void addParameters(void);
       virtual void getParameters(void);
+      //virtual void setCellBackgroundField(spatial_cell::SpatialCell* cell) const;
       virtual void setProjectBField(
-         FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, FS_STENCIL_WIDTH> & perBGrid,
-         FsGrid< std::array<Real, fsgrids::bgbfield::N_BGB>, FS_STENCIL_WIDTH> & BgBGrid,
-         FsGrid< fsgrids::technical, FS_STENCIL_WIDTH> & technicalGrid
+         FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2>& perBGrid,
+         FsGrid< std::array<Real, fsgrids::bgbfield::N_BGB>, 2>& BgBGrid,
+         FsGrid< fsgrids::technical, 2>& technicalGrid
       );
       virtual Real calcPhaseSpaceDensity(
                                          creal& x, creal& y, creal& z,
@@ -61,7 +65,14 @@ namespace projects {
                                          creal& dvx, creal& dvy, creal& dvz,
                                          const uint popID
                                         ) const;
-      
+      virtual void setupBeforeSetCell(const std::vector<CellID>& cells,
+				      dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+				      bool& needCurl);
+
+      virtual Real getCorrectNumberDensity(spatial_cell::SpatialCell* cell,const uint popID) const;
+      virtual bool rescalesDensity(const uint popID) const;
+      //void rescaleDensity(spatial_cell::SpatialCell* cell,const uint popID) const;
+
     protected:
       Real getDistribValue(
                            creal& x,creal& y, creal& z,
@@ -69,7 +80,6 @@ namespace projects {
                            creal& dvx, creal& dvy, creal& dvz,
                            const uint popID
                           ) const;
-      bool refineSpatialCells( dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
       virtual void calcCellParameters(spatial_cell::SpatialCell* cell,creal& t);
       virtual std::vector<std::array<Real, 3> > getV0(
                                                       creal x,
@@ -77,40 +87,37 @@ namespace projects {
                                                       creal z,
                                                       const uint popID
                                                      ) const;
-      
+
+      dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry> *newmpiGrid = NULL;
       Real constBgB[3];
       bool noDipoleInSW;
+      Real WindowX[2];
+      Real WindowY[2];
+      Real WindowZ[2];
+      std::string StartFile;
+      std::vector<ElVentanaSpeciesParameters> speciesParams;
+      vlsv::ParallelReader vlsvParaReader;
+      vlsv::Reader vlsvSerialReader;
+      uint64_t vecsizepressure;
+      CellID findCellIDXYZ(creal x, creal y, creal z) const;
+
+      Real* readVar(std::string varname, CellID fileOffset, uint64_t &vecsize);
+      std::string pickVarName(const std::string &grid, const std::list<std::string> &varNames);
+      bool readGridSize(std::array<double, 3> &fileMin, std::array<double, 3> &fileMax, std::array<uint64_t, 3> &fileCells, std::array<double, 3> &fileDx);
+      template<unsigned long int N> bool readFsGridVariable(const std::string& variableName, FsGrid<std::array<Real, N>,2>& targetGrid);
+      CellID getOldCellID(CellID newID, dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, std::array<CellID, 3> fileCells, std::array<double, 3> &fileMin, std::array<double, 3> fileD);
+      bool refineSpatialCells( dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
+
+      //bool includeIonosphere;
       Real ionosphereRadius;
       uint ionosphereGeometry;
       Real center[3];
       Real dipoleScalingFactor;
-      Real dipoleMirrorLocationX;
       uint dipoleType;
+      bool perBSet = false;
+      bool totalBRead = false;
 
-      Real refine_L4radius;
-      Real refine_L4nosexmin;
-
-      Real refine_L3radius;
-      Real refine_L3nosexmin;
-      Real refine_L3tailheight;
-      Real refine_L3tailwidth;
-      Real refine_L3tailxmin;
-      Real refine_L3tailxmax;
-
-      Real refine_L2radius;
-      Real refine_L2tailthick;
-      Real refine_L1radius;
-      Real refine_L1tailthick;
-
-      Real dipoleTiltPhi;
-      Real dipoleTiltTheta;
-      Real dipoleXFull;
-      Real dipoleXZero;
-      Real dipoleInflowB[3];
-      Real zeroOutComponents[3]; //0->x,1->y,2->z
-
-      std::vector<MagnetosphereSpeciesParameters> speciesParams;
-   }; // class Magnetosphere
+   }; // class ElVentana
 } // namespace projects
 
 #endif

@@ -112,6 +112,8 @@ bool P::dynamicTimestep = true;
 Real P::maxWaveVelocity = 0.0;
 uint P::maxFieldSolverSubcycles = 0.0;
 int P::maxSlAccelerationSubcycles = 0.0;
+bool P::ResolvePlasmaPeriod = false;
+int P::maxResonantSubcycleFactor = 100;
 Real P::resistivity = NAN;
 bool P::fieldSolverDiffusiveEterms = true;
 uint P::ohmHallTerm = 0;
@@ -279,17 +281,13 @@ bool P::addParameters() {
            "The minimum CFL limit for field propagation. Used to set timestep if dynamic_timestep is true.", 0.4);
 
    // Vlasov solver parameters
-   RP::add("vlasovsolver.maxSlAccelerationRotation",
-           "Maximum rotation angle (degrees) allowed by the Semi-Lagrangian solver (Use >25 values with care)", 25.0);
-   RP::add("vlasovsolver.maxSlAccelerationSubcycles", "Maximum number of subcycles for acceleration", 1);
-   RP::add("vlasovsolver.maxCFL",
-           "The maximum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep "
-           "is true.",
-           0.99);
-   RP::add("vlasovsolver.minCFL",
-           "The minimum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep "
-           "is true.",
-           0.8);
+   Readparameters::add("vlasovsolver.maxSlAccelerationRotation","Maximum rotation angle (degrees) allowed by the Semi-Lagrangian solver (Use >25 values with care)",25.0);
+   Readparameters::add("vlasovsolver.maxSlAccelerationSubcycles","Maximum number of subcycles for acceleration",1);
+   Readparameters::add("vlasovsolver.maxCFL","The maximum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep is true.",0.99);
+   Readparameters::add("vlasovsolver.minCFL","The minimum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep is true.",0.8);
+   Readparameters::add("vlasovsolver.ResolvePlasmaPeriod","Require semi-lagrangian solver to resolve plasma oscillation (default false)",false);
+   Readparameters::add("vlasovsolver.maxResonantSubcycleFactor","Resolve (electron) plasma oscillation-cyclotron resonance with additional subcycles, max multiplicative substep number (default 100)",100);
+
 
    // Load balancing parameters
    RP::add("loadBalance.algorithm", "Load balancing algorithm to be used", string("RCB"));
@@ -298,66 +296,75 @@ bool P::addParameters() {
 
    // Output variable parameters
    // NOTE Do not remove the : before the list of variable names as this is parsed by tools/check_vlasiator_cfg.sh
-   RP::addComposing("variables.output",
-                    string() +
-                        "List of data reduction operators (DROs) to add to the grid file output.  Each variable to be "
-                        "added has to be on a new line output = XXX. Names are case insensitive.  " +
-                        "Available (20210125): " + "fg_b fg_b_background fg_b_perturbed fg_e " +
-                        "vg_rhom vg_rhoq populations_vg_rho " + "fg_rhom fg_rhoq " + "vg_v fg_v populations_vg_v " +
-                        "populations_vg_moments_thermal populations_vg_moments_nonthermal " +
-                        "populations_vg_effectivesparsitythreshold populations_vg_rho_loss_adjust " +
-                        "populations_vg_energydensity populations_vg_precipitationdifferentialflux " +
-                        "vg_maxdt_acceleration vg_maxdt_translation populations_vg_maxdt_acceleration "
-                        "populations_vg_maxdt_translation " +
-                        "fg_maxdt_fieldsolver " + "vg_rank fg_rank fg_amr_level vg_loadbalance_weight " +
-                        "vg_boundarytype fg_boundarytype vg_boundarylayer fg_boundarylayer " +
-                        "populations_vg_blocks vg_f_saved " + "populations_vg_acceleration_subcycles " +
-                        "vg_e_vol fg_e_vol " +
-                        "fg_e_hall vg_e_gradpe fg_b_vol vg_b_vol vg_b_background_vol vg_b_perturbed_vol " +
-                        "vg_pressure fg_pressure populations_vg_ptensor " + "b_vol_derivatives " +
-                        "vg_gridcoordinates fg_gridcoordinates meshdata");
+   Readparameters::addComposing("variables.output", 
+                                 std::string() +
+                                 "List of data reduction operators (DROs) to add to the grid file output.  Each variable to be " +
+                                 "added has to be on a new line output = XXX. Names are case insensitive.  " +
+				                     "Available (20210125): " +
+				                     "fg_b fg_b_background fg_b_perturbed fg_e " +
+			                        "vg_rhom vg_rhoq populations_vg_rho " +
+                     				"fg_rhom fg_rhoq " +
+				                     "vg_v fg_v populations_vg_v " +
+				                     "populations_vg_moments_thermal populations_vg_moments_nonthermal " +
+				                     "populations_vg_effectivesparsitythreshold populations_vg_rho_loss_adjust " +
+				                     "populations_vg_energydensity populations_vg_precipitationdifferentialflux " +
+				                     "vg_maxdt_acceleration vg_maxdt_translation populations_vg_maxdt_acceleration populations_vg_maxdt_translation " +
+				                     "fg_maxdt_fieldsolver " +
+				                     "vg_rank fg_rank fg_amr_level vg_loadbalance_weight " +
+				                     "vg_boundarytype fg_boundarytype vg_boundarylayer fg_boundarylayer " +
+				                     "populations_vg_blocks vg_f_saved " +
+				                     "populations_vg_acceleration_subcycles " +
+				                     "vg_e_vol fg_e_vol " +
+				                     "fg_e_hall fg_e_gradpe vg_e_gradpe fg_b_vol vg_b_vol vg_b_background_vol vg_b_perturbed_vol " +
+				                     "vg_pressure fg_pressure populations_vg_ptensor " +
+				                     "b_vol_derivatives " +
+				                     "vg_gridcoordinates fg_gridcoordinates meshdata");
 
-   RP::addComposing(
-       "variables_deprecated.output",
-       string() + "List of deprecated names for data reduction operators (DROs). Names are case insensitive. " +
-           "Available (20190521): " + "B BackgroundB fg_BackgroundB PerturbedB fg_PerturbedB " + "E " +
-           "Rhom Rhoq populations_Rho " + "V populations_V " +
-           "populations_moments_Backstream populations_moments_NonBackstream " +
-           "populations_moments_thermal populations_moments_nonthermal " +
-           "populations_minvalue populations_EffectiveSparsityThreshold populations_RhoLossAdjust "
-           "populations_rho_loss_adjust" +
-           "populations_EnergyDensity populations_PrecipitationFlux populations_precipitationdifferentialflux" +
-           "LBweight vg_lbweight vg_loadbalanceweight MaxVdt MaxRdt populations_MaxVdt populations_MaxRdt " +
-           "populations_maxdt_acceleration populations_maxdt_translation MaxFieldsdt fg_maxfieldsdt" +
-           "MPIrank FsGridRank " + "FsGridBoundaryType BoundaryType FsGridBoundaryLayer BoundaryLayer " +
-           "populations_Blocks fSaved vg_fsaved" + "populations_accSubcycles populations_acceleration_subcycles" +
-           "VolE vg_VolE Evol E_vol fg_VolE fg_Evol " +
-           "HallE fg_HallE GradPeE e_gradpe VolB vg_VolB fg_VolB B_vol Bvol vg_Bvol fg_volB fg_Bvol" +
-           "BackgroundVolB PerturbedVolB " + "Pressure vg_Pressure fg_Pressure populations_PTensor " +
-           "BVOLderivs b_vol_derivs");
+   Readparameters::addComposing("variables_deprecated.output", std::string()+"List of deprecated names for data reduction operators (DROs). Names are case insensitive. "+
+				"Available (20201211): "+
+				"B BackgroundB fg_BackgroundB PerturbedB fg_PerturbedB "+
+				"E "+
+				"Rhom Rhoq populations_Rho "+
+				"V populations_V "+
+				"eje rhoqe "+
+				"populations_moments_Backstream populations_moments_NonBackstream "+
+				"populations_moments_thermal populations_moments_nonthermal "+
+				"populations_minvalue populations_EffectiveSparsityThreshold populations_RhoLossAdjust populations_rho_loss_adjust"+
+				"populations_EnergyDensity populations_PrecipitationFlux populations_precipitationdifferentialflux"+
+				"LBweight vg_lbweight vg_loadbalanceweight MaxVdt MaxRdt populations_MaxVdt populations_MaxRdt "+
+				"populations_maxdt_acceleration populations_maxdt_translation MaxFieldsdt fg_maxfieldsdt"+
+				"MPIrank FsGridRank "+
+				"FsGridBoundaryType BoundaryType FsGridBoundaryLayer BoundaryLayer "+
+				"populations_Blocks fSaved vg_fsaved"+
+				"populations_accSubcycles populations_acceleration_subcycles"+
+				"VolE vg_VolE Evol E_vol fg_VolE fg_Evol "+
+				"HallE fg_HallE GradPeE e_gradpe VolB vg_VolB fg_VolB B_vol Bvol vg_Bvol fg_volB fg_Bvol"+
+				"BackgroundVolB PerturbedVolB "+
+				"Pressure vg_Pressure fg_Pressure populations_PTensor "+
+				"BVOLderivs b_vol_derivs");
 
    // NOTE Do not remove the : before the list of variable names as this is parsed by tools/check_vlasiator_cfg.sh
-   RP::addComposing("variables.diagnostic",
-                    string() +
-                        "List of data reduction operators (DROs) to add to the diagnostic runtime output. Each "
-                        "variable to be added has to be on a new line diagnostic = XXX. Names are case insensitive. " +
-                        "Available (20201111): " + "populations_vg_blocks " +
-                        "vg_rhom populations_vg_rho_loss_adjust " + "vg_loadbalance_weight " +
-                        "vg_maxdt_acceleration vg_maxdt_translation " + "fg_maxdt_fieldsolver " +
-                        "populations_vg_maxdt_acceleration populations_vg_maxdt_translation " +
-                        "populations_vg_maxdistributionfunction populations_vg_mindistributionfunction");
+   Readparameters::addComposing("variables.diagnostic", std::string()+"List of data reduction operators (DROs) to add to the diagnostic runtime output. Each variable to be added has to be on a new line diagnostic = XXX. Names are case insensitive. "+
+				"Available (20201111): "+
+				"populations_vg_blocks "+
+				"vg_rhom populations_vg_rho_loss_adjust "+
+				"vg_loadbalance_weight vg_eje "+
+				"vg_maxdt_acceleration vg_maxdt_translation "+
+				"fg_maxdt_fieldsolver "+
+            "populations_vg_maxdt_acceleration populations_vg_maxdt_translation "+
+				"populations_vg_maxdistributionfunction populations_vg_mindistributionfunction");
 
-   RP::addComposing("variables_deprecated.diagnostic",
-                    string() +
-                        "List of deprecated data reduction operators (DROs) to add to the diagnostic runtime output. "
-                        "Names are case insensitive. " +
-                        "Available (20201111): " + "rhom populations_rholossadjust populations_rho_loss_adjust " +
-                        "populations_blocks lbweight loadbalance_weight " + "vg_lbweight vg_loadbalanceweight " +
-                        "maxvdt maxdt_acceleration " + "maxrdt maxdt_translation " +
-                        "populations_maxvdt populations_maxrdt " +
-                        "populations_maxdt_acceleration populations_maxdt_translation " +
-                        "populations_maxdistributionfunction populations_mindistributionfunction " +
-                        "maxfieldsdt maxdt_fieldsolver fg_maxfieldsdt");
+   Readparameters::addComposing("variables_deprecated.diagnostic", std::string()+"List of deprecated data reduction operators (DROs) to add to the diagnostic runtime output. Names are case insensitive. "+
+				"Available (20201111): "+
+				"rhom populations_rholossadjust populations_rho_loss_adjust "+
+				"populations_blocks lbweight loadbalance_weight "+
+                                "vg_lbweight vg_loadbalanceweight eje"+
+                                "maxvdt maxdt_acceleration "+
+                                "maxrdt maxdt_translation "+
+				"populations_maxvdt populations_maxrdt "+
+                                "populations_maxdt_acceleration populations_maxdt_translation "+
+				"populations_maxdistributionfunction populations_mindistributionfunction "+
+                                "maxfieldsdt maxdt_fieldsolver fg_maxfieldsdt");
 
    // bailout parameters
    RP::add("bailout.write_restart",
@@ -672,11 +679,14 @@ void Parameters::getParameters() {
    RP::get("fieldsolver.maxCFL", P::fieldSolverMaxCFL);
    RP::get("fieldsolver.minCFL", P::fieldSolverMinCFL);
    // Get Vlasov solver parameters
-   RP::get("vlasovsolver.maxSlAccelerationRotation", P::maxSlAccelerationRotation);
-   RP::get("vlasovsolver.maxSlAccelerationSubcycles", P::maxSlAccelerationSubcycles);
-   RP::get("vlasovsolver.maxCFL", P::vlasovSolverMaxCFL);
-   RP::get("vlasovsolver.minCFL", P::vlasovSolverMinCFL);
+   Readparameters::get("vlasovsolver.maxSlAccelerationRotation",P::maxSlAccelerationRotation);
+   Readparameters::get("vlasovsolver.maxSlAccelerationSubcycles",P::maxSlAccelerationSubcycles);
+   Readparameters::get("vlasovsolver.maxCFL",P::vlasovSolverMaxCFL);
+   Readparameters::get("vlasovsolver.minCFL",P::vlasovSolverMinCFL);
+   Readparameters::get("vlasovsolver.ResolvePlasmaPeriod",P::ResolvePlasmaPeriod);
+   Readparameters::get("vlasovsolver.maxResonantSubcycleFactor",P::maxResonantSubcycleFactor);
 
+   
    // Get load balance parameters
    RP::get("loadBalance.algorithm", P::loadBalanceAlgorithm);
    RP::get("loadBalance.tolerance", P::loadBalanceTolerance);

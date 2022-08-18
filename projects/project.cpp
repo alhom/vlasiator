@@ -33,6 +33,7 @@
 #include "Diffusion/Diffusion.h"
 #include "Dispersion/Dispersion.h"
 #include "Distributions/Distributions.h"
+#include "ElVentana/ElVentana.h"
 #include "Firehose/Firehose.h"
 #include "Flowthrough/Flowthrough.h"
 #include "Fluctuations/Fluctuations.h"
@@ -109,6 +110,7 @@ namespace projects {
       projects::Diffusion::addParameters();
       projects::Dispersion::addParameters();
       projects::Distributions::addParameters();
+      projects::ElVentana::addParameters();
       projects::Firehose::addParameters();
       projects::Flowthrough::addParameters();
       projects::Fluctuations::addParameters();
@@ -198,7 +200,10 @@ namespace projects {
       FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, FS_STENCIL_WIDTH> & perBGrid
    ) const { }
 
-   void Project::setupBeforeSetCell(const std::vector<CellID>& cells) {
+   void Project::setupBeforeSetCell(const std::vector<CellID>& cells,
+        dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+				    bool& needCurl) {
+	//FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2>& perBGrid) {
       // Dummy implementation.
       return;
    }
@@ -209,8 +214,12 @@ namespace projects {
       
       for (size_t p=0; p<getObjectWrapper().particleSpecies.size(); ++p) {
          this->setVelocitySpace(p,cell);
+         uint n = cell->get_number_of_velocity_blocks(p);
+         if ( n < 64) {
+	  // triggered by sub-ionospheric cells?
+	  // std::cerr << " WARNING!!! Low block count in this cell for population " << getObjectWrapper().particleSpecies[p].name << ". Number of velocity blocks = " << n << std::endl;
+         }
       }
-
       //let's get rid of blocks not fulfilling the criteria here to save memory.
       //cell->adjustSingleCellVelocityBlocks();
 
@@ -435,7 +444,7 @@ namespace projects {
       
       const Real correctSum = getCorrectNumberDensity(cell,popID);
       const Real ratio = correctSum / sum;
-      
+      //std::cerr<<"ratio "<<ratio<<" mass "<<getObjectWrapper().particleSpecies[popID].mass<<std::endl;
       for (size_t i=0; i<cell->get_number_of_velocity_blocks(popID)*WID3; ++i) {
          data[i] *= ratio;
       }
@@ -515,7 +524,7 @@ namespace projects {
      Refine cells of mpiGrid. Each project that wants refinement shoudl implement this function. 
      Base class function prints a warning and does nothing.
     */
-   bool Project::refineSpatialCells( dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid ) const {
+   bool Project::refineSpatialCells( dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
       if (myRank == MASTER_RANK) {
@@ -615,6 +624,9 @@ Project* createProject() {
    }
    if(Parameters::projectName == "Distributions") {
       rvalue = new projects::Distributions;
+   }
+   if (Parameters::projectName == "ElVentana") {
+      rvalue = new projects::ElVentana;
    }
    if(Parameters::projectName == "Firehose") {
       rvalue = new projects::Firehose;

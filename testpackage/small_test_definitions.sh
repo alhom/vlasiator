@@ -18,7 +18,7 @@ run_dir="run"
 test_dir="tests"
 
 # choose tests to run
-run_tests=( 1 2 3 4 5 6 7 8 9 10 11 12 13 14 17)
+run_tests=( 1 2 3 4 5 6 7 8 9 10 11 12 13 14 18)
 
 # acceleration test
 test_name[1]="acctest_2_maxw_500k_100k_20kms_10deg"
@@ -124,7 +124,7 @@ comparison_phiprof[15]="phiprof_0.txt"
 variable_names[15]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v fg_b fg_b fg_b fg_e fg_e fg_e proton"
 variable_components[15]="0 0 1 2 0 1 2 0 1 2"
 
-## Velocity AMR tests
+##AMR tests
 # translation test
 test_name[16]="transtest_amr"
 comparison_vlsv[16]="fullf.0000001.vlsv"
@@ -132,7 +132,6 @@ comparison_phiprof[16]="phiprof_0.txt"
 variable_names[16]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v proton"
 variable_components[16]="0 0 1 2"
 
-## Spatial AMR tests
 # Flowthrough test
 test_name[17]="Flowthrough_amr"
 comparison_vlsv[17]="bulk.0000001.vlsv"
@@ -146,3 +145,12 @@ comparison_vlsv[18]="bulk.0000001.vlsv"
 comparison_phiprof[18]="phiprof_0.txt"
 variable_names[18]="proton/vg_rho proton/vg_v proton/vg_v proton/vg_v fg_b fg_b fg_b fg_e fg_e fg_e"
 variable_components[18]="0 0 1 2 0 1 2 0 1 2"
+
+##Electron tests
+# Gyration test with electrons
+test_name[19]="acctest_6_electron"
+comparison_vlsv[19]="fullf.0000001.vlsv"
+comparison_phiprof[19]="phiprof_0.txt"
+variable_names[19]="electron/vg_rho electron/vg_v electron/vg_v electron/vg_v electron"
+variable_components[19]="0 0 1 2"
+single_cell[19]=1

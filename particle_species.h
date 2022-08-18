@@ -56,7 +56,9 @@ namespace species {
       Real sparseDynamicBulkValue2;    /*!< Maximum value for the dynamic algorithm range, so for example if dynamicAlgorithm=1 then for sparse.dynamicMinValue = 1e3, sparse.dynamicMaxValue=1e5, we apply the algorithm to cells for which 1e3<cell.rho<1e5*/
       Real sparseDynamicMinValue1;     /*!< The minimum value for the minValue*/
       Real sparseDynamicMinValue2;     /*!< The maximum value for the minValue*/
-
+      bool isTestSpecies = false;      /* Is this species being used as a test-particle species?*/
+      bool propagateSpecies = true;    /* Is this species going to be translated and accelerated? */
+      
       Real thermalRadius;           /*!< Radius of sphere to split the distribution into thermal and suprathermal. 0 (default in cfg) disables the DRO. */
       std::array<Real, 3> thermalV; /*!< Centre of sphere to split the distribution into thermal and suprathermal. 0 (default in cfg) disables the DRO. */
 

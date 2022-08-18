@@ -72,6 +72,10 @@ namespace projects {
          
          Real SCA_LAMBDA;
          Real BX0, BY0, BZ0;
+         Real magXPertAbsAmp;
+         Real magYPertAbsAmp;
+         Real magZPertAbsAmp;
+         Real boundaryV0;
          std::vector<HarrisSpeciesParameters> speciesParams;
 
    }; // class Harris

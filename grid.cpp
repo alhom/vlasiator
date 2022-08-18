@@ -44,6 +44,9 @@
 #include "ioread.h"
 #include "object_wrapper.h"
 
+#include "fieldsolver/ldz_volume.hpp"
+#include "fieldsolver/derivatives.hpp"
+
 #ifdef PAPI_MEM
 #include "papi.h" 
 #endif 
@@ -60,10 +63,6 @@ using namespace phiprof;
 int globalflags::AMRstencilWidth = VLASOV_STENCIL_WIDTH;
 
 extern Logger logFile, diagnostic;
-
-void initVelocityGridGeometry(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
-void initSpatialCellCoordinates(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
-void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
 void writeVelMesh(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
    const vector<CellID>& cells = getLocalCells();
@@ -154,7 +153,10 @@ void initializeGrids(
 
 
    phiprof::start("Refine spatial cells");
-   if(P::amrMaxSpatialRefLevel > 0 && project.refineSpatialCells(mpiGrid)) {
+   recalculateLocalCellsCache();
+   // refineSpatialCells should be a nop if amrMaxSpatialRefLevel is 0. Make this better later
+   if(project.refineSpatialCells(mpiGrid)) {
+      mpiGrid.balance_load();
       recalculateLocalCellsCache();
    }
    phiprof::stop("Refine spatial cells");
@@ -181,6 +183,9 @@ void initializeGrids(
    phiprof::start("Set spatial cell coordinates");
    initSpatialCellCoordinates(mpiGrid);
    phiprof::stop("Set spatial cell coordinates");
+
+   SpatialCell::set_mpi_transfer_type(Transfer::CELL_DIMENSIONS);
+   mpiGrid.update_copies_of_remote_neighbors(SYSBOUNDARIES_NEIGHBORHOOD_ID);
    
    phiprof::start("Initialize system boundary conditions");
    if(sysBoundaries.initSysBoundaries(project, P::t_min) == false) {
@@ -201,8 +206,8 @@ void initializeGrids(
    // Check refined cells do not touch boundary cells
    phiprof::start("Check boundary refinement");
    if(!sysBoundaries.checkRefinement(mpiGrid)) {
-      cerr << "(MAIN) ERROR: Boundary cells must have identical refinement level " << endl;
-      exit(1);
+      cerr << "(MAIN) WARNING: Boundary cells don't have identical refinement level " << endl;
+      //exit(1);
    }
    phiprof::stop("Check boundary refinement");
    
@@ -248,7 +253,8 @@ void initializeGrids(
 
    // Update technicalGrid
    technicalGrid.updateGhostCells(); // This needs to be done at some point
-
+   
+   bool needCurl = false;
    if (!P::isRestart) {
       //Initial state based on project, background field in all cells
       //and other initial values in non-sysboundary cells
@@ -259,8 +265,36 @@ void initializeGrids(
       // Each initialization has to be independent to avoid threading problems 
 
       // Allow the project to set up data structures for it's setCell calls
-      project.setupBeforeSetCell(cells);
-      
+      project.setupBeforeSetCell(cells, mpiGrid, needCurl);
+      if (needCurl) {
+         feedPerBIntoFsGrid(mpiGrid, cells, perBGrid);
+         perBGrid.updateGhostCells();
+      }
+   }
+
+   phiprof::start("setProjectBField");
+   project.setProjectBField(perBGrid, BgBGrid, technicalGrid);
+   // Set E field here as well?
+   perBGrid.updateGhostCells();
+   BgBGrid.updateGhostCells();
+   EGrid.updateGhostCells();
+   phiprof::stop("setProjectBField");
+
+   if (!P::isRestart) {
+      if (needCurl) {
+         // E is needed only because both volumetric fields are calculated in 1 call
+         feedEIntoFsGrid(mpiGrid, cells, EGrid);
+         EGrid.updateGhostCells();
+         // Calculate volumetric derivatives of B for curl
+         calculateDerivativesOnlyPerB(perBGrid, dPerBGrid, technicalGrid);
+         dPerBGrid.updateGhostCells();
+         calculateVolumeAveragedFields(perBGrid, EGrid, dPerBGrid,volGrid,technicalGrid);
+         volGrid.updateGhostCells();
+         calculateBVOLDerivativesSimple(volGrid, technicalGrid, sysBoundaries);
+         // Gather values back to mpiGrid
+         getdBvolFieldsFromFsGrid(volGrid, BgBGrid, technicalGrid, mpiGrid, cells);	 
+      }
+
       phiprof::start("setCell");
       #pragma omp parallel for schedule(dynamic)
       for (size_t i=0; i<cells.size(); ++i) {
@@ -341,18 +375,12 @@ void initializeGrids(
       phiprof::stop("Init moments");
    } else {
       phiprof::start("Init moments");
+      #pragma omp parallel for
       for (size_t i=0; i<cells.size(); ++i) {
          calculateCellMoments(mpiGrid[cells[i]], true);
       }
       phiprof::stop("Init moments");
    }
-   
-   phiprof::start("setProjectBField");
-   project.setProjectBField(perBGrid, BgBGrid, technicalGrid);
-   perBGrid.updateGhostCells();
-   BgBGrid.updateGhostCells();
-   EGrid.updateGhostCells();
-   phiprof::stop("setProjectBField");
    
    phiprof::start("Finish fsgrid setup");
    feedMomentsIntoFsGrid(mpiGrid, cells, momentsGrid,technicalGrid, false);
@@ -390,7 +418,6 @@ void initSpatialCellCoordinates(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       mpiGrid[cells[i]]->parameters[CellParams::DX  ] = cell_length[0];
       mpiGrid[cells[i]]->parameters[CellParams::DY  ] = cell_length[1];
       mpiGrid[cells[i]]->parameters[CellParams::DZ  ] = cell_length[2];
-
       mpiGrid[cells[i]]->parameters[CellParams::CELLID] = cells[i];
       mpiGrid[cells[i]]->parameters[CellParams::REFINEMENT_LEVEL] = mpiGrid.get_refinement_level(cells[i]);
    }

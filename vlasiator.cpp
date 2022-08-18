@@ -45,6 +45,8 @@
 #include "sysboundary/sysboundary.h"
 
 #include "fieldsolver/fs_common.h"
+#include "fieldsolver/derivatives.hpp" // For eVlasiator PQN calculation
+#include "fieldsolver/ldz_gradpe.hpp" // For eVlasiator gradpe calculation
 #include "projects/project.h"
 #include "grid.h"
 #include "iowrite.h"
@@ -113,48 +115,49 @@ bool computeNewTimeStep(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
    dtMaxLocal[1]=numeric_limits<Real>::max();
    dtMaxLocal[2]=numeric_limits<Real>::max();
 
+
    for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
       SpatialCell* cell = mpiGrid[*cell_id];
       const Real dx = cell->parameters[CellParams::DX];
       const Real dy = cell->parameters[CellParams::DY];
       const Real dz = cell->parameters[CellParams::DZ];
-      
       cell->parameters[CellParams::MAXRDT] = numeric_limits<Real>::max();
-      
+  
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
-         cell->set_max_r_dt(popID,numeric_limits<Real>::max());
-         vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
-         const Real* blockParams = blockContainer.getParameters();
-         const Real EPS = numeric_limits<Real>::min()*1000;
-         for (vmesh::LocalID blockLID=0; blockLID<blockContainer.size(); ++blockLID) {
-            for (unsigned int i=0; i<WID;i+=WID-1) {
-                const Real Vx 
-                  = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VXCRD] 
-                  + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVX]
-                  + EPS;
-                const Real Vy 
-                  = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VYCRD] 
-                  + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVY]
-                  + EPS;
-                const Real Vz 
-                  = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VZCRD]
-                  + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVZ]
-                  + EPS;
+         if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
+             cell->set_max_r_dt(popID,numeric_limits<Real>::max());
+             vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
+             const Real* blockParams = blockContainer.getParameters();
+             const Real EPS = numeric_limits<Real>::min()*1000;
+             for (vmesh::LocalID blockLID=0; blockLID<blockContainer.size(); ++blockLID) {
+                for (unsigned int i=0; i<WID;i+=WID-1) {
+                    const Real Vx 
+                      = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VXCRD] 
+                      + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVX]
+                      + EPS;
+                    const Real Vy 
+                      = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VYCRD] 
+                      + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVY]
+                      + EPS;
+                        const Real Vz 
+                      = blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::VZCRD]
+                      + (i+HALF)*blockParams[blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS+BlockParams::DVZ]
+                      + EPS;
 
-                const Real dt_max_cell = min(dx/fabs(Vx),min(dy/fabs(Vy),dz/fabs(Vz)));
-                cell->parameters[CellParams::MAXRDT] = min(dt_max_cell,cell->parameters[CellParams::MAXRDT]);
-                cell->set_max_r_dt(popID,min(dt_max_cell,cell->get_max_r_dt(popID)));
+                    const Real dt_max_cell = min(dx/fabs(Vx),min(dy/fabs(Vy),dz/fabs(Vz)));
+                    cell->parameters[CellParams::MAXRDT] = min(dt_max_cell,cell->parameters[CellParams::MAXRDT]);
+                    cell->set_max_r_dt(popID,min(dt_max_cell,cell->get_max_r_dt(popID)));
+                 }
              }
          }
       }
-      
       
       if ( cell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
            (cell->sysBoundaryLayer == 1 && cell->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY )) {
          //spatial fluxes computed also for boundary cells
          dtMaxLocal[0]=min(dtMaxLocal[0], cell->parameters[CellParams::MAXRDT]);
       }
-
+      
       if (cell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY && cell->parameters[CellParams::MAXVDT] != 0) {
          //Acceleration only done on non-boundary cells
          dtMaxLocal[1]=min(dtMaxLocal[1], cell->parameters[CellParams::MAXVDT]);
@@ -469,6 +472,7 @@ int main(int argn,char* args[]) {
       args,
       mpiGrid,
       perBGrid,
+      dPerBGrid,
       BgBGrid,
       momentsGrid,
       momentsDt2Grid,
@@ -516,17 +520,19 @@ int main(int argn,char* args[]) {
 
    phiprof::start("getFieldsFromFsGrid");
    volGrid.updateGhostCells();
-   getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, technicalGrid, mpiGrid, cells);
+   getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, dMomentsGrid, technicalGrid, mpiGrid, cells);
    phiprof::stop("getFieldsFromFsGrid");
 
+   phiprof::start("compute-dt");
+   // Run Vlasov solver once with zero dt to initialize
+   // per-cell dt limits and moments.
    if (P::isRestart == false) {
-      phiprof::start("compute-dt");
       // Run Vlasov solver once with zero dt to initialize
       // per-cell dt limits. In restarts, we read the dt from file.
       calculateSpatialTranslation(mpiGrid,0.0);
       calculateAcceleration(mpiGrid,0.0);      
-      phiprof::stop("compute-dt");
    }
+   phiprof::stop("compute-dt");
 
    // Save restart data
    if (P::writeInitialState) {
@@ -574,6 +580,16 @@ int main(int argn,char* args[]) {
    }
 
    if (P::isRestart == false) {
+      // Initialize EJE fields
+      #pragma omp parallel for
+      for (size_t c=0; c<cells.size(); ++c) {
+         const CellID cellID = cells[c];
+         SpatialCell* SC = mpiGrid[cellID];
+         SC->parameters[CellParams::EXJE] = 0.;
+         SC->parameters[CellParams::EYJE] = 0.;
+         SC->parameters[CellParams::EZJE] = 0.;
+      }
+
       //compute new dt
       phiprof::start("compute-dt");
       computeNewTimeStep(mpiGrid, technicalGrid, newDt, dtIsChanged);
@@ -813,7 +829,6 @@ int main(int argn,char* args[]) {
       
       phiprof::stop("IO");
       addTimedBarrier("barrier-end-io");
-      
       //no need to propagate if we are on the final step, we just
       //wanted to make sure all IO is done even for final step
       if(P::tstep == P::tstep_max ||
@@ -857,6 +872,7 @@ int main(int argn,char* args[]) {
          computeNewTimeStep(mpiGrid, technicalGrid, newDt, dtIsChanged);
          addTimedBarrier("barrier-check-dt");
          if(dtIsChanged) {
+#warning dt change step in acceleration at restart cannot be done without additional information such as egradpe
             phiprof::start("update-dt");
             //propagate velocity space back to real-time
             if( P::propagateVlasovAcceleration ) {
@@ -916,9 +932,13 @@ int main(int argn,char* args[]) {
          CellParams::VY_DT2,
          CellParams::VZ_DT2,
          CellParams::RHOQ_DT2,
+         CellParams::RHOQE_DT2,
          CellParams::P_11_DT2,
          CellParams::P_22_DT2,
-         CellParams::P_33_DT2
+         CellParams::P_33_DT2,
+         CellParams::P_23_DT2,
+         CellParams::P_13_DT2,
+         CellParams::P_12_DT2
       );
       phiprof::stop("Compute interp moments");
       
@@ -932,6 +952,8 @@ int main(int argn,char* args[]) {
          //setupTechnicalFsGrid(mpiGrid, cells, technicalGrid);
          feedMomentsIntoFsGrid(mpiGrid, cells, momentsGrid, technicalGrid, false);
          feedMomentsIntoFsGrid(mpiGrid, cells, momentsDt2Grid, technicalGrid, true);
+         momentsGrid.updateGhostCells();
+         momentsDt2Grid.updateGhostCells();
          phiprof::stop("fsgrid-coupling-in");
          
          propagateFields(
@@ -957,12 +979,32 @@ int main(int argn,char* args[]) {
          // Copy results back from fsgrid.
          volGrid.updateGhostCells();
          technicalGrid.updateGhostCells();
-         getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, technicalGrid, mpiGrid, cells);
+         getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, dMomentsGrid, technicalGrid, mpiGrid, cells);
          phiprof::stop("getFieldsFromFsGrid");
          phiprof::stop("Propagate Fields",cells.size(),"SpatialCells");
          addTimedBarrier("barrier-after-field-solver");
       }
-      
+
+      // Additional feeding of moments into fsgrid required by electron runs
+      if (!P::propagateField && (P::ResolvePlasmaPeriod==true)) {
+	phiprof::start("fsgrid-coupling-in");
+	feedMomentsIntoFsGrid(mpiGrid, cells, momentsGrid, technicalGrid, false);
+	feedMomentsIntoFsGrid(mpiGrid, cells, momentsDt2Grid, technicalGrid, true);
+	momentsGrid.updateGhostCells();
+	momentsDt2Grid.updateGhostCells();
+	phiprof::stop("fsgrid-coupling-in");
+	
+	calculateDerivativesSimple(perBGrid, perBDt2Grid, momentsGrid, momentsDt2Grid, dPerBGrid, dMomentsGrid, technicalGrid, sysBoundaries, RK_ORDER1, true);
+	if(P::ohmGradPeTerm > 0){
+	  calculateGradPeTermSimple(EGradPeGrid, momentsGrid, momentsDt2Grid, dMomentsGrid, technicalGrid, sysBoundaries, RK_ORDER1);
+	}
+
+	phiprof::start("getFieldsFromFsGrid");
+	// Copy results back from fsgrid.
+	getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, dMomentsGrid, technicalGrid, mpiGrid, cells);
+	phiprof::stop("getFieldsFromFsGrid");
+      }
+
       phiprof::start("Velocity-space");
       if ( P::propagateVlasovAcceleration ) {
          calculateAcceleration(mpiGrid,P::dt);
@@ -991,9 +1033,13 @@ int main(int argn,char* args[]) {
          CellParams::VY,
          CellParams::VZ,
          CellParams::RHOQ,
+         CellParams::RHOQE,
          CellParams::P_11,
          CellParams::P_22,
-         CellParams::P_33
+         CellParams::P_33,
+         CellParams::P_23,
+         CellParams::P_13,
+         CellParams::P_12
       );
       phiprof::stop("Compute interp moments");
 

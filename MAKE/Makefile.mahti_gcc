@@ -17,9 +17,13 @@ ifeq ($(DISTRIBUTION_FP_PRECISION),SPF)
 	INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
 	#VECTORCLASS = VEC8F_FALLBACK
 	#INC_VECTORCLASS = -I$(HOME)/vlasiator/vlasovsolver
+	INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
+	#VECTORCLASS = VEC8F_FALLBACK
+	#INC_VECTORCLASS = -I$(HOME)/vlasiator/vlasovsolver
 else
 #Double-precision
 	VECTORCLASS = VEC4D_AGNER
+	INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
 	INC_VECTORCLASS = -I$(LIBRARY_PREFIX)/vectorclass/
 endif
 
@@ -45,8 +49,12 @@ testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -
 #CXXFLAGS += -g -O3 -qopenmp -std=c++11 -W -Wall -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
 #testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
 
+#CXXFLAGS += -g -O3 -qopenmp -std=c++11 -W -Wall -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
+#testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
+
 MATHFLAGS = -ffast-math
 LDFLAGS = -lrt
+#LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
 #LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
 LIB_MPI = -lgomp 
 
@@ -70,6 +78,9 @@ CXXFLAGS += -DPAPI_MEM
 #Configure jemalloc with  --with-jemalloc-prefix=je_ when installing it
 CXXFLAGS += -DUSE_JEMALLOC -DJEMALLOC_NO_DEMANGLE
 
+#module libraries
+LIB_JEMALLOC = -ljemalloc
+BOOST_VERSION = 
 #module libraries
 LIB_JEMALLOC = -ljemalloc
 BOOST_VERSION = 

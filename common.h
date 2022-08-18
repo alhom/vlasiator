@@ -136,11 +136,13 @@ namespace CellParams {
       VY,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VZ,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQ,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      RHOQE,    /*!< Total charge density including test species. Calculated by Vlasov propagator, used to track charge non-neutrality.*/
       RHOM_DT2,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VX_DT2,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VY_DT2,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       VZ_DT2,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       RHOQ_DT2,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      RHOQE_DT2,    /*!< Total charge density including test species. Calculated by Vlasov propagator, used to track charge non-neutrality.*/
       BGBXVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBYVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBZVOL,   /*!< background magnetic field averaged over spatial cell.*/
@@ -150,28 +152,48 @@ namespace CellParams {
       EXGRADPE,         /*!< Electron pressure gradient term x.*/
       EYGRADPE,         /*!< Electron pressure gradient term y.*/
       EZGRADPE,         /*!< Electron pressure gradient term z.*/
+      EXJE,             /*!< Electric field from electron current term x.*/
+      EYJE,             /*!< Electric field from electron current term y.*/
+      EZJE,             /*!< Electric field from electron current term z.*/
+      ERHOQX,           /*!< Electric field from e- charge separation term x.*/
+      ERHOQY,           /*!< Electric field from e- charge separation term y.*/
+      ERHOQZ,           /*!< Electric field from e- charge separation term z.*/
       RHOM_R,     /*!< RHO after propagation in ordinary space*/
       VX_R,   /*!< VX after propagation in ordinary space*/
       VY_R,   /*!< VY after propagation in ordinary space*/
       VZ_R,   /*!< VZ after propagation in ordinary space*/
       RHOQ_R,     /*!< RHOQ after propagation in ordinary space*/
+      RHOQE_R,    /*!< RHOQE after propagation in ordinary space*/
       RHOM_V,     /*!< RHOM after propagation in velocity space*/
       VX_V,   /*!< VX after propagation in velocity space*/
       VY_V,   /*!< VY after propagation in velocity space*/
       VZ_V,   /*!< VZ after propagation in velocity space*/
       RHOQ_V,     /*!< RHOQ after propagation in velocity space*/
+      RHOQE_V,    /*!< RHOQE after propagation in velocity space*/
       P_11,     /*!< Pressure P_xx component, computed by Vlasov propagator. */
       P_22,     /*!< Pressure P_yy component, computed by Vlasov propagator. */
       P_33,     /*!< Pressure P_zz component, computed by Vlasov propagator. */
+      P_23,     /*!< Pressure P_yz component, computed by Vlasov propagator. */
+      P_13,     /*!< Pressure P_xz component, computed by Vlasov propagator. */
+      P_12,     /*!< Pressure P_xy component, computed by Vlasov propagator. */
       P_11_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_11_R and P_11_V. */
       P_22_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_22_R and P_22_V. */
       P_33_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_33_R and P_33_V. */
+      P_23_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_23_R and P_23_V. */
+      P_13_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_13_R and P_13_V. */
+      P_12_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_12_R and P_12_V. */
       P_11_R,   /*!< P_xx component after propagation in ordinary space */
       P_22_R,   /*!< P_yy component after propagation in ordinary space */
       P_33_R,   /*!< P_zz component after propagation in ordinary space */
+      P_23_R,   /*!< P_yz component after propagation in ordinary space */
+      P_13_R,   /*!< P_xz component after propagation in ordinary space */
+      P_12_R,   /*!< P_xy component after propagation in ordinary space */
       P_11_V,   /*!< P_xx component after propagation in velocity space */
       P_22_V,   /*!< P_yy component after propagation in velocity space */
       P_33_V,   /*!< P_zz component after propagation in velocity space */
+      P_23_V,   /*!< P_yz component after propagation in velocity space */
+      P_13_V,   /*!< P_xz component after propagation in velocity space */
+      P_12_V,   /*!< P_xy component after propagation in velocity space */
       EXVOL,    /*!< Volume electric field averaged over spatial cell, x-component.*/
       EYVOL,    /*!< Volume electric field averaged over spatial cell, y-component.*/
       EZVOL,    /*!< Volume electric field averaged over spatial cell, z-component.*/
@@ -270,12 +292,16 @@ namespace fsgrids {
    enum moments {
       RHOM, /*!< Overall mass density. Calculated by Vlasov propagator, used to propagate fields.*/
       RHOQ, /*!< Overall charge density. Calculated by Vlasov propagator, used to propagate fields.*/
+      RHOQE, /*!< Electron charge density. Calculated from e- test particles, used to even out e- charge imbalances .*/
       VX,   /*!< Vx. Calculated by Vlasov propagator, used to propagate fields.*/
       VY,   /*!< Vy. Calculated by Vlasov propagator, used to propagate fields.*/
       VZ,   /*!< Vz. Calculated by Vlasov propagator, used to propagate fields.*/
       P_11, /*!< Pressure P_xx component, computed by Vlasov propagator. */
       P_22, /*!< Pressure P_yy component, computed by Vlasov propagator. */
       P_33, /*!< Pressure P_zz component, computed by Vlasov propagator. */
+      P_23, /*!< Pressure P_yz component, computed by Vlasov propagator. */
+      P_13, /*!< Pressure P_xz component, computed by Vlasov propagator. */
+      P_12, /*!< Pressure P_xy component, computed by Vlasov propagator. */
       N_MOMENTS
    };
    
@@ -314,6 +340,15 @@ namespace fsgrids {
       dp33dx,        /*!< Derivative of P_33 to z direction. */
       dp33dy,        /*!< Derivative of P_33 to z direction. */
       dp33dz,        /*!< Derivative of P_33 to z direction. */
+      dp23dx,        /*!< Derivative of P_23 to x direction. */
+      dp23dy,        /*!< Derivative of P_23 to y direction. */
+      dp23dz,        /*!< Derivative of P_23 to z direction. */
+      dp13dx,        /*!< Derivative of P_13 to x direction. */
+      dp13dy,        /*!< Derivative of P_13 to y direction. */
+      dp13dz,        /*!< Derivative of P_13 to z direction. */
+      dp12dx,        /*!< Derivative of P_12 to x direction. */
+      dp12dy,        /*!< Derivative of P_12 to y direction. */
+      dp12dz,        /*!< Derivative of P_12 to z direction. */
       dVxdx,     /*!< Derivative of volume-averaged Vx to x-direction. */
       dVxdy,     /*!< Derivative of volume-averaged Vx to y-direction. */
       dVxdz,     /*!< Derivative of volume-averaged Vx to z-direction. */
@@ -323,6 +358,9 @@ namespace fsgrids {
       dVzdx,     /*!< Derivative of volume-averaged Vz to x-direction. */
       dVzdy,     /*!< Derivative of volume-averaged Vz to y-direction. */
       dVzdz,     /*!< Derivative of volume-averaged Vz to z-direction. */
+      RHOQEx,    /*!< Cell-averaged Ex field from charge imbalance. Move these to some other place? */
+      RHOQEy,    /*!< Cell-averaged Ey field from charge imbalance. Move these to some other place? */
+      RHOQEz,    /*!< Cell-averaged Ez field from charge imbalance. Move these to some other place? */
       dPedx,    /*!< Derivative of electron pressure to x-direction. */
       dPedy,    /*!< Derivative of electron pressure to y-direction. */
       dPedz,    /*!< Derivative of electron pressure to z-direction. */
@@ -391,6 +429,8 @@ namespace sysboundarytype {
       IONOSPHERE,       /*!< Initially a perfectly conducting sphere. */
       OUTFLOW,          /*!< No fixed conditions on the fields and distribution function. */
       SET_MAXWELLIAN,   /*!< Set Maxwellian boundary condition, i.e. set fields and distribution function. */
+      STATIC,           /*!< Leave fields and distribution functions to values set by project. */
+      STATICIONOSPHERE, /*!< Leave fields and distribution functions to values set by project, now for ionosphere!. */
       N_SYSBOUNDARY_CONDITIONS
    };
 }
@@ -452,6 +492,7 @@ namespace physicalconstants {
    const Real MASS_ELECTRON = 9.10938188e-31; /**< Electron rest mass, units: kg.*/
    const Real MASS_PROTON = 1.67262158e-27; /*!< Proton rest mass, units: kg.*/
    const Real R_E = 6.3712e6; /*!< radius of the Earth, units: m. */
+   const Real light = 2.99792458e8; /*!< speed of light in units m/s. */
 }
 
 const std::vector<CellID>& getLocalCells();
