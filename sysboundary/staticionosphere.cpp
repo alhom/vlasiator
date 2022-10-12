@@ -73,74 +73,33 @@ namespace SBC {
    void StaticIonosphere::getParameters() {
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
-      if(!Readparameters::get("staticionosphere.centerX", this->center[0])) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
-      if(!Readparameters::get("staticionosphere.centerY", this->center[1])) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
-      if(!Readparameters::get("staticionosphere.centerZ", this->center[2])) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
-      if(!Readparameters::get("staticionosphere.radius", this->radius)) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
-      if(!Readparameters::get("staticionosphere.geometry", this->geometry)) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
-      if(!Readparameters::get("staticionosphere.precedence", this->precedence)) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      }
+      Readparameters::get("staticionosphere.centerX", this->center[0]);
+      Readparameters::get("staticionosphere.centerY", this->center[1]);
+      Readparameters::get("staticionosphere.centerZ", this->center[2]);
+      Readparameters::get("staticionosphere.radius", this->radius);
+      Readparameters::get("staticionosphere.geometry", this->geometry);
+      Readparameters::get("staticionosphere.precedence", this->precedence);
       uint reapply;
-      if(!Readparameters::get("staticionosphere.reapplyUponRestart",reapply)) {
-         if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added!" << endl;
-         exit(1);
-      };
+      Readparameters::get("staticionosphere.reapplyUponRestart",reapply);
       this->applyUponRestart = false;
       if(reapply == 1) {
          this->applyUponRestart = true;
       }
 
       for(uint i=0; i< getObjectWrapper().particleSpecies.size(); i++) {
-        const std::string& pop = getObjectWrapper().particleSpecies[i].name;
-        StaticIonosphereSpeciesParameters sP;
+         const std::string& pop = getObjectWrapper().particleSpecies[i].name;
+         StaticIonosphereSpeciesParameters sP;
 
-        if(!Readparameters::get(pop + "_staticionosphere.rho", sP.rho)) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_staticionosphere.VX0", sP.V0[0])) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_staticionosphere.VY0", sP.V0[1])) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_staticionosphere.VZ0", sP.V0[2])) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_Magnetosphere.T", sP.T)) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_Magnetosphere.nSpaceSamples", sP.nSpaceSamples)) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
-        if(!Readparameters::get(pop + "_Magnetosphere.nVelocitySamples", sP.nVelocitySamples)) {
-           if(myRank == MASTER_RANK) cerr << __FILE__ << ":" << __LINE__ << " ERROR: This option has not been added for population " << pop << "!" << endl;
-           exit(1);
-        }
+         Readparameters::get(pop + "_staticionosphere.rho", sP.rho);
+         Readparameters::get(pop + "_staticionosphere.VX0", sP.V0[0]);
+         Readparameters::get(pop + "_staticionosphere.VY0", sP.V0[1]);
+         Readparameters::get(pop + "_staticionosphere.VZ0", sP.V0[2]);
+         Readparameters::get(pop + "_Magnetosphere.T", sP.T);
+         Readparameters::get(pop + "_Magnetosphere.nSpaceSamples", sP.nSpaceSamples);
+         
+         Readparameters::get(pop + "_Magnetosphere.nVelocitySamples", sP.nVelocitySamples);
 
-        speciesParams.push_back(sP);
+         speciesParams.push_back(sP);
       }
    }
    
@@ -188,7 +147,7 @@ namespace SBC {
    }
    
    bool StaticIonosphere::assignSysBoundary(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-                                      FsGrid< fsgrids::technical, 2> & technicalGrid) {
+                                      FsGrid< fsgrids::technical, FS_STENCIL_WIDTH> & technicalGrid) {
       vector<CellID> cells = mpiGrid.get_cells();
       for(uint i=0; i<cells.size(); i++) {
          if(mpiGrid[cells[i]]->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
@@ -234,7 +193,7 @@ namespace SBC {
 
    bool StaticIonosphere::applyInitialState(
       const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2> & perBGrid,
+      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, FS_STENCIL_WIDTH> & perBGrid,
       Project &project
    ) {
       vector<CellID> cells = mpiGrid.get_cells();
@@ -253,8 +212,8 @@ namespace SBC {
     *  DO NOTHING
     */
    Real StaticIonosphere::fieldSolverBoundaryCondMagneticField(
-      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, 2> & bGrid,
-      FsGrid< fsgrids::technical, 2> & technicalGrid,
+      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, FS_STENCIL_WIDTH> & bGrid,
+      FsGrid< fsgrids::technical, FS_STENCIL_WIDTH> & technicalGrid,
       cint i,
       cint j,
       cint k,
@@ -265,8 +224,45 @@ namespace SBC {
       
    }
 
+   /*! We want here to
+    *
+    * -- Retain only the boundary-normal projection of perturbed face B
+    * Copied from ionosphere. 
+    */
+   void StaticIonosphere::fieldSolverBoundaryCondMagneticFieldProjection(
+      FsGrid< std::array<Real, fsgrids::bfield::N_BFIELD>, FS_STENCIL_WIDTH> & bGrid,
+      FsGrid< fsgrids::technical, FS_STENCIL_WIDTH> & technicalGrid,
+      cint i,
+      cint j,
+      cint k
+   ) {
+      return; // eVlasiator assumption: this has already been handled in the background field by the underlying run.
+      // Projection of B-field to normal direction
+      Real BdotN = 0;
+      std::array<Real, 3> normalDirection = fieldSolverGetNormalDirection(technicalGrid, i, j, k);
+      for(uint component=0; component<3; component++) {
+         BdotN += bGrid.get(i,j,k)->at(fsgrids::bfield::PERBX+component) * normalDirection[component];
+      }
+      // Apply to any components that were not solved
+      if ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 2) ||
+          ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 1) && ((technicalGrid.get(i,j,k)->SOLVE & compute::BX) != compute::BX))
+         ) {
+         bGrid.get(i,j,k)->at(fsgrids::bfield::PERBX) = BdotN*normalDirection[0];
+      }
+      if ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 2) ||
+          ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 1) && ((technicalGrid.get(i,j,k)->SOLVE & compute::BY) != compute::BY))
+         ) {
+         bGrid.get(i,j,k)->at(fsgrids::bfield::PERBY) = BdotN*normalDirection[1];
+      }
+      if ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 2) ||
+          ((technicalGrid.get(i,j,k)->sysBoundaryLayer == 1) && ((technicalGrid.get(i,j,k)->SOLVE & compute::BZ) != compute::BZ))
+         ) {
+         bGrid.get(i,j,k)->at(fsgrids::bfield::PERBZ) = BdotN*normalDirection[2];
+      }
+   }
+
    void StaticIonosphere::fieldSolverBoundaryCondElectricField(
-      FsGrid< std::array<Real, fsgrids::efield::N_EFIELD>, 2> & EGrid,
+      FsGrid< std::array<Real, fsgrids::efield::N_EFIELD>, FS_STENCIL_WIDTH> & EGrid,
       cint i,
       cint j,
       cint k,
@@ -276,7 +272,7 @@ namespace SBC {
    }
    
    void StaticIonosphere::fieldSolverBoundaryCondHallElectricField(
-      FsGrid< std::array<Real, fsgrids::ehall::N_EHALL>, 2> & EHallGrid,
+      FsGrid< std::array<Real, fsgrids::ehall::N_EHALL>, FS_STENCIL_WIDTH> & EHallGrid,
       cint i,
       cint j,
       cint k,
@@ -309,7 +305,7 @@ namespace SBC {
    }
    
    void StaticIonosphere::fieldSolverBoundaryCondGradPeElectricField(
-      FsGrid< std::array<Real, fsgrids::egradpe::N_EGRADPE>, 2> & EGradPeGrid,
+      FsGrid< std::array<Real, fsgrids::egradpe::N_EGRADPE>, FS_STENCIL_WIDTH> & EGradPeGrid,
       cint i,
       cint j,
       cint k,
@@ -319,8 +315,8 @@ namespace SBC {
    }
    
    void StaticIonosphere::fieldSolverBoundaryCondDerivatives(
-      FsGrid< std::array<Real, fsgrids::dperb::N_DPERB>, 2> & dPerBGrid,
-      FsGrid< std::array<Real, fsgrids::dmoments::N_DMOMENTS>, 2> & dMomentsGrid,
+      FsGrid< std::array<Real, fsgrids::dperb::N_DPERB>, FS_STENCIL_WIDTH> & dPerBGrid,
+      FsGrid< std::array<Real, fsgrids::dmoments::N_DMOMENTS>, FS_STENCIL_WIDTH> & dMomentsGrid,
       cint i,
       cint j,
       cint k,
@@ -332,7 +328,7 @@ namespace SBC {
    }
    
    void StaticIonosphere::fieldSolverBoundaryCondBVOLDerivatives(
-      FsGrid< std::array<Real, fsgrids::volfields::N_VOL>, 2> & volGrid,
+      FsGrid< std::array<Real, fsgrids::volfields::N_VOL>, FS_STENCIL_WIDTH> & volGrid,
       cint i,
       cint j,
       cint k,
@@ -342,6 +338,280 @@ namespace SBC {
       //this->setCellBVOLDerivativesToZero(volGrid, i, j, k, component);
    }
    
+   std::array<Real, 3> StaticIonosphere::fieldSolverGetNormalDirection(
+      FsGrid< fsgrids::technical, FS_STENCIL_WIDTH> & technicalGrid,
+      cint i,
+      cint j,
+      cint k
+   ) {
+      phiprof::start("StaticIonosphere::fieldSolverGetNormalDirection");
+      std::array<Real, 3> normalDirection{{ 0.0, 0.0, 0.0 }};
+      
+      static creal DIAG2 = 1.0 / sqrt(2.0);
+      static creal DIAG3 = 1.0 / sqrt(3.0);
+      
+      creal dx = technicalGrid.DX;
+      creal dy = technicalGrid.DY;
+      creal dz = technicalGrid.DZ;
+      const std::array<int, 3> globalIndices = technicalGrid.getGlobalIndices(i,j,k);
+      creal x = P::xmin + (convert<Real>(globalIndices[0])+0.5)*dx;
+      creal y = P::ymin + (convert<Real>(globalIndices[1])+0.5)*dy;
+      creal z = P::zmin + (convert<Real>(globalIndices[2])+0.5)*dz;
+      creal xsign = divideIfNonZero(x, fabs(x));
+      creal ysign = divideIfNonZero(y, fabs(y));
+      creal zsign = divideIfNonZero(z, fabs(z));
+      
+      Real length = 0.0;
+      
+      if (Parameters::xcells_ini == 1) {
+         if (Parameters::ycells_ini == 1) {
+            if (Parameters::zcells_ini == 1) {
+               // X,Y,Z
+               std::cerr << __FILE__ << ":" << __LINE__ << ":" << "What do you expect to do with a single-cell simulation of ionosphere boundary type? Stop kidding." << std::endl;
+               abort();
+               // end of X,Y,Z
+            } else {
+               // X,Y
+               normalDirection[2] = zsign;
+               // end of X,Y
+            }
+         } else if (Parameters::zcells_ini == 1) {
+            // X,Z
+            normalDirection[1] = ysign;
+            // end of X,Z
+         } else {
+            // X
+            switch(this->geometry) {
+               case 0:
+                  normalDirection[1] = DIAG2*ysign;
+                  normalDirection[2] = DIAG2*zsign;
+                  break;
+               case 1:
+                  if(fabs(y) == fabs(z)) {
+                     normalDirection[1] = ysign*DIAG2;
+                     normalDirection[2] = zsign*DIAG2;
+                     break;
+                  }
+                  if(fabs(y) > (this->radius - dy)) {
+                     normalDirection[1] = ysign;
+                     break;
+                  }
+                  if(fabs(z) > (this->radius - dz)) {
+                     normalDirection[2] = zsign;
+                     break;
+                  }
+                  if(fabs(y) > (this->radius - 2.0*dy)) {
+                     normalDirection[1] = ysign;
+                     break;
+                  }
+                  if(fabs(z) > (this->radius - 2.0*dz)) {
+                     normalDirection[2] = zsign;
+                     break;
+                  }
+                  break;
+               case 2:
+                  length = sqrt(y*y + z*z);
+                  normalDirection[1] = y / length;
+                  normalDirection[2] = z / length;
+                  break;
+               default:
+                  std::cerr << __FILE__ << ":" << __LINE__ << ":" << "staticionosphere.geometry has to be 0, 1 or 2 with this grid shape." << std::endl;
+                  abort();
+            }
+            // end of X
+         }
+      } else if (Parameters::ycells_ini == 1) {
+         if (Parameters::zcells_ini == 1) {
+            // Y,Z
+            normalDirection[0] = xsign;
+            // end of Y,Z
+         } else {
+            // Y
+            switch(this->geometry) {
+               case 0:
+                  normalDirection[0] = DIAG2*xsign;
+                  normalDirection[2] = DIAG2*zsign;
+                  break;
+               case 1:
+                  if(fabs(x) == fabs(z)) {
+                     normalDirection[0] = xsign*DIAG2;
+                     normalDirection[2] = zsign*DIAG2;
+                     break;
+                  }
+                  if(fabs(x) > (this->radius - dx)) {
+                     normalDirection[0] = xsign;
+                     break;
+                  }
+                  if(fabs(z) > (this->radius - dz)) {
+                     normalDirection[2] = zsign;
+                     break;
+                  }
+                  if(fabs(x) > (this->radius - 2.0*dx)) {
+                     normalDirection[0] = xsign;
+                     break;
+                  }
+                  if(fabs(z) > (this->radius - 2.0*dz)) {
+                     normalDirection[2] = zsign;
+                     break;
+                  }
+                  break;
+               case 2:
+               case 3:
+                  length = sqrt(x*x + z*z);
+                  normalDirection[0] = x / length;
+                  normalDirection[2] = z / length;
+                  break;
+               default:
+                  std::cerr << __FILE__ << ":" << __LINE__ << ":" << "staticionosphere.geometry has to be 0, 1, 2 or 3 with this grid shape." << std::endl;
+                  abort();
+            }
+            // end of Y
+         }
+      } else if (Parameters::zcells_ini == 1) {
+         // Z
+         switch(this->geometry) {
+            case 0:
+               normalDirection[0] = DIAG2*xsign;
+               normalDirection[1] = DIAG2*ysign;
+               break;
+            case 1:
+               if(fabs(x) == fabs(y)) {
+                  normalDirection[0] = xsign*DIAG2;
+                  normalDirection[1] = ysign*DIAG2;
+                  break;
+               }
+               if(fabs(x) > (this->radius - dx)) {
+                  normalDirection[0] = xsign;
+                  break;
+               }
+               if(fabs(y) > (this->radius - dy)) {
+                  normalDirection[1] = ysign;
+                  break;
+               }
+               if(fabs(x) > (this->radius - 2.0*dx)) {
+                  normalDirection[0] = xsign;
+                  break;
+               }
+               if(fabs(y) > (this->radius - 2.0*dy)) {
+                  normalDirection[1] = ysign;
+                  break;
+               }
+               break;
+            case 2:
+               length = sqrt(x*x + y*y);
+               normalDirection[0] = x / length;
+               normalDirection[1] = y / length;
+               break;
+            default:
+               std::cerr << __FILE__ << ":" << __LINE__ << ":" << "staticionosphere.geometry has to be 0, 1 or 2 with this grid shape." << std::endl;
+               abort();
+         }
+         // end of Z
+      } else {
+         // 3D
+         switch(this->geometry) {
+            case 0:
+               normalDirection[0] = DIAG3*xsign;
+               normalDirection[1] = DIAG3*ysign;
+               normalDirection[2] = DIAG3*zsign;
+               break;
+            case 1:
+               if(fabs(x) == fabs(y) && fabs(x) == fabs(z) && fabs(x) > this->radius - dx) {
+                  normalDirection[0] = xsign*DIAG3;
+                  normalDirection[1] = ysign*DIAG3;
+                  normalDirection[2] = zsign*DIAG3;
+                  break;
+               }
+               if(fabs(x) == fabs(y) && fabs(x) == fabs(z) && fabs(x) > this->radius - 2.0*dx) {
+                  normalDirection[0] = xsign*DIAG3;
+                  normalDirection[1] = ysign*DIAG3;
+                  normalDirection[2] = zsign*DIAG3;
+                  break;
+               }
+               if(fabs(x) == fabs(y) && fabs(x) > this->radius - dx && fabs(z) < this->radius - dz) {
+                  normalDirection[0] = xsign*DIAG2;
+                  normalDirection[1] = ysign*DIAG2;
+                  normalDirection[2] = 0.0;
+                  break;
+               }
+               if(fabs(y) == fabs(z) && fabs(y) > this->radius - dy && fabs(x) < this->radius - dx) {
+                  normalDirection[0] = 0.0;
+                  normalDirection[1] = ysign*DIAG2;
+                  normalDirection[2] = zsign*DIAG2;
+                  break;
+               }
+               if(fabs(x) == fabs(z) && fabs(x) > this->radius - dx && fabs(y) < this->radius - dy) {
+                  normalDirection[0] = xsign*DIAG2;
+                  normalDirection[1] = 0.0;
+                  normalDirection[2] = zsign*DIAG2;
+                  break;
+               }
+               if(fabs(x) == fabs(y) && fabs(x) > this->radius - 2.0*dx && fabs(z) < this->radius - 2.0*dz) {
+                  normalDirection[0] = xsign*DIAG2;
+                  normalDirection[1] = ysign*DIAG2;
+                  normalDirection[2] = 0.0;
+                  break;
+               }
+               if(fabs(y) == fabs(z) && fabs(y) > this->radius - 2.0*dy && fabs(x) < this->radius - 2.0*dx) {
+                  normalDirection[0] = 0.0;
+                  normalDirection[1] = ysign*DIAG2;
+                  normalDirection[2] = zsign*DIAG2;
+                  break;
+               }
+               if(fabs(x) == fabs(z) && fabs(x) > this->radius - 2.0*dx && fabs(y) < this->radius - 2.0*dy) {
+                  normalDirection[0] = xsign*DIAG2;
+                  normalDirection[1] = 0.0;
+                  normalDirection[2] = zsign*DIAG2;
+                  break;
+               }
+               if(fabs(x) > (this->radius - dx)) {
+                  normalDirection[0] = xsign;
+                  break;
+               }
+               if(fabs(y) > (this->radius - dy)) {
+                  normalDirection[1] = ysign;
+                  break;
+               }
+               if(fabs(z) > (this->radius - dz)) {
+                  normalDirection[2] = zsign;
+                  break;
+               }
+               if(fabs(x) > (this->radius - 2.0*dx)) {
+                  normalDirection[0] = xsign;
+                  break;
+               }
+               if(fabs(y) > (this->radius - 2.0*dy)) {
+                  normalDirection[1] = ysign;
+                  break;
+               }
+               if(fabs(z) > (this->radius - 2.0*dz)) {
+                  normalDirection[2] = zsign;
+                  break;
+               }
+               break;
+            case 2:
+               length = sqrt(x*x + y*y + z*z);
+               normalDirection[0] = x / length;
+               normalDirection[1] = y / length;
+               normalDirection[2] = z / length;
+               break;
+            case 3:
+               length = sqrt(x*x + z*z);
+               normalDirection[0] = x / length;
+               normalDirection[2] = z / length;
+               break;
+            default:
+               std::cerr << __FILE__ << ":" << __LINE__ << ":" << "ionosphere.geometry has to be 0, 1, 2 or 3 with this grid shape." << std::endl;
+               abort();
+         }
+         // end of 3D
+      }
+      
+      phiprof::stop("StaticIonosphere::fieldSolverGetNormalDirection");
+      return normalDirection;
+   }
+   
+
    void StaticIonosphere::vlasovBoundaryCondition(
       const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
       const CellID& cellID,
