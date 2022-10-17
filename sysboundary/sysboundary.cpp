@@ -288,8 +288,7 @@ bool SysBoundary::initSysBoundaries(Project& project, creal& t) {
          }
          isThisDynamic = isThisDynamic|
          this->getSysBoundary(sysboundarytype::IONOSPHERE)->isDynamic();
-      }
-      if(*it == "StaticIonosphere") {
+      } else if(*it == "StaticIonosphere") {
          if(this->addSysBoundary(new SBC::StaticIonosphere, project, t) == false) {
             if(myRank == MASTER_RANK) cerr << "Error in adding StaticIonosphere boundary." << endl;
             success = false;
