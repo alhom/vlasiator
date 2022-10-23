@@ -105,6 +105,7 @@ namespace projects {
       std::string pickVarName(const std::string &grid, const std::list<std::string> &varNames);
       bool readGridSize(std::array<double, 3> &fileMin, std::array<double, 3> &fileMax, std::array<uint64_t, 3> &fileCells, std::array<double, 3> &fileDx);
       template<unsigned long int N> bool readFsGridVariable(const std::string& variableName, FsGrid<std::array<Real, N>,2>& targetGrid);
+      template<unsigned long int N> bool multiReadFsGridVariable(const std::string& variableName, FsGrid<std::array<Real, N>,2>& targetGrid);
       CellID getOldCellID(CellID newID, dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, std::array<CellID, 3> fileCells, std::array<double, 3> &fileMin, std::array<double, 3> fileD);
       bool refineSpatialCells( dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
@@ -116,6 +117,12 @@ namespace projects {
       uint dipoleType;
       bool perBSet = false;
       bool totalBRead = false;
+
+      bool fileReadInit = false;
+      std::vector<CellID> fileCellsID;
+      std::array<double, 3> fileMin={}, fileMax={}, fileDx={};
+      std::array<CellID, 3> fileCells={};
+      uint64_t bytesReadStart = 0;
 
    }; // class ElVentana
 } // namespace projects
