@@ -741,6 +741,9 @@ void shrink_to_fit_grid_data(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>
       if(i < cells.size())
          mpiGrid[cells[i]]->shrink_to_fit();
       else
+         if (mpiGrid[remote_cells[i - cells.size()]] == nullptr){
+            continue;
+         }
          mpiGrid[remote_cells[i - cells.size()]]->shrink_to_fit();
    }
 }
