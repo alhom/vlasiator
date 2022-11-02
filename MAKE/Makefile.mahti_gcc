@@ -42,7 +42,7 @@ FLAGS =
 #GNU flags:
 CC_BRAND = gcc
 CC_BRAND_VERSION = 11.2.0
-CXXFLAGS += -O3 -fopenmp -funroll-loops -std=c++17 -W -Wall -Wextra -Wno-unused -mavx2
+CXXFLAGS += -g -O3 -fopenmp -funroll-loops -std=c++17 -W -Wall -Wextra -Wno-unused -mavx2
 
 testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -mfma
 
@@ -52,7 +52,8 @@ testpackage: CXXFLAGS = -O2 -fopenmp -funroll-loops -std=c++17 -fabi-version=0 -
 #CXXFLAGS += -g -O3 -qopenmp -std=c++11 -W -Wall -Wno-unused -march=core-avx2 -qopt-zmm-usage=high
 #testpackage: CXXFLAGS = -g -traceback -O2 -qopenmp -std=c++14  -W -Wall -Wno-unused -march=core-avx2
 
-MATHFLAGS = -ffast-math
+MATHFLAGS = -ffast-math 
+#-freciprocal-math -fcx-limited-range -fno-math-errno -fassociative-math -fno-signed-zeros #-ffast-math
 LDFLAGS = -lrt
 #LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
 #LDFLAGS = -qopenmp -lifcore -liomp5 -pthread -lboost_program_options -lzoltan -lvlsv -lphiprof -ljemalloc 
@@ -107,7 +108,7 @@ INC_PROFILE = -I$(LIBRARY_PREFIX)/phiprof/include
 
 INC_FSGRID = -I$(LIBRARY_PREFIX)/fsgrid/
 INC_EIGEN = -I/projappl/project_2002873/vlasiatorlib/eigen-rhel8/include/eigen3/
-INC_DCCRG = -I/projappl/project_2002873/vlasiatorlib/dccrg/
+INC_DCCRG = -I/projappl/project_2000203/libraries/dccrg/
 INC_VECTORCLASS = -I/projappl/project_2002873/vlasiatorlib/vectorclass/
 
 

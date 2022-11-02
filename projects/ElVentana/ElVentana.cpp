@@ -747,8 +747,16 @@ namespace projects {
 
       // Try reading perturbed B-field here if we're not in restart
       if (!P::isRestart) {
+
+         int numWritingRanks = 0;
+         if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
+            std::cerr << "FSGrid writing rank number not found";
+            exit(1);
+         }
+
          std::string varName = pickVarName("fsgrid", {"fg_b_perturbed", "fg_b"});
-         if (varName == "" || !readFsGridVariable(varName, perBGrid)) {            
+         if (varName == "" || !readFsGridVariable(varName, perBGrid)) { //
+                              //!multiReadFsGridVariable(varName, perBGrid)) {            
             if (!perBSet) {
                logFile << "(START)  ERROR: No B field in file!" << endl << write;
                exit(1);
@@ -759,7 +767,7 @@ namespace projects {
             totalBRead = (varName == "fg_b");
             logFile << "(START) B Read!" << endl << write;
             const uint64_t bytesReadEnd = this->vlsvParaReader.getBytesRead() - this->bytesReadStart;
-            logFile << "(START) ElVentana data read, approximate data rate is ";
+            logFile << "(START) ElVentana fsgrid data (" << bytesReadEnd << " bytes) read, approximate data rate is ";
             logFile << vlsv::printDataRate(bytesReadEnd,this->vlsvParaReader.getReadTime()) << endl << write;
 
             this->vlsvParaReader.close();
@@ -792,84 +800,75 @@ namespace projects {
       int myRank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 
-      if(this->fileReadInit){ 
-         fileMin = this->fileMin;
-         fileMax = this->fileMax;
-         fileCells = this->fileCells;
-         fileDx = this->fileDx;
-         return true;
-         }
-      else{
-         double filexmin, fileymin, filezmin, filexmax, fileymax, filezmax;
-         uint filexcells, fileycells, filezcells;
+      double filexmin, fileymin, filezmin, filexmax, fileymax, filezmax;
+      uint filexcells, fileycells, filezcells;
 
-         if (myRank == MASTER_RANK) 
-            cout << "Trying to read parameters from file... " << endl;
+      if (myRank == MASTER_RANK) 
+         cout << "Trying to read parameters from file... " << endl;
 
-         // TODO looks like hot garbage, rewrite
-         if (this->vlsvParaReader.readParameter("xmin", filexmin) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter xmin. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("ymin", fileymin) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter ymin. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("zmin", filezmin) == false) {
-            if (myRank == MASTER_RANK) 
-               cout << " Could not read parameter zmin. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("xmax", filexmax) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter xmax. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("ymax", fileymax) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter ymax. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("zmax", filezmax) == false) {
-            if (myRank == MASTER_RANK) 
-               cout << " Could not read parameter zmax. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("xcells_ini", filexcells) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter xcells_ini. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("ycells_ini", fileycells) == false) {
-            if (myRank == MASTER_RANK)
-               cout << " Could not read parameter ycells_ini. " << endl;
-            return false;
-         }
-         if (this->vlsvParaReader.readParameter("zcells_ini", filezcells) == false) {
-            if (myRank == MASTER_RANK) 
-               cout << " Could not read parameter zcells_ini. " << endl;
-            return false;
-         }
-         if (myRank == MASTER_RANK) 
-            cout << "All parameters read." << endl;
-
-         fileMin = {filexmin, fileymin, filezmin};
-         fileMax = {filexmax, fileymax, filezmax};
-         fileCells = {filexcells, fileycells, filezcells};
-         for (int i = 0; i < 3; ++i) {
-            fileDx[i] = (fileMax[i] - fileMin[i])/fileCells[i];
-         }
-
-         this->fileMin = fileMin;
-         this->fileMax = fileMax;
-         this->fileCells = fileCells;
-         this->fileDx = fileDx;
-         this->fileReadInit = true;
-
-         return true;
+      // TODO looks like hot garbage, rewrite
+      if (this->vlsvParaReader.readParameter("xmin", filexmin) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter xmin. " << endl;
+         return false;
       }
+      if (this->vlsvParaReader.readParameter("ymin", fileymin) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter ymin. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("zmin", filezmin) == false) {
+         if (myRank == MASTER_RANK) 
+            cout << " Could not read parameter zmin. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("xmax", filexmax) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter xmax. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("ymax", fileymax) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter ymax. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("zmax", filezmax) == false) {
+         if (myRank == MASTER_RANK) 
+            cout << " Could not read parameter zmax. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("xcells_ini", filexcells) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter xcells_ini. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("ycells_ini", fileycells) == false) {
+         if (myRank == MASTER_RANK)
+            cout << " Could not read parameter ycells_ini. " << endl;
+         return false;
+      }
+      if (this->vlsvParaReader.readParameter("zcells_ini", filezcells) == false) {
+         if (myRank == MASTER_RANK) 
+            cout << " Could not read parameter zcells_ini. " << endl;
+         return false;
+      }
+      if (myRank == MASTER_RANK) 
+         cout << "All parameters read." << endl;
+
+      fileMin = {filexmin, fileymin, filezmin};
+      fileMax = {filexmax, fileymax, filezmax};
+      fileCells = {filexcells, fileycells, filezcells};
+      for (int i = 0; i < 3; ++i) {
+         fileDx[i] = (fileMax[i] - fileMin[i])/fileCells[i];
+      }
+
+      this->fileMin = fileMin;
+      this->fileMax = fileMax;
+      this->fileCells = fileCells;
+      this->fileDx = fileDx;
+      this->fileReadInit = true;
+
+      return true;
    }
 
    // Read variable from FsGrid to the ElVentana window
@@ -983,12 +982,15 @@ namespace projects {
             overlapSize[i] = max(overlapEnd[i] - overlapStart[i], 0);
          }
 
+         int overlapExists = overlapSize[0]*overlapSize[1]*overlapSize[2] > 0 ? 1 : 0;
+
          // Read into buffer
          std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
 
          phiprof::start("readArray");
          // TODO: Should these be multireads instead? And/or can this be parallelized?
-         if(this->vlsvParaReader.readArray("VARIABLE",attribs, fileOffset, thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2], buffer.data()) == false) {
+         // Non-overlapping read sizes set to zero.
+         if(this->vlsvParaReader.readArray("VARIABLE",attribs, fileOffset, thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*overlapExists, buffer.data()) == false) {
             logFile << "(START)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
             return false;
          }
@@ -1004,23 +1006,28 @@ namespace projects {
                      + (y - thatTasksStart[1]) * thatTasksSize[0]
                      + (x - thatTasksStart[0]);
 
-                  memcpy(targetGrid.get(x - localStart[0] - localOffset[0], y - localStart[1] - localOffset[1], z - localStart[2] - localOffset[2]), &buffer[index*N], N*sizeof(Real));
+                  memcpy(targetGrid.get(x - localStart[0] - localOffset[0],
+                                        y - localStart[1] - localOffset[1],
+                                        z - localStart[2] - localOffset[2]),
+                           &buffer[index*N], N*sizeof(Real));
                }
             }
          }
          phiprof::stop("memcpy");
          fileOffset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2];
-      } 
+      }
+      
+
       phiprof::start("updateGhostCells");
       targetGrid.updateGhostCells();
       phiprof::stop("updateGhostCells");
 
       const uint64_t bytesReadEnd = this->vlsvParaReader.getBytesRead() - this->bytesReadStart;
 
-      logFile << "ElVentana data read, approximate data rate is ";
+      logFile << "ElVentana data (" << bytesReadEnd << " bytes) read, approximate data rate is ";
       logFile << vlsv::printDataRate(bytesReadEnd,this->vlsvParaReader.getReadTime()) << endl << write;
 
-      this->vlsvParaReader.close();
+      //this->vlsvParaReader.close();
 
       return true;
    }
@@ -1152,6 +1159,7 @@ namespace projects {
    }
 
    // Read variable from FsGrid to the ElVentana window
+   // This has some issues with offsets?
    template<unsigned long int N> bool ElVentana::multiReadFsGridVariable(const string& variableName, FsGrid<std::array<Real, N>,2>& targetGrid) {
 
       uint64_t arraySize;
@@ -1164,19 +1172,13 @@ namespace projects {
 
       int numWritingRanks = 0;
 
-      // Are we restarting from the same number of tasks, or a different number?
+      // We most likely are starting with a different size of a decomposition.
       int size, myRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
       MPI_Comm_size(MPI_COMM_WORLD,&size);
       MPI_Info mpiInfo = MPI_INFO_NULL;
       if (myRank == MASTER_RANK)
          std::cerr << "Reading " << variableName << " from FsGrid!" << std::endl;
-
-      //if (this->vlsvParaReader.open(filename,MPI_COMM_WORLD,MASTER_RANK,mpiInfo) == false) {
-      //   if (myRank == MASTER_RANK) 
-      //      cout << "Could not open file: " << filename << endl;
-      //   return false;
-      //}
 
       if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
          std::cerr << "FSGrid writing rank number not found";
@@ -1187,7 +1189,7 @@ namespace projects {
       attribs.push_back(make_pair("mesh","fsgrid"));
 
       if (this->vlsvParaReader.getArrayInfo("VARIABLE",attribs,arraySize,vectorSize,dataType,byteSize) == false) {
-         logFile << "(RESTART)  ERROR: Failed to read array info for " << variableName << endl << write;
+         logFile << "(START)  ERROR: Failed to read array info for " << variableName << endl << write;
          return false;
       }
 
@@ -1239,11 +1241,94 @@ namespace projects {
          fileCells[i] *= pow(2, P::amrMaxSpatialRefLevel);
          fileCellsCopy[i] = fileCells[i];
       }
- 
-      targetGrid.computeDomainDecomposition(fileCellsCopy, numWritingRanks, fileDecomposition);
+
+      // Determine the decomposition in the file and the one in RAM for our restart
+      //std::array<int,3> fileDecomposition;
+      // targetGrid.computeDomainDecomposition(fileCellsCopy, numWritingRanks, fileDecomposition);
+
+      // // Iterate through tasks and find their overlap with our domain.
+      // size_t fileOffset = 0;
+      // for(int task = 0; task < numWritingRanks; task++) {
+      //    std::array<int32_t,3> thatTasksSize;
+      //    std::array<int32_t,3> thatTasksStart;
+      //    thatTasksSize[0] = targetGrid.calcLocalSize(fileCells[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+      //    thatTasksSize[1] = targetGrid.calcLocalSize(fileCells[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+      //    thatTasksSize[2] = targetGrid.calcLocalSize(fileCells[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+      //    thatTasksStart[0] = targetGrid.calcLocalStart(fileCells[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+      //    thatTasksStart[1] = targetGrid.calcLocalStart(fileCells[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+      //    thatTasksStart[2] = targetGrid.calcLocalStart(fileCells[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+      //    // Iterate through overlap area
+      //    std::array<int,3> overlapStart,overlapEnd,overlapSize;
+      //    overlapStart[0] = max(localStart[0] + localOffset[0],thatTasksStart[0]);
+      //    overlapStart[1] = max(localStart[1] + localOffset[1],thatTasksStart[1]);
+      //    overlapStart[2] = max(localStart[2] + localOffset[2],thatTasksStart[2]);
+
+      //    overlapEnd[0] = min(localStart[0] + localOffset[0] +localSize[0], thatTasksStart[0]+thatTasksSize[0]);
+      //    overlapEnd[1] = min(localStart[1] + localOffset[1] +localSize[1], thatTasksStart[1]+thatTasksSize[1]);
+      //    overlapEnd[2] = min(localStart[2] + localOffset[2] +localSize[2], thatTasksStart[2]+thatTasksSize[2]);
+
+      //    overlapSize[0] = max(overlapEnd[0]-overlapStart[0],0);
+      //    overlapSize[1] = max(overlapEnd[1]-overlapStart[1],0);
+      //    overlapSize[2] = max(overlapEnd[2]-overlapStart[2],0);
+
+      //    // Read into buffer
+      //    std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
+
+      //    this->vlsvParaReader.startMultiread("VARIABLE", attribs);
+      //    // Read every source rank that we have an overlap with.
+      //    if(overlapSize[0]*overlapSize[1]*overlapSize[2] > 0) {
+
+
+      //       if(!convertFloatType) {
+      //          if(this->vlsvParaReader.addMultireadUnit((char*)buffer.data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2])==false) {
+      //             logFile << "(RESTART)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
+      //             return false;
+      //          }
+      //          this->vlsvParaReader.endMultiread(fileOffset);
+      //       } else {
+      //          std::vector<float> readBuffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
+      //          if(this->vlsvParaReader.addMultireadUnit((char*)readBuffer.data(), thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2])==false) {
+      //             logFile << "(RESTART)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
+      //             return false;
+      //          }
+      //          this->vlsvParaReader.endMultiread(fileOffset);
+
+      //          for(uint64_t i=0; i< thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N; i++) {
+      //             buffer[i]=readBuffer[i];
+      //          }
+      //       }
+
+      //       // Copy continuous stripes in x direction.
+      //       for(int z=overlapStart[2]; z<overlapEnd[2]; z++) {
+      //          for(int y=overlapStart[1]; y<overlapEnd[1]; y++) {
+      //             for(int x=overlapStart[0]; x<overlapEnd[0]; x++) {
+      //                int index = (z - thatTasksStart[2]) * thatTasksSize[0]*thatTasksSize[1]
+      //                   + (y - thatTasksStart[1]) * thatTasksSize[0]
+      //                   + (x - thatTasksStart[0]);
+
+      //                memcpy(targetGrid.get(x - localStart[0], y - localStart[1], z - localStart[2]), &buffer[index*N], N*sizeof(Real));
+      //             }
+      //          }
+      //       }
+      //    } else {
+      //       // If we don't overlap, just perform a dummy read.
+      //       std::vector<Real> buffer(1);
+      //       this->vlsvParaReader.addMultireadUnit((char*)buffer.data(), 0);
+      //       this->vlsvParaReader.endMultiread(fileOffset);
+      //    }
+      //    fileOffset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2];
+      // }
+
+     targetGrid.computeDomainDecomposition(fileCells, numWritingRanks, fileDecomposition);
 
       phiprof::start("startMultiread");
-      this->vlsvParaReader.startMultiread("VARIABLE", attribs);
+      if(!this->vlsvParaReader.startMultiread("VARIABLE", attribs))
+      {
+         logFile << "(START)  ERROR: Failed to startMultiRead for " << variableName << endl << write;
+         return false;
+      }
       std::vector<std::vector<Real>> vectorOfBuffers;
       std::vector<std::vector<float>> vectorOfFloatBuffers; // needed when convertFloatType is true
       phiprof::stop("startMultiread");
@@ -1269,21 +1354,15 @@ namespace projects {
             overlapSize[i] = max(overlapEnd[i] - overlapStart[i], 0);
          }
 
-         /*// Read into buffer
-         std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
-
-         phiprof::start("readArray");
-         // TODO: Should these be multireads instead? And/or can this be parallelized?
-         if(this->vlsvParaReader.readArray("VARIABLE",attribs, fileOffset, thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2], buffer.data()) == false) {
-            logFile << "(START)  ERROR: Failed to read fsgrid variable " << variableName << endl << write;
-            return false;
-         }
-         phiprof::stop("readArray");*/
          phiprof::start("multiRead");
 
          // Read every source rank that we have an overlap with.
          if(overlapSize[0]*overlapSize[1]*overlapSize[2] > 0) {
-            std::cout << "reading overlap with total size " << overlapSize[0]*overlapSize[1]*overlapSize[2] << std::endl;
+            std::cout << "reading overlap with total size " << overlapSize[0]*overlapSize[1]*overlapSize[2] << std::endl
+             << " thatTasksStarts: (" << thatTasksStart[0] << ", " << thatTasksStart[1] <<", " << thatTasksStart[2] << ")" << std::endl
+             << " Local offset start: (" << localStart[0] + localOffset[0] << ", " << localStart[1] + localOffset[1] <<", " << localStart[2] + localOffset[2] << ")" << std::endl
+             << " Local start: (" << localStart[0] << ", " << localStart[1] <<", " << localStart[2]  << ")" << std::endl;
+
             std::vector<Real> buffer(thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N);
             vectorOfBuffers.push_back(buffer);
 
@@ -1303,6 +1382,10 @@ namespace projects {
          } else {
             std::vector<Real> buffer(1);
             vectorOfBuffers.push_back(buffer);
+            if(convertFloatType) {
+               std::vector<float> floatBuffer(1);
+               vectorOfFloatBuffers.push_back(floatBuffer);
+            }
          }
 
          if(!convertFloatType) {
@@ -1311,22 +1394,50 @@ namespace projects {
             offset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2] * N * sizeof(float);
          }
          phiprof::stop("multiRead");
-         phiprof::start("endMultiread");
-         // Pass boolean true to indicate we're reading fsgrid values and providin manual offsetsxs
-         if(this->vlsvParaReader.endMultiread(fileOffset, true) == false) {
-            logFile << "(RESTART)  ERROR: Failed to endMultiread while reading fsgrid variable " << variableName << endl << write;
-            return false;
-         }
-         phiprof::stop("endMultiread");
+         //fileOffset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2];
+      } 
 
+      phiprof::start("endMultiread");
+      // Pass boolean true to indicate we're reading fsgrid values and providin manual offsetsxs
+      if(this->vlsvParaReader.endMultiread(fileOffset, true) == false) {
+         logFile << "(START)  ERROR: Failed to endMultiread while reading fsgrid variable " << variableName << endl << write;
+         cout << "(START) ( rank " << myRank << ")  ERROR: Failed to endMultiread while reading fsgrid variable " << variableName << std::endl;
+
+         return false;
+      }
+      phiprof::stop("endMultiread");
+
+      // Copy in the multiread buffers to fsgrid
+      for(int task = 0; task < numWritingRanks; task++) {
+         std::array<int32_t,3> thatTasksSize;
+         std::array<int32_t,3> thatTasksStart;
+         thatTasksSize[0] = targetGrid.calcLocalSize(fileCells[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+         thatTasksSize[1] = targetGrid.calcLocalSize(fileCells[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+         thatTasksSize[2] = targetGrid.calcLocalSize(fileCells[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+         thatTasksStart[0] = targetGrid.calcLocalStart(fileCells[0], fileDecomposition[0], task/fileDecomposition[2]/fileDecomposition[1]);
+         thatTasksStart[1] = targetGrid.calcLocalStart(fileCells[1], fileDecomposition[1], (task/fileDecomposition[2])%fileDecomposition[1]);
+         thatTasksStart[2] = targetGrid.calcLocalStart(fileCells[2], fileDecomposition[2], task%fileDecomposition[2]);
+
+         // Iterate through overlap area
+         std::array<int,3> overlapStart,overlapEnd,overlapSize;
+         for (int i = 0; i < 3; ++i) {
+            overlapStart[i] = max(localStart[i] + localOffset[i], thatTasksStart[i]);
+            overlapEnd[i] = min(localStart[i] + localOffset[i] + localSize[i], thatTasksStart[i] + thatTasksSize[i]);
+            overlapSize[i] = max(overlapEnd[i] - overlapStart[i], 0);
+         }
          phiprof::start("memcpy");
+
          // Read every source rank that we have an overlap with.
          if(overlapSize[0]*overlapSize[1]*overlapSize[2] > 0) {
+            
             if(convertFloatType) {
                for(uint64_t i=0; i< thatTasksSize[0]*thatTasksSize[1]*thatTasksSize[2]*N; i++) {
                   vectorOfBuffers.at(task).at(i)=vectorOfFloatBuffers.at(task).at(i);
                }
             }
+            std::cout << "a vector: (" << vectorOfBuffers.at(task).at(0) << ", " << vectorOfBuffers.at(task).at(1) << ", " << vectorOfBuffers.at(task).at(2) << ")" << std::endl;
+
             // Copy continuous stripes in x direction.
             for(int z=overlapStart[2]; z<overlapEnd[2]; z++) {
                for(int y=overlapStart[1]; y<overlapEnd[1]; y++) {
@@ -1335,23 +1446,27 @@ namespace projects {
                         + (y - thatTasksStart[1]) * thatTasksSize[0]
                         + (x - thatTasksStart[0]);
 
-                     memcpy(targetGrid.get(x - localStart[0] - localOffset[0], y - localStart[1] - localOffset[1], z - localStart[2] - localOffset[2]), &(vectorOfBuffers.at(task).at(index*N)), N*sizeof(Real));
+                     memcpy(targetGrid.get(x - localStart[0] - localOffset[0],
+                                           y - localStart[1] - localOffset[1],
+                                           z - localStart[2] - localOffset[2]),
+                            &(vectorOfBuffers.at(task).at(index*N)), N*sizeof(Real)
+                           );
                   }
                }
             }
          }
          phiprof::stop("memcpy");
-         fileOffset += thatTasksSize[0] * thatTasksSize[1] * thatTasksSize[2];
-      } 
+      }
+
       phiprof::start("updateGhostCells");
       targetGrid.updateGhostCells();
       phiprof::stop("updateGhostCells");
 
       const uint64_t bytesReadEnd = this->vlsvParaReader.getBytesRead() - this->bytesReadStart;
-      logFile << "(START) ElVentana data read, approximate data rate is ";
+      logFile << "(START) ElVentana data (" << bytesReadEnd << " bytes) read, approximate data rate is ";
       logFile << vlsv::printDataRate(bytesReadEnd,this->vlsvParaReader.getReadTime()) << endl << write;
 
-      this->vlsvParaReader.close();
+      //this->vlsvParaReader.close();
 
       return true;
    }

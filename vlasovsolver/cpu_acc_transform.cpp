@@ -143,14 +143,25 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
       transformation_substeps = transformation_substeps_2 > transformation_substeps ? transformation_substeps_2 : transformation_substeps;
 
       // Account for extra substeps when plasma period ~ gyro period
-      Real logFactor = 1.0/fabs(log( fabs(gyro_period)/fabs(plasma_period) ));
-      if(std::isnan(logFactor) == false){
-         //constraint: max n times more subcycles
-         logFactor = min(logFactor, (Real)P::maxResonantSubcycleFactor);
-         //constraint: do not lower subcycle count
-         logFactor = max(logFactor, 1.0);
+      Real denum = fabs(log( fabs(gyro_period)/fabs(plasma_period) ));
+      if (denum < 1.0/P::maxResonantSubcycleFactor || fabs(gyro_period)/fabs(plasma_period) == 0)
+      {
+         Real logFactor = (Real)P::maxResonantSubcycleFactor;
          transformation_substeps = int(transformation_substeps * logFactor);
       }
+      else {
+         Real logFactor = 1.0/denum;
+         if(std::isnan(logFactor) == false){
+            //constraint: max n times more subcycles
+            logFactor = min(logFactor, (Real)P::maxResonantSubcycleFactor);
+            //constraint: do not lower subcycle count
+            logFactor = max(logFactor, 1.0);
+            transformation_substeps = int(transformation_substeps * logFactor);
+         }
+      }
+      //std::cerr << transformation_substeps << std::end;
+      
+
    }
    if ((transformation_substeps < 1) && (fabs(dt)>0)) transformation_substeps=1;
       

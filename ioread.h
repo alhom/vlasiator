@@ -60,5 +60,7 @@ bool readCellIds(vlsv::ParallelReader& file,
  */
 void checkExternalCommands();
 
+template<unsigned long int N> bool readFsGridVariable(
+   vlsv::ParallelReader& file, const std::string& variableName, int numWritingRanks, FsGrid<std::array<Real, N>,FS_STENCIL_WIDTH> & targetGrid);
 
 #endif

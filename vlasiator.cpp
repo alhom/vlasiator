@@ -756,10 +756,11 @@ int main(int argn,char* args[]) {
             phiprof::stop("write-system");
          }
       }
-
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       // Reduce globalflags::bailingOut from all processes
       phiprof::start("Bailout-allreduce");
       MPI_Allreduce(&(globalflags::bailingOut), &(doBailout), 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       phiprof::stop("Bailout-allreduce");
 
       // Write restart data if needed
@@ -795,7 +796,7 @@ int main(int argn,char* args[]) {
          doNow[1] = 0;
       }
       phiprof::stop("compute-is-restart-written-and-extra-LB");
-
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       if (writeRestartNow >= 1){
          phiprof::start("write-restart");
          if (writeRestartNow == 1) {
@@ -826,9 +827,12 @@ int main(int argn,char* args[]) {
             logFile << "(IO): .... done!"<< endl << writeVerbose;
          phiprof::stop("write-restart");
       }
-      
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       phiprof::stop("IO");
       addTimedBarrier("barrier-end-io");
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       //no need to propagate if we are on the final step, we just
       //wanted to make sure all IO is done even for final step
       if(P::tstep == P::tstep_max ||
@@ -836,7 +840,8 @@ int main(int argn,char* args[]) {
          doBailout > 0) {
          break;
       }
-      
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       //Re-loadbalance if needed
       //TODO - add LB measure and do LB if it exceeds threshold
       if(((P::tstep % P::rebalanceInterval == 0 && P::tstep > P::tstep_min) || overrideRebalanceNow)) {
@@ -852,6 +857,7 @@ int main(int argn,char* args[]) {
 
          overrideRebalanceNow = false;
       }
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       
       //get local cells
       const vector<CellID>& cells = getLocalCells();
@@ -864,6 +870,8 @@ int main(int argn,char* args[]) {
       }
       computedTotalCells+=computedCells;
       
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       //Check if dt needs to be changed, and propagate V back a half-step to change dt and set up new situation
       //do not compute new dt on first step (in restarts dt comes from file, otherwise it was initialized before we entered
       //simulation loop
@@ -871,6 +879,8 @@ int main(int argn,char* args[]) {
       if(P::dynamicTimestep  && P::tstep > P::tstep_min) {
          computeNewTimeStep(mpiGrid, technicalGrid, newDt, dtIsChanged);
          addTimedBarrier("barrier-check-dt");
+         //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
          if(dtIsChanged) {
 #warning dt change step in acceleration at restart cannot be done without additional information such as egradpe
             phiprof::start("update-dt");
@@ -892,6 +902,7 @@ int main(int argn,char* args[]) {
             addTimedBarrier("barrier-new-dt-set");
          }
       }
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       
       if (P::tstep % P::rebalanceInterval == P::rebalanceInterval-1 || P::prepareForRebalance == true) {
          if(P::prepareForRebalance == true) {
@@ -907,6 +918,7 @@ int main(int argn,char* args[]) {
       
       phiprof::start("Propagate");
       //Propagate the state of simulation forward in time by dt:
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       
       phiprof::start("Spatial-space");
       if( P::propagateVlasovTranslation) {
@@ -915,6 +927,7 @@ int main(int argn,char* args[]) {
          calculateSpatialTranslation(mpiGrid,0.0);
       }
       phiprof::stop("Spatial-space",computedCells,"Cells");
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       
       // Apply boundary conditions
       if (P::propagateVlasovTranslation || P::propagateVlasovAcceleration ) {
@@ -923,6 +936,7 @@ int main(int argn,char* args[]) {
          phiprof::stop("Update system boundaries (Vlasov post-translation)");
          addTimedBarrier("barrier-boundary-conditions");
       }
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
       
       phiprof::start("Compute interp moments");
       calculateInterpolatedVelocityMoments(
@@ -941,7 +955,8 @@ int main(int argn,char* args[]) {
          CellParams::P_12_DT2
       );
       phiprof::stop("Compute interp moments");
-      
+            //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       // Propagate fields forward in time by dt. This needs to be done before the
       // moments for t + dt are computed (field uses t and t+0.5dt)
       if (P::propagateField) {
@@ -984,6 +999,7 @@ int main(int argn,char* args[]) {
          phiprof::stop("Propagate Fields",cells.size(),"SpatialCells");
          addTimedBarrier("barrier-after-field-solver");
       }
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
       // Additional feeding of moments into fsgrid required by electron runs
       if (!P::propagateField && (P::ResolvePlasmaPeriod==true)) {
@@ -993,17 +1009,20 @@ int main(int argn,char* args[]) {
 	momentsGrid.updateGhostCells();
 	momentsDt2Grid.updateGhostCells();
 	phiprof::stop("fsgrid-coupling-in");
-	
+	      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
 	calculateDerivativesSimple(perBGrid, perBDt2Grid, momentsGrid, momentsDt2Grid, dPerBGrid, dMomentsGrid, technicalGrid, sysBoundaries, RK_ORDER1, true);
 	if(P::ohmGradPeTerm > 0){
 	  calculateGradPeTermSimple(EGradPeGrid, momentsGrid, momentsDt2Grid, dMomentsGrid, technicalGrid, sysBoundaries, RK_ORDER1);
 	}
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
 	phiprof::start("getFieldsFromFsGrid");
 	// Copy results back from fsgrid.
 	getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, dMomentsGrid, technicalGrid, mpiGrid, cells);
 	phiprof::stop("getFieldsFromFsGrid");
       }
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
       phiprof::start("Velocity-space");
       if ( P::propagateVlasovAcceleration ) {
@@ -1013,6 +1032,8 @@ int main(int argn,char* args[]) {
          //zero step to set up moments _v
          calculateAcceleration(mpiGrid, 0.0);
       }
+            //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       phiprof::stop("Velocity-space",computedCells,"Cells");
       addTimedBarrier("barrier-after-acceleration");
       
@@ -1022,7 +1043,8 @@ int main(int argn,char* args[]) {
          phiprof::stop("Update system boundaries (Vlasov post-acceleration)");
          addTimedBarrier("barrier-boundary-conditions");
       }
-      
+            //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
+
       phiprof::start("Compute interp moments");
       // *here we compute rho and rho_v for timestep t + dt, so next
       // timestep * //
@@ -1042,12 +1064,14 @@ int main(int argn,char* args[]) {
          CellParams::P_12
       );
       phiprof::stop("Compute interp moments");
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
       phiprof::stop("Propagate",computedCells,"Cells");
       
       phiprof::start("Project endTimeStep");
       project->hook(hook::END_OF_TIME_STEP, mpiGrid, perBGrid);
       phiprof::stop("Project endTimeStep");
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
       // Check timestep
       if (P::dt < P::bailout_min_dt) {
@@ -1059,6 +1083,7 @@ int main(int argn,char* args[]) {
       P::meshRepartitioned = false;
       ++P::tstep;
       P::t += P::dt;
+      //std::cout << myRank << ": line "  << __LINE__ << " reached " << std::endl;
 
    }
 
