@@ -750,7 +750,7 @@ namespace projects {
 
          int numWritingRanks = 0;
          if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-            std::cerr << "FSGrid writing rank number not found";
+            std::cerr << "(ElVentana::"<<__LINE__<<") FSGrid writing rank number not found";
             exit(1);
          }
 
@@ -898,7 +898,7 @@ namespace projects {
       //}
 
       if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-         std::cerr << "FSGrid writing rank number not found";
+         std::cerr << "(ElVentana::"<<__LINE__<<") FSGrid writing rank number not found";
          return false;
       }
       
@@ -1181,7 +1181,7 @@ namespace projects {
          std::cerr << "Reading " << variableName << " from FsGrid!" << std::endl;
 
       if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-         std::cerr << "FSGrid writing rank number not found";
+         std::cerr << "(ElVentana::"<<__LINE__<<") FSGrid writing rank number not found";
          return false;
       }
       
