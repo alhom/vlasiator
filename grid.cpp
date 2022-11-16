@@ -91,6 +91,7 @@ void initializeGrids(
    FsGrid< std::array<Real, fsgrids::dperb::N_DPERB>, FS_STENCIL_WIDTH> & dPerBGrid,
    FsGrid< std::array<Real, fsgrids::bgbfield::N_BGB>, FS_STENCIL_WIDTH> & BgBGrid,
    FsGrid< std::array<Real, fsgrids::moments::N_MOMENTS>, FS_STENCIL_WIDTH> & momentsGrid,
+   FsGrid< std::array<Real, fsgrids::dmoments::N_DMOMENTS>, FS_STENCIL_WIDTH> & dMomentsGrid,
    FsGrid< std::array<Real, fsgrids::moments::N_MOMENTS>, FS_STENCIL_WIDTH> & momentsDt2Grid,
    FsGrid< std::array<Real, fsgrids::efield::N_EFIELD>, FS_STENCIL_WIDTH> & EGrid,
    FsGrid< std::array<Real, fsgrids::egradpe::N_EGRADPE>, FS_STENCIL_WIDTH> & EGradPeGrid,
@@ -366,6 +367,18 @@ void initializeGrids(
    
    phiprof::stop("Fetch Neighbour data");
    
+   phiprof::start("setProjectBField");
+   project.setProjectBField(perBGrid, BgBGrid, technicalGrid);
+   perBGrid.updateGhostCells();
+   BgBGrid.updateGhostCells();
+   EGrid.updateGhostCells();
+
+   // This will only have the BGB set up properly at this stage but we need the BGBvol for the Vlasov boundaries below.
+   volGrid.updateGhostCells();
+   getFieldsFromFsGrid(volGrid, BgBGrid, EGradPeGrid, dMomentsGrid, technicalGrid, mpiGrid, cells);
+
+   phiprof::stop("setProjectBField");
+
    if (P::isRestart == false) {
       // Apply boundary conditions so that we get correct initial moments
       sysBoundaries.applySysBoundaryVlasovConditions(mpiGrid,Parameters::t, true); // It doesn't matter here whether we put _R or _V moments
@@ -600,7 +613,7 @@ void balanceLoad(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, S
 
    // flag transfers if AMR
    phiprof::start("compute_amr_transfer_flags");
-   //flagSpatialCellsForAmrCommunication(mpiGrid,cells);
+   flagSpatialCellsForAmrCommunication(mpiGrid,cells);
    phiprof::stop("compute_amr_transfer_flags");
 
    // Communicate all spatial data for FULL neighborhood, which

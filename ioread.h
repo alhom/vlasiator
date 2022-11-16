@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "vlsv_reader_parallel.h"
 #include "definitions.h"
 #include "spatial_cell.hpp"
 #include "datareduction/datareducer.h"
@@ -62,5 +63,7 @@ void checkExternalCommands();
 
 template<unsigned long int N> bool readFsGridVariable(
    vlsv::ParallelReader& file, const std::string& variableName, int numWritingRanks, FsGrid<std::array<Real, N>,FS_STENCIL_WIDTH> & targetGrid);
+bool readIonosphereNodeVariable(
+   vlsv::ParallelReader& file, const string& variableName, SBC::SphericalTriGrid& grid, ionosphereParameters index);
 
 #endif

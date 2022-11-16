@@ -92,12 +92,13 @@ vector<Real> P::systemWriteDistributionWriteShellRadius;
 vector<int> P::systemWriteDistributionWriteShellStride;
 vector<int> P::systemWrites;
 vector<pair<string, string>> P::systemWriteHints;
+vector<pair<string, string>> P::restartWriteHints;
 
 Real P::saveRestartWalltimeInterval = -1.0;
 uint P::exitAfterRestarts = numeric_limits<uint>::max();
 uint64_t P::vlsvBufferSize = 0;
-int P::restartStripeFactor = -1;
-int P::bulkStripeFactor = -1;
+int P::restartStripeFactor = 0;
+int P::systemStripeFactor = 0;
 string P::restartWritePath = string("");
 
 uint P::transmit = 0;
@@ -135,6 +136,7 @@ vector<string> P::diagnosticVariableList;
 
 string P::projectName = string("");
 
+bool P::vlasovAccelerateMaxwellianBoundaries = false;
 Real P::maxSlAccelerationRotation = 10.0;
 Real P::hallMinimumRhom = physicalconstants::MASS_PROTON;
 Real P::hallMinimumRhoq = physicalconstants::CHARGE;
@@ -148,7 +150,8 @@ uint P::amrMaxVelocityRefLevel = 0;
 Realf P::amrRefineLimit = 1.0;
 Realf P::amrCoarsenLimit = 0.5;
 string P::amrVelRefCriterion = string("");
-uint P::amrMaxSpatialRefLevel = 0;
+int P::amrMaxSpatialRefLevel = 0;
+int P::maxFilteringPasses = 0;
 uint P::amrBoxHalfWidthX = 1;
 uint P::amrBoxHalfWidthY = 1;
 uint P::amrBoxHalfWidthZ = 1;
@@ -156,7 +159,7 @@ Realf P::amrBoxCenterX = 0.0;
 Realf P::amrBoxCenterY = 0.0;
 Realf P::amrBoxCenterZ = 0.0;
 vector<string> P::blurPassString;
-vector<int> P::numPasses;
+std::vector<int> P::numPasses; //numpasses
 
 bool P::addParameters() {
    typedef Readparameters RP;
@@ -192,6 +195,12 @@ bool P::addParameters() {
    RP::addComposing(
        "io.system_write_mpiio_hint_value",
        "MPI-IO hint value passed to the non-restart IO. Has to be matched by io.system_write_mpiio_hint_key.");
+   RP::addComposing(
+       "io.restart_write_mpiio_hint_key",
+       "MPI-IO hint key passed to the restart IO. Has to be matched by io.restart_write_mpiio_hint_value.");
+   RP::addComposing(
+       "io.restart_write_mpiio_hint_value",
+       "MPI-IO hint value passed to the restart IO. Has to be matched by io.restart_write_mpiio_hint_key.");
 
    RP::add("io.write_initial_state",
            "Write initial state, not even the 0.5 dt propagation is done. Do not use for restarting. ", false);
@@ -202,8 +211,8 @@ bool P::addParameters() {
            numeric_limits<uint>::max());
    RP::add("io.vlsv_buffer_size",
            "Buffer size passed to VLSV writer (bytes, up to uint64_t), default 0 as this is sensible on sisu", 0);
-   RP::add("io.write_restart_stripe_factor", "Stripe factor for restart writing.", -1);
-   RP::add("io.write_bulk_stripe_factor", "Stripe factor for bulk file and initial grid writing.", -1);
+   RP::add("io.write_restart_stripe_factor", "Stripe factor for restart and initial grid writing. Default 0 to inherit.", 0);
+   RP::add("io.write_system_stripe_factor", "Stripe factor for bulk file writing. Default 0 to inherit.", 0);
    RP::add("io.write_as_float", "If true, write in floats instead of doubles", false);
    RP::add("io.restart_write_path",
            "Path to the location where restart files should be written. Defaults to the local directory, also if the "
@@ -281,13 +290,26 @@ bool P::addParameters() {
            "The minimum CFL limit for field propagation. Used to set timestep if dynamic_timestep is true.", 0.4);
 
    // Vlasov solver parameters
-   Readparameters::add("vlasovsolver.maxSlAccelerationRotation","Maximum rotation angle (degrees) allowed by the Semi-Lagrangian solver (Use >25 values with care)",25.0);
-   Readparameters::add("vlasovsolver.maxSlAccelerationSubcycles","Maximum number of subcycles for acceleration",1);
-   Readparameters::add("vlasovsolver.maxCFL","The maximum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep is true.",0.99);
-   Readparameters::add("vlasovsolver.minCFL","The minimum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep is true.",0.8);
-   Readparameters::add("vlasovsolver.ResolvePlasmaPeriod","Require semi-lagrangian solver to resolve plasma oscillation (default false)",false);
-   Readparameters::add("vlasovsolver.maxResonantSubcycleFactor","Resolve (electron) plasma oscillation-cyclotron resonance with additional subcycles, max multiplicative substep number (default 100)",100);
-
+   RP::add("vlasovsolver.maxSlAccelerationRotation",
+           "Maximum rotation angle (degrees) allowed by the Semi-Lagrangian solver (Use >25 values with care)", 25.0);
+   RP::add("vlasovsolver.maxSlAccelerationSubcycles", "Maximum number of subcycles for acceleration", 1);
+   RP::add("vlasovsolver.maxCFL",
+           "The maximum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep "
+           "is true.",
+           0.99);
+   RP::add("vlasovsolver.minCFL",
+           "The minimum CFL limit for vlasov propagation in ordinary space. Used to set timestep if dynamic_timestep "
+           "is true.",
+           0.8);
+   RP::add("vlasovsolver.ResolvePlasmaPeriod","Require semi-lagrangian solver to resolve plasma oscillation (default "
+           "false)",
+           false);
+   RP::add("vlasovsolver.maxResonantSubcycleFactor","Resolve (electron) plasma oscillation-cyclotron resonance with "
+           "additional subcycles, max multiplicative substep number (default 100)",
+           100);
+   RP::add("vlasovsolver.accelerateMaxwellianBoundaries",
+           "Propagate maxwellian boundary cell contents in velocity space. Default false.",
+           false);
 
    // Load balancing parameters
    RP::add("loadBalance.algorithm", "Load balancing algorithm to be used", string("RCB"));
@@ -296,29 +318,34 @@ bool P::addParameters() {
 
    // Output variable parameters
    // NOTE Do not remove the : before the list of variable names as this is parsed by tools/check_vlasiator_cfg.sh
-   Readparameters::addComposing("variables.output", 
-                                 std::string() +
-                                 "List of data reduction operators (DROs) to add to the grid file output.  Each variable to be " +
-                                 "added has to be on a new line output = XXX. Names are case insensitive.  " +
-				                     "Available (20210125): " +
-				                     "fg_b fg_b_background fg_b_perturbed fg_e " +
-			                        "vg_rhom vg_rhoq populations_vg_rho " +
-                     				"fg_rhom fg_rhoq " +
-				                     "vg_v fg_v populations_vg_v " +
-				                     "populations_vg_moments_thermal populations_vg_moments_nonthermal " +
-				                     "populations_vg_effectivesparsitythreshold populations_vg_rho_loss_adjust " +
-				                     "populations_vg_energydensity populations_vg_precipitationdifferentialflux " +
-				                     "vg_maxdt_acceleration vg_maxdt_translation populations_vg_maxdt_acceleration populations_vg_maxdt_translation " +
-				                     "fg_maxdt_fieldsolver " +
-				                     "vg_rank fg_rank fg_amr_level vg_loadbalance_weight " +
-				                     "vg_boundarytype fg_boundarytype vg_boundarylayer fg_boundarylayer " +
-				                     "populations_vg_blocks vg_f_saved " +
-				                     "populations_vg_acceleration_subcycles " +
-				                     "vg_e_vol fg_e_vol " +
-				                     "fg_e_hall fg_e_gradpe vg_e_gradpe fg_b_vol vg_b_vol vg_b_background_vol vg_b_perturbed_vol " +
-				                     "vg_pressure fg_pressure populations_vg_ptensor " +
-				                     "b_vol_derivatives " +
-				                     "vg_gridcoordinates fg_gridcoordinates meshdata");
+
+   RP::addComposing("variables.output", 
+                     std::string() +
+                     "List of data reduction operators (DROs) to add to the grid file output.  Each variable to be " +
+                     "added has to be on a new line output = XXX. Names are case insensitive.  " +
+                     "Available (20210125): " +
+                     "fg_b fg_b_background fg_b_perturbed fg_e " +
+                     "vg_rhom vg_rhoq populations_vg_rho " +
+                     "fg_rhom fg_rhoq " +
+                     "vg_v fg_v populations_vg_v " +
+                     "populations_vg_moments_thermal populations_vg_moments_nonthermal " +
+                     "populations_vg_effectivesparsitythreshold populations_vg_rho_loss_adjust " +
+                     "populations_vg_energydensity populations_vg_precipitationdifferentialflux " +
+                     "populations_vg_heatflux " +  
+                     "vg_maxdt_acceleration vg_maxdt_translation populations_vg_maxdt_acceleration populations_vg_maxdt_translation " +
+                     "fg_maxdt_fieldsolver " +
+                     "vg_rank fg_rank fg_amr_level vg_loadbalance_weight " +
+                     "vg_boundarytype fg_boundarytype vg_boundarylayer fg_boundarylayer " +
+                     "populations_vg_blocks vg_f_saved " +
+                     "populations_vg_acceleration_subcycles " +
+                     "vg_e_vol fg_e_vol " +
+                     "fg_e_hall fg_e_gradpe vg_e_gradpe fg_b_vol vg_b_vol vg_b_background_vol vg_b_perturbed_vol " +
+                     "vg_pressure fg_pressure populations_vg_ptensor " +
+                     "b_vol_derivatives " +
+                     "ig_fac ig_latitude ig_cellarea ig_upmappedarea ig_sigmap ig_sigmah ig_rhom " +
+                     "ig_electronTemp ig_potential ig_solverinternals ig_upmappedcodecoords ig_upmappedb ig_potential "+
+                     "ig_inplanecurrent ig_e "+
+                     "vg_gridcoordinates fg_gridcoordinates meshdata");
 
    Readparameters::addComposing("variables_deprecated.output", std::string()+"List of deprecated names for data reduction operators (DROs). Names are case insensitive. "+
 				"Available (20201211): "+
@@ -413,7 +440,7 @@ void Parameters::getParameters() {
    RP::get("io.number_of_restarts", P::exitAfterRestarts);
    RP::get("io.vlsv_buffer_size", P::vlsvBufferSize);
    RP::get("io.write_restart_stripe_factor", P::restartStripeFactor);
-   RP::get("io.write_bulk_stripe_factor", P::bulkStripeFactor);
+   RP::get("io.write_system_stripe_factor", P::systemStripeFactor);
    RP::get("io.restart_write_path", P::restartWritePath);
    RP::get("io.write_as_float", P::writeAsFloat);
 
@@ -517,6 +544,23 @@ void Parameters::getParameters() {
       }
    }
 
+   mpiioKeys.clear();
+   mpiioValues.clear();
+   RP::get("io.restart_write_mpiio_hint_key", mpiioKeys);
+   RP::get("io.restart_write_mpiio_hint_value", mpiioValues);
+   
+   if (mpiioKeys.size() != mpiioValues.size()) {
+      if (myRank == MASTER_RANK) {
+         cerr << "WARNING the number of io.restart_write_mpiio_hint_key and io.restart_write_mpiio_hint_value do not "
+                 "match. Disregarding these options."
+              << endl;
+      }
+   } else {
+      for (uint i = 0; i < mpiioKeys.size(); i++) {
+         P::restartWriteHints.push_back({mpiioKeys[i], mpiioValues[i]});
+      }
+   }
+
    RP::get("propagate_field", P::propagateField);
    RP::get("propagate_vlasov_acceleration", P::propagateVlasovAcceleration);
    RP::get("propagate_vlasov_translation", P::propagateVlasovTranslation);
@@ -560,67 +604,45 @@ void Parameters::getParameters() {
    RP::get("AMR.refine_limit", P::amrRefineLimit);
    RP::get("AMR.coarsen_limit", P::amrCoarsenLimit);
    RP::get("AMR.transShortPencils", P::amrTransShortPencils);
-
-   /*Read Blur Passes per Refinement Level*/
    RP::get("AMR.filterpasses", P::blurPassString);
 
-   // Construct Vector of Passes used in grid.cpp
-   bool isEmpty = blurPassString.size() == 0;
-   vector<int>::iterator maxNumPassesPtr;
-   int maxNumPassesInt;
-
-   if (!isEmpty) {
-
-      for (auto i : blurPassString) {
-         P::numPasses.push_back(stoi(i));
-      }
-
-      // Reverse Sort and Get the maximum number of filter passes
-      sort(numPasses.begin(), numPasses.end(), greater<int>());
-
-      // Sanity Check
-      if (P::numPasses.size() != P::amrMaxSpatialRefLevel + 1) {
-         cerr << "Filter Passes=" << P::numPasses.size() << "\t"
-              << "AMR Levels=" << P::amrMaxSpatialRefLevel + 1 << endl;
-         cerr << "FilterPasses do not match AMR levels \t"
-              << " in " << __FILE__ << ":" << __LINE__ << endl;
-         MPI_Abort(MPI_COMM_WORLD, 1);
-      }
-
-      if (myRank == MASTER_RANK) {
-
-         maxNumPassesPtr = max_element(P::numPasses.begin(), P::numPasses.end());
-         if (maxNumPassesPtr != numPasses.end()) {
-            maxNumPassesInt = *maxNumPassesPtr;
-         } else {
-            cerr << "Trying to dereference null pointer \t"
-                 << " in " << __FILE__ << ":" << __LINE__ << endl;
+   // If we are in an AMR run we need to set up the filtering scheme.
+   if (P::amrMaxSpatialRefLevel>0){
+      bool isEmpty = blurPassString.size() == 0;
+      if (!isEmpty){
+         //sanity check=> user should define a pass for every level
+         if (static_cast<int>(blurPassString.size()) != P::amrMaxSpatialRefLevel + 1) {
+            cerr << "Filter Passes=" << blurPassString.size() << "\t" << "AMR Levels=" << P::amrMaxSpatialRefLevel + 1 << endl;
+            cerr << "FilterPasses do not match AMR levels. \t" << " in " << __FILE__ << ":" << __LINE__ << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
          }
-
-         printf("Filtering is on with max number of Passes= \t%d\n", maxNumPassesInt);
-         int lev = 0;
-         for (auto& iter : P::numPasses) {
-            printf("Refinement Level %d-->%d Passes\n", lev, iter);
-            lev++;
+         //sort the filtering passes per refLevel
+         numPasses.clear();
+         //Parse to a vector of ints
+         for (auto pass : blurPassString){
+            P::numPasses.push_back(stoi(pass));
          }
-      }
-   } else {
-      numPasses = {0};
-
-      if (myRank == MASTER_RANK) {
-         maxNumPassesPtr = max_element(P::numPasses.begin(), P::numPasses.end());
-         if (maxNumPassesPtr != numPasses.end()) {
-            maxNumPassesInt = *maxNumPassesPtr;
-         } else {
-            cerr << "Trying to dereference null pointer \t"
-                 << " in " << __FILE__ << ":" << __LINE__ << endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
+         sort(numPasses.begin(),numPasses.end(),greater<int>());
+      }else{
+         //here we will default to manually constructing the number of passes
+         numPasses.clear();
+         auto g_sequence=[](int size){
+            int retval=1;
+            while(size!=0){
+               retval*=2;
+               size-=1;
+            }
+            return retval;
+         };
+         int maxPasses=g_sequence(P::amrMaxSpatialRefLevel-1);
+         for (int refLevel=0; refLevel<=P::amrMaxSpatialRefLevel; refLevel++){
+            numPasses.push_back(maxPasses);
+            maxPasses/=2; 
          }
-
-         printf("Filtering is off and max number of Passes is = \t %d\n",
-                *max_element(P::numPasses.begin(), P::numPasses.end()));
+         //Overwrite passes for the highest refLevel. We do not want to filter there.
+         numPasses[P::amrMaxSpatialRefLevel] = 0;
       }
+         P::maxFilteringPasses = numPasses[0];
    }
 
    if (geometryString == "XY4D") {
@@ -679,12 +701,13 @@ void Parameters::getParameters() {
    RP::get("fieldsolver.maxCFL", P::fieldSolverMaxCFL);
    RP::get("fieldsolver.minCFL", P::fieldSolverMinCFL);
    // Get Vlasov solver parameters
-   Readparameters::get("vlasovsolver.maxSlAccelerationRotation",P::maxSlAccelerationRotation);
-   Readparameters::get("vlasovsolver.maxSlAccelerationSubcycles",P::maxSlAccelerationSubcycles);
-   Readparameters::get("vlasovsolver.maxCFL",P::vlasovSolverMaxCFL);
-   Readparameters::get("vlasovsolver.minCFL",P::vlasovSolverMinCFL);
-   Readparameters::get("vlasovsolver.ResolvePlasmaPeriod",P::ResolvePlasmaPeriod);
-   Readparameters::get("vlasovsolver.maxResonantSubcycleFactor",P::maxResonantSubcycleFactor);
+   RP::get("vlasovsolver.maxSlAccelerationRotation",P::maxSlAccelerationRotation);
+   RP::get("vlasovsolver.maxSlAccelerationSubcycles",P::maxSlAccelerationSubcycles);
+   RP::get("vlasovsolver.maxCFL",P::vlasovSolverMaxCFL);
+   RP::get("vlasovsolver.minCFL",P::vlasovSolverMinCFL);
+   RP::get("vlasovsolver.accelerateMaxwellianBoundaries",  P::vlasovAccelerateMaxwellianBoundaries);
+   RP::get("vlasovsolver.ResolvePlasmaPeriod",P::ResolvePlasmaPeriod);
+   RP::get("vlasovsolver.maxResonantSubcycleFactor",P::maxResonantSubcycleFactor);
 
    
    // Get load balance parameters

@@ -2,8 +2,7 @@ CMP = mpic++
 LNK = mpic++
 
 # Modules loaded
-# module load gcc boost jemalloc papi openmpi
-
+# module load gcc openmpi jemalloc papi boost
 #======== Vectorization ==========
 #Set vector backend type for vlasov solvers, sets precision and length. 
 #Options: 
