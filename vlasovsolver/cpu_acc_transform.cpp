@@ -164,6 +164,7 @@ Eigen::Transform<Real,3,Eigen::Affine> compute_acceleration_transformation(
 
    }
    if ((transformation_substeps < 1) && (fabs(dt)>0)) transformation_substeps=1;
+   if ((transformation_substeps > P::maxResonantSubcycleFactor) && (fabs(dt)>0)) transformation_substeps=P::maxResonantSubcycleFactor;
       
    const Real substeps_radians = -(2.0*M_PI*dt/gyro_period)/transformation_substeps; // how many radians each substep is.
    const Real substeps_dt=dt/(Real)transformation_substeps; /*!< how many s each substep is*/

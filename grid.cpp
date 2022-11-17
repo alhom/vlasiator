@@ -738,13 +738,15 @@ void shrink_to_fit_grid_data(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>
    const std::vector<CellID> remote_cells = mpiGrid.get_remote_cells_on_process_boundary(FULL_NEIGHBORHOOD_ID);
    #pragma omp parallel for
    for(size_t i=0; i<cells.size() + remote_cells.size(); ++i) {
-      if(i < cells.size())
+      if(i < cells.size()){
          mpiGrid[cells[i]]->shrink_to_fit();
-      else
+      }
+      else{
          if (mpiGrid[remote_cells[i - cells.size()]] == nullptr){
             continue;
          }
          mpiGrid[remote_cells[i - cells.size()]]->shrink_to_fit();
+      }
    }
 }
 

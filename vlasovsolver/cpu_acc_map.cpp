@@ -331,10 +331,12 @@ bool map_1d(SpatialCell* spatial_cell,
             message += getObjectWrapper().particleSpecies[popID].name;
             message += " at CellID ";
             message += std::to_string(spatial_cell->parameters[CellParams::CELLID]);
+            message += " (" + std::to_string(spatial_cell->parameters[CellParams::XCRD]) + ", " + std::to_string(spatial_cell->parameters[CellParams::YCRD]) + ", " + std::to_string(spatial_cell->parameters[CellParams::ZCRD]) + ")";
             message += ". Consider expanding velocity space for that population.";
+            //abort();
             bailout(true, message, __FILE__, __LINE__);
          }
-         
+
          //store source blocks
          for (uint blockK = firstBlockIndices[2]; blockK <= lastBlockIndices[2]; blockK++){
             isSourceBlock[blockK] = true;
