@@ -698,6 +698,21 @@ setOfPencils buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Ca
 
 bool check_skip_remapping(Vec* values) {
    for (int index=0; index<2*VLASOV_STENCIL_WIDTH+1; ++index) {
+      if (!horizontal_and(values[index] == values[index])) 
+      {
+         std::cerr << "Nan in check_skip_remapping, " << values[index].val[0] << " "
+                                                      << values[index].val[1] << " "
+                                                      << values[index].val[2] << " "
+                                                      << values[index].val[3] << " "
+                                                      << values[index].val[4] << " "
+                                                      << values[index].val[5] << " "
+                                                      << values[index].val[6] << " "
+                                                      << values[index].val[7] << " "
+                                                      << std::endl << std::flush;
+         return false;
+      }
+   }
+   for (int index=0; index<2*VLASOV_STENCIL_WIDTH+1; ++index) {
       if (horizontal_or(values[index] > Vec(0))) return false;
    }
    return true;

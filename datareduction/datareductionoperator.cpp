@@ -1386,7 +1386,12 @@ namespace DRO {
       creal normB = sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
       std::array<Real,3> b_unit;
       for (uint i=0; i<3; i++){
-         B[i] /= normB;
+         if(normB != 0){
+            B[i] /= normB;
+         }
+         else{
+            B[i] = 0;
+         }
       }
 
       // If southern hemisphere, loss cone is around -B

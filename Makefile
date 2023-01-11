@@ -9,7 +9,7 @@ DISTRIBUTION_FP_PRECISION = SPF
 ifneq (,$(findstring testpackage,$(MAKECMDGOALS)))
 	MATHFLAGS =
 	FP_PRECISION = DP
-	DISTRIBUTION_FP_PRECISION = DPF
+	DISTRIBUTION_FP_PRECISION = SPF
 endif
 
 
@@ -46,7 +46,7 @@ COMPFLAGS += -DNDEBUG
 #  TRANS_SEMILAG_PLM 	2nd order	
 #  TRANS_SEMILAG_PPM	3rd order (for production use, use unless testing)
 #  TRANS_SEMILAG_PQM	5th order (significantly slower due to larger stencil)
-COMPFLAGS += -DACC_SEMILAG_PQM -DTRANS_SEMILAG_PPM 
+COMPFLAGS += -DACC_SEMILAG_PPM -DTRANS_SEMILAG_PPM 
 
 #Add -DCATCH_FPE to catch floating point exceptions and stop execution
 #May cause problems

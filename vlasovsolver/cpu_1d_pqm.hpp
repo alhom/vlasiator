@@ -37,6 +37,7 @@ using namespace std;
 /*make sure quartic polynomial is monotonic*/
 inline void filter_pqm_monotonicity(Vec *values, uint k, Vec &fv_l, Vec &fv_r, Vec &fd_l, Vec &fd_r){   
    const Vec root_outside = Vec(100.0); //fixed values give to roots clearly outside [0,1], or nonexisting ones*/
+   const Vec eps = Vec(1e-300);
    /*second derivative coefficients, eq 23 in white et al.*/
    Vec b0 =   60.0 * values[k] - 24.0 * fv_r - 36.0 * fv_l + 3.0 * (fd_r - 3.0 * fd_l);
    Vec b1 = -360.0 * values[k] + 36.0 * fd_l - 24.0 * fd_r + 168.0 * fv_r + 192.0 * fv_l;
@@ -46,21 +47,22 @@ inline void filter_pqm_monotonicity(Vec *values, uint k, Vec &fv_l, Vec &fv_r, V
     will make the root to be +-100 which is well outside range
     of[0,1]. We do not catch FP exceptions, so sqrt(negative) are okish (add
     a max(val_to_sqrt,0) if not*/
-   const Vec val_to_sqrt = b1 * b1 - 4 * b0 * b2;
+   const Vec val_to_sqrt = max(b1 * b1 - 4 * b0 * b2, 0);
 #ifdef VEC16F_AGNER
    //this sqrt gives 10% more perf on acceleration on KNL. Also fairly
    //accurate with AVX512ER. On Xeon it is not any faster, and less accurate.
-   const Vec sqrt_val = select(val_to_sqrt < 0.0, 
-                               b1 + 200.0 * b2,
-                               val_to_sqrt * approx_rsqrt(val_to_sqrt));
+   // const Vec sqrt_val = select(val_to_sqrt < 0.0, 
+   //                             b1 + 200.0 * b2,
+   //                             val_to_sqrt * approx_rsqrt(val_to_sqrt));
+   const Vec sqrt_val = val_to_sqrt * approx_rsqrt(val_to_sqrt);
 #else
-   const Vec sqrt_val = select(val_to_sqrt < 0.0, 
+   const Vec sqrt_val = sqrt(val_to_sqrt);/*select(val_to_sqrt < 0.0, 
                                b1 + 200.0 * b2,
-                               sqrt(val_to_sqrt));
+                               sqrt(val_to_sqrt));*/
 #endif
    //compute roots. Division is safe with vectorclass (=inf)
-   const Vec root1 = (-b1 + sqrt_val) / (2 * b2);
-   const Vec root2 = (-b1 - sqrt_val) / (2 * b2);
+   const Vec root1 = (-b1 + sqrt_val) / (2 * b2 + eps);
+   const Vec root2 = (-b1 - sqrt_val) / (2 * b2 + eps);
 
    /*PLM slope, MC limiter*/
    Vec plm_slope_l = 2.0 * (values[k] - values[k - 1]);

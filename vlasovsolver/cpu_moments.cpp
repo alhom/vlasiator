@@ -44,6 +44,7 @@ void calculateCellMoments(spatial_cell::SpatialCell* cell,
     if (!doNotSkip && cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
         skipMoments = true;
     }
+    checkCellForNans(cell);
 
     // Clear old moments to zero value
     if (skipMoments == false) {
@@ -201,6 +202,7 @@ void calculateMoments_R(
 	    if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
 	        continue;
 	    }
+        checkCellForNans(cell);
             
 	    const Real dx = cell->parameters[CellParams::DX];
             const Real dy = cell->parameters[CellParams::DY];
@@ -377,6 +379,7 @@ void calculateMoments_V(
 	    if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
 	        continue;
 	    }
+        checkCellForNans(cell);
          
 	    vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
 	    if (blockContainer.size() == 0) continue;
@@ -485,4 +488,86 @@ void calculateMoments_V(
     } // for-loop over particle species
 
    phiprof::stop("Compute _V moments");
+}
+
+
+/** Calculate zeroth, first, and (possibly) second bulk velocity moments for the 
+ * given spatial cell. The calculated moments include contributions from 
+ * all existing particle populations. This function is AMR safe.
+ * @param cell Spatial cell.
+ * @param computeSecond If true, second velocity moments are calculated.
+ * @param doNotSkip If false, DO_NOT_COMPUTE cells are skipped.*/
+void checkCellForNans(spatial_cell::SpatialCell* cell) {
+
+    // if doNotSkip == true then the first clause is false and we will never return,
+    // i.e. always compute, otherwise we skip DO_NOT_COMPUTE cells
+    bool skipMoments = false;
+    std::cerr << "Checking cell " << cell->parameters[CellParams::CELLID] << " for nan block data" << std::endl;
+    // if (!doNotSkip && cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
+    //     skipMoments = true;
+    // }
+
+    // Clear old moments to zero value
+    if (skipMoments == false) {
+
+    }
+
+    // Loop over all particle species
+    if (skipMoments == false) {
+       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
+          vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
+          if (blockContainer.size() == 0) continue;
+          
+          const Realf* data       = blockContainer.getData();
+          const Real* blockParams = blockContainer.getParameters();
+          const bool istestspecies = getObjectWrapper().particleSpecies[popID].isTestSpecies;
+          
+
+          // Calculate species' contribution to first velocity moments
+          for (vmesh::LocalID blockLID=0; blockLID<blockContainer.size(); ++blockLID) {
+             blockVelocityNancheck(data+blockLID*WID3,
+                                       blockParams+blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS,
+                                       cell->parameters[CellParams::CELLID]);
+          }
+         
+	  
+       } // for-loop over particle species
+    }
+
+}
+
+/** Check if nans or infs are in the distribution function. This function is AMR safe.
+ * @param avgs Distribution function.
+ * @param blockParams Parameters for the given velocity block.
+ * @param id CellID of the cell for which this was called */
+void blockVelocityNancheck(
+        const Realf* avgs,
+        const Real* blockParams,
+        const CellID id
+        ) {
+
+   const Real HALF = 0.5;
+
+   Real n_sum = 0.0;
+   Real nvx_sum = 0.0;
+   Real nvy_sum = 0.0;
+   Real nvz_sum = 0.0;
+   for (uint k=0; k<WID; ++k) for (uint j=0; j<WID; ++j) for (uint i=0; i<WID; ++i) {
+      const double VX = blockParams[BlockParams::VXCRD] + (i+HALF)*blockParams[BlockParams::DVX];
+      const double VY = blockParams[BlockParams::VYCRD] + (j+HALF)*blockParams[BlockParams::DVY];
+      const double VZ = blockParams[BlockParams::VZCRD] + (k+HALF)*blockParams[BlockParams::DVZ];
+      
+      if(std::isnan(avgs[cellIndex(i,j,k)]))
+      {
+         std::cerr << "NaN encountered! CellID " << id << " at V = (" << VX << ", " << VY << ", " << VZ << ")" << std::endl;
+         abort();
+      }
+      if(!std::isfinite(avgs[cellIndex(i,j,k)]))
+      {
+         std::cerr << "non-finite v-cell encountered! CellID " << id << " at V = (" << VX << ", " << VY << ", " << VZ << ")" << std::endl;
+         abort();
+      }
+      
+   }
+   
 }
