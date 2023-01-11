@@ -27,6 +27,7 @@
 #include <sstream>
 #include <ctime>
 #include <omp.h>
+#include <fenv.h>
 
 #ifdef _OPENMP
    #include <omp.h>
@@ -284,13 +285,15 @@ void recalculateLocalCellsCache() {
 }
 
 int main(int argn,char* args[]) {
+//   feenableexcept(FE_INVALID | FE_OVERFLOW);
    bool success = true;
    int myRank, doBailout=0;
    const creal DT_EPSILON=1e-12;
    typedef Parameters P;
    Real newDt;
    bool dtIsChanged;
-   
+
+
 // Init MPI:
    int required=MPI_THREAD_FUNNELED;
    int provided;
@@ -603,13 +606,14 @@ int main(int argn,char* args[]) {
 
       //compute new dt
       phiprof::start("compute-dt");
+      fedisableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       computeNewTimeStep(mpiGrid, technicalGrid, newDt, dtIsChanged);
       if (P::dynamicTimestep == true && dtIsChanged == true) {
          // Only actually update the timestep if dynamicTimestep is on
          P::dt=newDt;
       }
       phiprof::stop("compute-dt");
-      
+      feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
       //go forward by dt/2 in V, initializes leapfrog split. In restarts the
       //the distribution function is already propagated forward in time by dt/2
       phiprof::start("propagate-velocity-space-dt/2");
@@ -920,7 +924,9 @@ int main(int argn,char* args[]) {
       //simulation loop
       // FIXME what if dt changes at a restart??
       if(P::dynamicTimestep  && P::tstep > P::tstep_min) {
+         fedisableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
          computeNewTimeStep(mpiGrid, technicalGrid, newDt, dtIsChanged);
+         feenableexcept(FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW);
          addTimedBarrier("barrier-check-dt");
          if(dtIsChanged) {
 #warning dt change step in acceleration at restart cannot be done without additional information such as egradpe

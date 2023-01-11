@@ -93,11 +93,11 @@ namespace projects {
       RP::get("ElVentana.WindowZ_max", this->WindowZ[1]);
       RP::get("ElVentana.dipoleScalingFactor", this->dipoleScalingFactor);
       RP::get("ElVentana.dipoleType", this->dipoleType);
-      RP::get("ionosphere.radius", this->ionosphereRadius);
-      RP::get("ionosphere.centerX", this->center[0]);
-      RP::get("ionosphere.centerY", this->center[1]);
-      RP::get("ionosphere.centerZ", this->center[2]);
-      RP::get("ionosphere.geometry", this->ionosphereGeometry);
+      RP::get("staticionosphere.radius", this->ionosphereRadius);
+      RP::get("staticionosphere.centerX", this->center[0]);
+      RP::get("staticionosphere.centerY", this->center[1]);
+      RP::get("staticionosphere.centerZ", this->center[2]);
+      RP::get("staticionosphere.geometry", this->ionosphereGeometry);
       RP::get("ElVentana.noDipoleInSW", dummy);
          this->noDipoleInSW = dummy == 1 ? true:false;
 
@@ -110,10 +110,10 @@ namespace projects {
             RP::get(pop + "_ElVentana.nSpaceSamples", sP.nSpaceSamples);
             RP::get(pop + "_ElVentana.nVelocitySamples", sP.nVelocitySamples);
             RP::get(pop + "_ElVentana.Temperatureratio", sP.Temperatureratio);
-            RP::get(pop + "_ionosphere.rho", sP.ionosphereRho);
-            RP::get(pop + "_ionosphere.VX0", sP.ionosphereV0[0]);
-            RP::get(pop + "_ionosphere.VY0", sP.ionosphereV0[1]);
-            RP::get(pop + "_ionosphere.VZ0", sP.ionosphereV0[2]);
+            RP::get(pop + "_staticionosphere.rho", sP.ionosphereRho);
+            RP::get(pop + "_staticionosphere.VX0", sP.ionosphereV0[0]);
+            RP::get(pop + "_staticionosphere.VY0", sP.ionosphereV0[1]);
+            RP::get(pop + "_staticionosphere.VZ0", sP.ionosphereV0[2]);
 
             speciesParams.push_back(sP);
          }
@@ -335,10 +335,10 @@ namespace projects {
          }
          
          if(radius < this->ionosphereRadius) {
-      // Just to be safe, there are observed cases where this failed.
-      for (uint64_t i=0; i<3; i++) {
-         v[i] = ionosphereV0[i];
-      }
+         // Just to be safe, there are observed cases where this failed.
+         for (uint64_t i=0; i<3; i++) {
+            v[i] = ionosphereV0[i];
+         }
          }
          
          // Check if velocity is within the velocity space boundaries

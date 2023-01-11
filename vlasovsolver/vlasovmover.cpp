@@ -445,7 +445,7 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
-   if (dt == 0.0 && P::tstep > 0) {
+   if (dt == 0.0 && P::tstep >= 0) {
       
       // Even if acceleration is turned off we need to adjust velocity blocks 
       // because the boundary conditions may have altered the velocity space, 

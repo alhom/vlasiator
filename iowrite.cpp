@@ -1459,12 +1459,17 @@ bool writeGrid(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
    else if (bytesWritten > 1e3) logFile << bytesWritten/1.0e3 << " kB in ";
    else logFile << bytesWritten << " B in ";
 
-   logFile << writeTime << " seconds, approximate data rate is ";
-
-   if (bytesWritten/writeTime > 1e9) logFile << bytesWritten/writeTime/1e9 << " GB/s";
-   else if (bytesWritten/writeTime > 1e6) logFile << bytesWritten/writeTime/1e6 << " MB/s";
-   else if (bytesWritten/writeTime > 1e3) logFile << bytesWritten/writeTime/1e3 << " kB/s";
-   else logFile << bytesWritten/writeTime << " B/s";
+   
+   if(writeTime == 0){
+      logFile << writeTime << " seconds - cannot get a sensible data rate.";
+   }
+   else{
+      logFile << writeTime << " seconds, approximate data rate is ";
+      if (bytesWritten/writeTime > 1e9) logFile << bytesWritten/writeTime/1e9 << " GB/s";
+      else if (bytesWritten/writeTime > 1e6) logFile << bytesWritten/writeTime/1e6 << " MB/s";
+      else if (bytesWritten/writeTime > 1e3) logFile << bytesWritten/writeTime/1e3 << " kB/s";
+      else logFile << bytesWritten/writeTime << " B/s";
+   }
    logFile << endl;
 
    phiprof::stop("reduceddataIO");
