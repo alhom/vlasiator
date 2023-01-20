@@ -158,4 +158,9 @@ void blockVelocitySecondMoments(
    array[5] += nvxvy_sum * DV3;
 }
 
+void checkCellsForNans(
+        dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+        const std::vector<CellID>& cells);
+
+
 #endif
