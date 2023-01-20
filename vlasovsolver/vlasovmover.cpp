@@ -91,9 +91,10 @@ void calculateSpatialTranslation(
    
    // int bt=phiprof::initializeTimer("barrier-trans-pre-z","Barriers","MPI");
    // phiprof::start(bt);
-   // MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
    // phiprof::stop(bt);
- 
+    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
     // ------------- SLICE - map dist function in Z --------------- //
    if(P::zcells_ini > 1){
 
@@ -109,7 +110,9 @@ void calculateSpatialTranslation(
       // phiprof::start(bt);
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
-
+   MPI_Barrier(MPI_COMM_WORLD);
+    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
       t1 = MPI_Wtime();
       phiprof::start("compute-mapping-z");
       if(P::amrMaxSpatialRefLevel == 0) {
@@ -124,6 +127,9 @@ void calculateSpatialTranslation(
       // phiprof::start(bt);
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
+   MPI_Barrier(MPI_COMM_WORLD);
+    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
 
       trans_timer=phiprof::initializeTimer("update_remote-z","MPI");
       phiprof::start("update_remote-z");
@@ -140,9 +146,10 @@ void calculateSpatialTranslation(
 
    // bt=phiprof::initializeTimer("barrier-trans-pre-x","Barriers","MPI");
    // phiprof::start(bt);
-   // MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
    // phiprof::stop(bt);
-   
+      cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
    // ------------- SLICE - map dist function in X --------------- //
    if(P::xcells_ini > 1){
       
@@ -158,6 +165,9 @@ void calculateSpatialTranslation(
       // phiprof::start(bt);
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
+   MPI_Barrier(MPI_COMM_WORLD);
+    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
 
       t1 = MPI_Wtime();
       phiprof::start("compute-mapping-x");
@@ -173,6 +183,9 @@ void calculateSpatialTranslation(
       // phiprof::start(bt);
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
+   MPI_Barrier(MPI_COMM_WORLD);
+    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
 
       trans_timer=phiprof::initializeTimer("update_remote-x","MPI");
       phiprof::start("update_remote-x");
@@ -189,9 +202,10 @@ void calculateSpatialTranslation(
 
    // bt=phiprof::initializeTimer("barrier-trans-pre-y","Barriers","MPI");
    // phiprof::start(bt);
-   // MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
    // phiprof::stop(bt);
-
+   cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
    // ------------- SLICE - map dist function in Y --------------- //
    if(P::ycells_ini > 1) {
       
@@ -272,7 +286,9 @@ void calculateSpatialTranslation(
    vector<CellID> local_target_cells;
    vector<uint> nPencils;
    Real time=0.0;
-   
+   cerr << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
+
    // If dt=0 we are either initializing or distribution functions are not translated. 
    // In both cases go to the end of this function and calculate the moments.
    if (dt == 0.0) goto momentCalculation;
@@ -304,7 +320,8 @@ void calculateSpatialTranslation(
       }
    }
    phiprof::stop("compute_cell_lists");
-   
+      cerr << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
    // Translate all particle species
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
@@ -327,7 +344,8 @@ void calculateSpatialTranslation(
          phiprof::stop(profName);
       }
    }
-   
+      cerr << __LINE__ << "checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,localCells);
    if (Parameters::prepareForRebalance == true) {
       if(P::amrMaxSpatialRefLevel == 0) {
 //          const double deltat = (MPI_Wtime() - t1) / local_propagated_cells.size();
@@ -352,6 +370,7 @@ void calculateSpatialTranslation(
    
    // Mapping complete, update moments and maximum dt limits //
 momentCalculation:
+   cerr << __LINE__ << "checkCellsForNans via calculateMoments_R" << endl;
    calculateMoments_R(mpiGrid,localCells,true);
    
    phiprof::stop("semilag-trans");
@@ -393,7 +412,7 @@ void calculateAcceleration(const uint popID,const uint globalMaxSubcycles,const 
       //adjust blocks.
       Real subcycleDt;
       if( (step + 1) * maxVdt > fabs(dt)) {
-	 subcycleDt = max(fabs(dt) - step * maxVdt, 0.0);
+	      subcycleDt = max(fabs(dt) - step * maxVdt, 0.0);
       } else{
          subcycleDt = maxVdt;
       }

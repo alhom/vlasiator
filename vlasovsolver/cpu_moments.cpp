@@ -490,6 +490,21 @@ void calculateMoments_V(
    phiprof::stop("Compute _V moments");
 }
 
+void checkCellsForNans(
+        dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+        const std::vector<CellID>& cells) {
+
+#pragma omp parallel for
+	for (size_t c=0; c<cells.size(); ++c) {
+	    SpatialCell* cell = mpiGrid[cells[c]];
+         
+	    if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
+	        continue;
+	    }
+        checkCellForNans(cell);
+    }
+}
+
 
 /** Calculate zeroth, first, and (possibly) second bulk velocity moments for the 
  * given spatial cell. The calculated moments include contributions from 
@@ -502,7 +517,7 @@ void checkCellForNans(spatial_cell::SpatialCell* cell) {
     // if doNotSkip == true then the first clause is false and we will never return,
     // i.e. always compute, otherwise we skip DO_NOT_COMPUTE cells
     bool skipMoments = false;
-    std::cerr << "Checking cell " << cell->parameters[CellParams::CELLID] << " for nan block data" << std::endl;
+    //std::cerr << "Checking cell " << cell->parameters[CellParams::CELLID] << " for nan block data" << std::endl;
     // if (!doNotSkip && cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
     //     skipMoments = true;
     // }
