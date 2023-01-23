@@ -623,7 +623,19 @@ namespace projects {
 
      Dipole bgFieldDipole;
      LineDipole bgFieldLineDipole;
+      static int num_sets = 0;
 
+      int myRank = 0;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+      if(num_sets > 0){
+         if(myRank == MASTER_RANK)
+            cerr << __LINE__ << "setProjectB again: " << num_sets << endl;
+      if (this->vlsvParaReader.open(this->StartFile,MPI_COMM_WORLD,MASTER_RANK,MPI_INFO_NULL) == false) {
+        if (myRank == MASTER_RANK) 
+           cout << "Could not open file: " << this->StartFile << endl;
+      }
+      }
+      num_sets++;
      // The hardcoded constants of dipole and line dipole moments are obtained
      // from Daldorff et al (2014), see
      // https://github.com/fmihpc/vlasiator/issues/20 for a derivation of the
@@ -750,7 +762,7 @@ namespace projects {
 
          int numWritingRanks = 0;
          if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-            std::cerr << "FSGrid writing rank number not found";
+            std::cerr << __LINE__ << "FSGrid writing rank number not found";
             exit(1);
          }
 
@@ -770,7 +782,6 @@ namespace projects {
             logFile << "(START) ElVentana fsgrid data (" << bytesReadEnd << " bytes) read, approximate data rate is ";
             logFile << vlsv::printDataRate(bytesReadEnd,this->vlsvParaReader.getReadTime()) << endl << write;
 
-            this->vlsvParaReader.close();
          }
 
          if (totalBRead) {
@@ -789,6 +800,10 @@ namespace projects {
             }
          }
       }
+      this->vlsvParaReader.close();
+      //this->~vlsvParaReader();
+      //no comment! This is horrible. TODO FIXME
+      //new (&(this->vlsvParaReader)) vlsv::ParallelReader();
    }
 
    CellID ElVentana::findCellIDXYZ(creal x, creal y, creal z) const {
@@ -898,7 +913,7 @@ namespace projects {
       //}
 
       if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-         std::cerr << "FSGrid writing rank number not found";
+         std::cerr << __LINE__ << "FSGrid writing rank number not found";
          return false;
       }
       
@@ -1181,7 +1196,7 @@ namespace projects {
          std::cerr << "Reading " << variableName << " from FsGrid!" << std::endl;
 
       if(this->vlsvParaReader.readParameter("numWritingRanks",numWritingRanks) == false) {
-         std::cerr << "FSGrid writing rank number not found";
+         std::cerr << __LINE__ << "FSGrid writing rank number not found";
          return false;
       }
       

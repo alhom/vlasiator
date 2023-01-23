@@ -492,16 +492,23 @@ void calculateMoments_V(
 
 void checkCellsForNans(
         dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-        const std::vector<CellID>& cells) {
+        const std::vector<CellID>& cells, bool skipnulls) {
 
 #pragma omp parallel for
 	for (size_t c=0; c<cells.size(); ++c) {
 	    SpatialCell* cell = mpiGrid[cells[c]];
-         
-	    if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
-	        continue;
-	    }
-        checkCellForNans(cell);
+        if(cell)
+        {
+            if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
+                    continue;
+                }
+                checkCellForNans(cell);
+        }else{
+            if(!skipnulls)
+                cerr << "cellptr zero for cell " << cells[c] << endl;
+            continue;
+        }
+	    
     }
 }
 

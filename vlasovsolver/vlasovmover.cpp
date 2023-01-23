@@ -93,8 +93,11 @@ void calculateSpatialTranslation(
    // phiprof::start(bt);
    MPI_Barrier(MPI_COMM_WORLD);
    // phiprof::stop(bt);
-    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
+    cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
    checkCellsForNans(mpiGrid,localCells);
+   MPI_Barrier(MPI_COMM_WORLD);
+   //cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+   //checkCellsForNans(mpiGrid,mpiGrid.get_remote_cells_on_process_boundary(VLASOV_SOLVER_NEIGHBORHOOD_ID));
     // ------------- SLICE - map dist function in Z --------------- //
    if(P::zcells_ini > 1){
 
@@ -113,6 +116,10 @@ void calculateSpatialTranslation(
    MPI_Barrier(MPI_COMM_WORLD);
     cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
    checkCellsForNans(mpiGrid,localCells);
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID));
+   // null cellptr here on the remote cells
       t1 = MPI_Wtime();
       phiprof::start("compute-mapping-z");
       if(P::amrMaxSpatialRefLevel == 0) {
@@ -130,6 +137,9 @@ void calculateSpatialTranslation(
    MPI_Barrier(MPI_COMM_WORLD);
     cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
    checkCellsForNans(mpiGrid,localCells);
+MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID));
 
       trans_timer=phiprof::initializeTimer("update_remote-z","MPI");
       phiprof::start("update_remote-z");
@@ -150,6 +160,10 @@ void calculateSpatialTranslation(
    // phiprof::stop(bt);
       cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
    checkCellsForNans(mpiGrid,localCells);
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+   checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID));
    // ------------- SLICE - map dist function in X --------------- //
    if(P::xcells_ini > 1){
       

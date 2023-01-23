@@ -7,6 +7,9 @@
 #include "cpu_trans_map_amr.hpp"
 #include "cpu_trans_map.hpp"
 
+#include "cpu_moments.h"
+
+
 // use DCCRG version Nov 8th 2018 01482cfba8
 
 using namespace std;
@@ -1768,6 +1771,11 @@ void update_remote_mapping_contribution_amr(
    vector<uint> receive_origin_index;
 
    int neighborhood = 0;
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,local_cells);
+
    
    //normalize and set neighborhoods
    if(direction > 0) {
@@ -1815,6 +1823,14 @@ void update_remote_mapping_contribution_amr(
          }
       }
    }
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,local_cells);
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl; //THIS TRIPS NANS
+   checkCellsForNans(mpiGrid,remote_cells, true); 
+
 
    // Initialize local cells
    for (auto lc : local_cells) {
@@ -1827,7 +1843,13 @@ void update_remote_mapping_contribution_amr(
          }
       }
    }
-   
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,local_cells);
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,remote_cells, true);
    vector<Realf*> receiveBuffers;
    vector<Realf*> sendBuffers;
    
@@ -1999,6 +2021,14 @@ void update_remote_mapping_contribution_amr(
       } // closes if(!all_of(nbrs_of.begin(), nbrs_of.end(),[&mpiGrid](CellID i){return mpiGrid.is_local(i);}))
       
    } // closes for (auto c : local_cells) {
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,local_cells);
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+   checkCellsForNans(mpiGrid,remote_cells, true);
+
 
    MPI_Barrier(MPI_COMM_WORLD);
    

@@ -671,10 +671,20 @@ int main(int argn,char* args[]) {
       
       addTimedBarrier("barrier-loop-start");
       
+     
+      // cerr << "a sanity check" << endl;
+
+      //updateRemoteVelocityBlockLists(mpiGrid,popID,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID);
+      //SpatialCell::set_mpi_transfer_direction(2);
+      // SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false,false);
+      // mpiGrid.update_copies_of_remote_neighbors(FULL_NEIGHBORHOOD_ID);
+      
+
       phiprof::start("IO");
 
       phiprof::start("checkExternalCommands");
       if(myRank ==  MASTER_RANK) {
+         cerr << "a sanity check" << endl;
          // check whether STOP or KILL or SAVE has been passed, should be done by MASTER_RANK only as it can reset P::bailout_write_restart
          checkExternalCommands();
       }

@@ -280,7 +280,15 @@ void initializeGrids(
    BgBGrid.updateGhostCells();
    EGrid.updateGhostCells();
    phiprof::stop("setProjectBField");
+   MPI_Barrier(MPI_COMM_WORLD);
 
+   phiprof::start("setProjectBField");
+   project.setProjectBField(perBGrid, BgBGrid, technicalGrid);
+   // Set E field here as well?
+   perBGrid.updateGhostCells();
+   BgBGrid.updateGhostCells();
+   EGrid.updateGhostCells();
+   phiprof::stop("setProjectBField");
    if (!P::isRestart) {
       if (needCurl) {
          // E is needed only because both volumetric fields are calculated in 1 call

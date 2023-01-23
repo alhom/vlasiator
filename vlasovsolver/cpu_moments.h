@@ -160,7 +160,7 @@ void blockVelocitySecondMoments(
 
 void checkCellsForNans(
         dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-        const std::vector<CellID>& cells);
+        const std::vector<CellID>& cells, bool skipnulls=false);
 
 
 #endif
