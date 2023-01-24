@@ -629,7 +629,8 @@ namespace projects {
       MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
       if(num_sets > 0){
          if(myRank == MASTER_RANK)
-            cerr << __LINE__ << "setProjectB again: " << num_sets << endl;
+            cerr << __LINE__ << " setProjectB again: " << num_sets << endl;
+         return;
       if (this->vlsvParaReader.open(this->StartFile,MPI_COMM_WORLD,MASTER_RANK,MPI_INFO_NULL) == false) {
         if (myRank == MASTER_RANK) 
            cout << "Could not open file: " << this->StartFile << endl;

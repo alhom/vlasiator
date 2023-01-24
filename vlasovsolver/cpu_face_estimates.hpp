@@ -183,14 +183,15 @@ inline void compute_h4_left_face_value_nonuniform(const Vec * const h, const Vec
    {
      if (!horizontal_and(h[kk] == h[kk])) 
       {
-            std::cerr << "Nan in h["<<kk<<"], " << h[kk].val[0] << " "
-                                       << h[kk].val[1] << " "
-                                       << h[kk].val[2] << " "
-                                       << h[kk].val[3] << " "
-                                       << h[kk].val[4] << " "
-                                       << h[kk].val[5] << " "
-                                       << h[kk].val[6] << " "
-                                       << h[kk].val[7] << " "
+            std::cerr << "Nan in h["<<kk<<"], " 
+                                       // << h[kk].val[0] << " "
+                                       // << h[kk].val[1] << " "
+                                       // << h[kk].val[2] << " "
+                                       // << h[kk].val[3] << " "
+                                       // << h[kk].val[4] << " "
+                                       // << h[kk].val[5] << " "
+                                       // << h[kk].val[6] << " "
+                                       // << h[kk].val[7] << " "
                                        << std::endl << std::flush;
       }
    }
@@ -199,14 +200,15 @@ inline void compute_h4_left_face_value_nonuniform(const Vec * const h, const Vec
    {
      if (!horizontal_and(u[kk] == u[kk])) 
       {
-            std::cerr << "Nan in u["<<kk<<"], " << u[kk].val[0] << " "
-                                       << u[kk].val[1] << " "
-                                       << u[kk].val[2] << " "
-                                       << u[kk].val[3] << " "
-                                       << u[kk].val[4] << " "
-                                       << u[kk].val[5] << " "
-                                       << u[kk].val[6] << " "
-                                       << u[kk].val[7] << " "
+            std::cerr << "Nan in u["<<kk<<"], " 
+                                       // << u[kk].val[0] << " "
+                                       // << u[kk].val[1] << " "
+                                       // << u[kk].val[2] << " "
+                                       // << u[kk].val[3] << " "
+                                       // << u[kk].val[4] << " "
+                                       // << u[kk].val[5] << " "
+                                       // << u[kk].val[6] << " "
+                                       // << u[kk].val[7] << " "
                                        << std::endl << std::flush;
       }
    }

@@ -45,7 +45,7 @@ void blockVelocitySecondMoments(const Realf* avgs,const Real* blockParams,
                                 const REAL v[3],
                                 REAL* array);
 
-void blockVelocityNancheck(
+bool blockVelocityNancheck(
         const Realf* avgs,
         const Real* blockParams,
         const CellID id
@@ -59,7 +59,7 @@ void calculateMoments_V(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
                         const std::vector<CellID>& cells,
                         const bool& computeSecond);
 
-void checkCellForNans(spatial_cell::SpatialCell* cell);
+bool checkCellForNans(spatial_cell::SpatialCell* cell);
 
 
 // ***** TEMPLATE FUNCTION DEFINITIONS ***** //
@@ -158,7 +158,7 @@ void blockVelocitySecondMoments(
    array[5] += nvxvy_sum * DV3;
 }
 
-void checkCellsForNans(
+bool checkCellsForNans(
         dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
         const std::vector<CellID>& cells, bool skipnulls=false);
 

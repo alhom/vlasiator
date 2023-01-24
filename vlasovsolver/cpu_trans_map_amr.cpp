@@ -6,9 +6,11 @@
 #include "../memoryallocation.h"
 #include "cpu_trans_map_amr.hpp"
 #include "cpu_trans_map.hpp"
+#include <algorithm>
 
 #include "cpu_moments.h"
 
+#define DEBUGCELL 103392
 
 // use DCCRG version Nov 8th 2018 01482cfba8
 
@@ -342,6 +344,24 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
       else
          lastGoodCell = sourceCells[i];
    }
+#pragma omp critical(debugsource)
+   if(std::count(sourceCells, sourceCells+(CellID)(L+2*VLASOV_STENCIL_WIDTH), (CellID)DEBUGCELL))
+   {
+      bool foo = false;
+      for(int i = 0; i < L+2*VLASOV_STENCIL_WIDTH; ++i)
+      {
+         foo = checkCellForNans(mpiGrid[sourceCells[i]]);
+         if(foo)
+         {
+            cerr << __FILE__<< ":" << __LINE__ << " sourceCells for " << DEBUGCELL << " pencil " << iPencil << endl;
+            cerr << sourceCells[i] << " (" << checkCellForNans(mpiGrid[sourceCells[i]]) << ") ";
+            cerr << endl;
+            break;
+         }
+      }
+      
+   }
+   //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
@@ -703,14 +723,15 @@ bool check_skip_remapping(Vec* values) {
    for (int index=0; index<2*VLASOV_STENCIL_WIDTH+1; ++index) {
       if (!horizontal_and(values[index] == values[index])) 
       {
-         std::cerr << "Nan in check_skip_remapping, " << values[index].val[0] << " "
-                                                      << values[index].val[1] << " "
-                                                      << values[index].val[2] << " "
-                                                      << values[index].val[3] << " "
-                                                      << values[index].val[4] << " "
-                                                      << values[index].val[5] << " "
-                                                      << values[index].val[6] << " "
-                                                      << values[index].val[7] << " "
+         std::cerr << "Nan in check_skip_remapping, " 
+                                                      // << values[index].val[0] << " "
+                                                      // << values[index].val[1] << " "
+                                                      // << values[index].val[2] << " "
+                                                      // << values[index].val[3] << " "
+                                                      // << values[index].val[4] << " "
+                                                      // << values[index].val[5] << " "
+                                                      // << values[index].val[6] << " "
+                                                      // << values[index].val[7] << " "
                                                       << std::endl << std::flush;
          return false;
       }
@@ -1032,6 +1053,15 @@ bool copy_trans_block_data_amr(
          // is thus the velocity space boundary
          for (uint i=0; i<WID3; ++i) {
             blockValues[i] = block_data[cellid_transpose[i]];
+            if(blockValues[i] != blockValues[i])
+            {
+                  #pragma omp critical(copy_trans_block_data_err)
+                  {
+                     cerr << __FILE__ << ":" << __LINE__ << " NaN found here" << endl;
+                     cerr << "srcCell = " << source_neighbors[b + VLASOV_STENCIL_WIDTH] << " or " << srcCell->parameters[CellParams::CELLID] << endl;
+                     abort();
+                  }
+            }
          }
          
          // now load values into the actual values table..
@@ -1041,6 +1071,15 @@ bool copy_trans_block_data_amr(
                // store data, when reading data from data we swap dimensions 
                // using precomputed plane_index_to_id and cell_indices_to_id
                values[i_trans_ps_blockv_pencil(planeVector, k, b, lengthOfPencil)].load(blockValues + offset);
+               if(!horizontal_and(values[i_trans_ps_blockv_pencil(planeVector, k, b, lengthOfPencil)] == values[i_trans_ps_blockv_pencil(planeVector, k, b, lengthOfPencil)]))
+               {
+                  #pragma omp critical(copy_trans_block_data_err)
+                  {
+                     cerr << __FILE__ << ":" << __LINE__ << " NaN found here" << endl;
+                     cerr << "srcCell = " << source_neighbors[b + VLASOV_STENCIL_WIDTH] << " or " << srcCell->parameters[CellParams::CELLID] << endl;
+                     abort();
+                  }
+               }
                offset += VECL;
             }
          }
@@ -1521,6 +1560,22 @@ bool trans_map_1d_amr(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    computeSpatialTargetCellsForPencilsWithFaces(mpiGrid, DimensionPencils[dimension], dimension, targetCells.data());
    phiprof::stop("computeSpatialTargetCellsForPencils");
    
+   // if(std::count(targetCells.begin(), targetCells.end(), mpiGrid[(CellID)DEBUGCELL]))
+   // {
+   //    bool foo = false;
+   //    for(int i = 0; i < targetCells.size(); ++i)
+   //    {
+   //       foo = checkCellForNans(targetCells[i]);
+   //       if(foo)
+   //       {
+   //          cerr << __FILE__<< ":" << __LINE__ << " targetCells for " << DEBUGCELL << endl;
+   //          cerr << targetCells[i];
+   //          cerr << endl;
+   //          break;
+   //       }
+   //    }
+      
+   // }
    
    phiprof::stop("setup");
    
@@ -1771,10 +1826,16 @@ void update_remote_mapping_contribution_amr(
    vector<uint> receive_origin_index;
 
    int neighborhood = 0;
+   int myRank;
+   MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
+
 
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,local_cells);
+   if(checkCellsForNans(mpiGrid,local_cells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    
    //normalize and set neighborhoods
@@ -1824,13 +1885,18 @@ void update_remote_mapping_contribution_amr(
       }
    }
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,local_cells);
+   if(checkCellsForNans(mpiGrid,local_cells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl; //THIS TRIPS NANS
-   checkCellsForNans(mpiGrid,remote_cells, true); 
-
+   if(checkCellsForNans(mpiGrid,remote_cells,true))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    // Initialize local cells
    for (auto lc : local_cells) {
@@ -1844,12 +1910,19 @@ void update_remote_mapping_contribution_amr(
       }
    }
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,local_cells);
+
+   if(checkCellsForNans(mpiGrid,local_cells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,remote_cells, true);
+if(checkCellsForNans(mpiGrid,remote_cells, true))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
    vector<Realf*> receiveBuffers;
    vector<Realf*> sendBuffers;
    
@@ -2022,13 +2095,18 @@ void update_remote_mapping_contribution_amr(
       
    } // closes for (auto c : local_cells) {
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,local_cells);
+if(checkCellsForNans(mpiGrid,local_cells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    MPI_Barrier(MPI_COMM_WORLD);
-   cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
-   checkCellsForNans(mpiGrid,remote_cells, true);
-
+if(checkCellsForNans(mpiGrid,remote_cells,true))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
+      abort();
+   }
 
    MPI_Barrier(MPI_COMM_WORLD);
    
@@ -2056,7 +2134,22 @@ void update_remote_mapping_contribution_amr(
 
          //#pragma omp for 
          for(uint vCell = 0; vCell < VELOCITY_BLOCK_LENGTH * receive_cell->get_number_of_velocity_blocks(popID); ++vCell) {
+            if(fpclassify(neighborData[vCell]) != FP_NORMAL && 
+               fpclassify(neighborData[vCell]) != FP_ZERO && 
+               fpclassify(neighborData[vCell]) != FP_SUBNORMAL)
+            {
+               cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": "<<neighborData[vCell] << endl;
+               abort();
+            }
+
             blockData[vCell] += neighborData[vCell];
+            if(fpclassify(blockData[vCell]) != FP_NORMAL && 
+               fpclassify(blockData[vCell]) != FP_ZERO && 
+               fpclassify(blockData[vCell]) != FP_SUBNORMAL)
+            {
+               cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c]<<": "<<blockData[vCell] << endl;
+               abort();
+            }
          }
       }
       

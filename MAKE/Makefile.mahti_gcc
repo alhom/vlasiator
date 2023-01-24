@@ -107,7 +107,7 @@ INC_PROFILE = -I$(LIBRARY_PREFIX)/phiprof/include
 #header libraries
 
 INC_FSGRID = -I$(LIBRARY_PREFIX)/fsgrid/
-INC_EIGEN = -I/projappl/project_2002873/vlasiatorlib/eigen-rhel8/include/eigen3/
+INC_EIGEN = -isystem /projappl/project_2002873/vlasiatorlib/eigen-rhel8/include/eigen3/
 INC_DCCRG = -I/projappl/project_2000203/libraries/dccrg/
 INC_VECTORCLASS = -I/projappl/project_2002873/vlasiatorlib/vectorclass/
 
