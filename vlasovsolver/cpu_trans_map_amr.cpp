@@ -1077,6 +1077,7 @@ bool copy_trans_block_data_amr(
                   {
                      cerr << __FILE__ << ":" << __LINE__ << " NaN found here" << endl;
                      cerr << "srcCell = " << source_neighbors[b + VLASOV_STENCIL_WIDTH] << " or " << srcCell->parameters[CellParams::CELLID] << endl;
+                     cerr << "planeVector = " << planeVector << ", k = " << k << ", b = " << b << ", lengthOfPencil " << lengthOfPencil << endl;
                      abort();
                   }
                }
