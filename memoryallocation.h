@@ -28,7 +28,7 @@
 #ifdef USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
 #endif
-
+#include <cstring>
 /*! Return the amount of free memory on the node in bytes*/  
 uint64_t get_node_free_memory();
 
@@ -51,7 +51,8 @@ inline void * aligned_malloc(size_t size,std::size_t align) {
 #else
    void *p = malloc(size + align - 1 + sizeof(void*));
 #endif
-   
+   //memset(p, 0, size + align - 1 + sizeof(void*));
+   memset(p, ~0u, size + align - 1 + sizeof(void*));
    if (p != NULL) {
       /* Address of the aligned memory according to the align parameter*/
       ptr = (void*) (((unsigned long)p + sizeof(void*) + align -1) & ~(align-1));

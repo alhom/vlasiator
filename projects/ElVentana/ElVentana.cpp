@@ -1125,7 +1125,7 @@ namespace projects {
          //bool done = false;
          //done = mpiGrid.stop_refining().empty();
          cells = mpiGrid.stop_refining(true);
-         std::cerr << "Refined " << cells.size() << " cells out of " << oldCells << std::endl;
+         //std::cerr << "Refined " << cells.size() << " cells out of " << oldCells << std::endl;
          //mpiGrid.balance_load();
          //recalculateLocalCellsCache();
          //initSpatialCellCoordinates(mpiGrid);

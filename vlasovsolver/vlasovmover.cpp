@@ -20,6 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -94,9 +95,14 @@ void calculateSpatialTranslation(
    MPI_Barrier(MPI_COMM_WORLD);
    phiprof::stop(bt);
 
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+
 
     cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+      abort();
+   }
+   if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
     // ------------- SLICE - map dist function in Z --------------- //
    if(P::zcells_ini > 1){
 
@@ -105,7 +111,7 @@ void calculateSpatialTranslation(
       //updateRemoteVelocityBlockLists(mpiGrid,popID,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID);
       SpatialCell::set_mpi_transfer_direction(2);
       SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false,AMRtranslationActive);
-      mpiGrid.update_copies_of_remote_neighbors(VLASOV_SOLVER_Z_NEIGHBORHOOD_ID);
+      mpiGrid.update_copies_of_remote_neighbors(DIST_FUNC_NEIGHBORHOOD_ID); //FULL_NEIGHBORHOOD_ID -> MPI DUP error?
       phiprof::stop(trans_timer);
 
       // bt=phiprof::initializeTimer("barrier-trans-pre-trans_map_1d-z","Barriers","MPI");
@@ -113,8 +119,20 @@ void calculateSpatialTranslation(
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
    MPI_Barrier(MPI_COMM_WORLD);
-    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+    
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   };
+   MPI_Barrier(MPI_COMM_WORLD);
+   if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
+   if(checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID)))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   };
+   // null cellptr here on the remote cells
       t1 = MPI_Wtime();
       phiprof::start("compute-mapping-z");
       if(P::amrMaxSpatialRefLevel == 0) {
@@ -125,13 +143,23 @@ void calculateSpatialTranslation(
       phiprof::stop("compute-mapping-z");
       time += MPI_Wtime() - t1;
 
-      bt=phiprof::initializeTimer("barrier-trans-pre-update_remote-z","Barriers","MPI");
-      phiprof::start(bt);
-      MPI_Barrier(MPI_COMM_WORLD);
-      phiprof::stop(bt);
-   
-    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+      // bt=phiprof::initializeTimer("barrier-trans-pre-update_remote-z","Barriers","MPI");
+      // phiprof::start(bt);
+      // MPI_Barrier(MPI_COMM_WORLD);
+      // phiprof::stop(bt);
+   MPI_Barrier(MPI_COMM_WORLD);
+   if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   };
+   MPI_Barrier(MPI_COMM_WORLD);
+   if(checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID)))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }
 
       trans_timer=phiprof::initializeTimer("update_remote-z","MPI");
       phiprof::start("update_remote-z");
@@ -150,9 +178,18 @@ void calculateSpatialTranslation(
    phiprof::start(bt);
    MPI_Barrier(MPI_COMM_WORLD);
    phiprof::stop(bt);
-   
-      cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }
+if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
+   MPI_Barrier(MPI_COMM_WORLD);
+   if(checkCellsForNans(mpiGrid,mpiGrid.get_cells({dccrg::has_remote_neighbor_to},false,VLASOV_SOLVER_Z_NEIGHBORHOOD_ID)))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }
    // ------------- SLICE - map dist function in X --------------- //
    if(P::xcells_ini > 1){
       
@@ -161,7 +198,7 @@ void calculateSpatialTranslation(
       //updateRemoteVelocityBlockLists(mpiGrid,popID,VLASOV_SOLVER_X_NEIGHBORHOOD_ID);
       SpatialCell::set_mpi_transfer_direction(0);
       SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false,AMRtranslationActive);
-      mpiGrid.update_copies_of_remote_neighbors(VLASOV_SOLVER_X_NEIGHBORHOOD_ID);
+      mpiGrid.update_copies_of_remote_neighbors(DIST_FUNC_NEIGHBORHOOD_ID);
       phiprof::stop(trans_timer);
       
       // bt=phiprof::initializeTimer("barrier-trans-pre-trans_map_1d-x","Barriers","MPI");
@@ -169,8 +206,12 @@ void calculateSpatialTranslation(
       // MPI_Barrier(MPI_COMM_WORLD);
       // phiprof::stop(bt);
    MPI_Barrier(MPI_COMM_WORLD);
-    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }
 
       t1 = MPI_Wtime();
       phiprof::start("compute-mapping-x");
@@ -181,15 +222,17 @@ void calculateSpatialTranslation(
       }
       phiprof::stop("compute-mapping-x");
       time += MPI_Wtime() - t1;
-
+if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
       bt=phiprof::initializeTimer("barrier-trans-pre-update_remote-x","Barriers","MPI");
       phiprof::start(bt);
       MPI_Barrier(MPI_COMM_WORLD);
-      phiprof::stop(bt);
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+        phiprof::stop(bt);
    
-    cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
-
+    cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }
       trans_timer=phiprof::initializeTimer("update_remote-x","MPI");
       phiprof::start("update_remote-x");
       if(P::amrMaxSpatialRefLevel == 0) {
@@ -208,9 +251,13 @@ void calculateSpatialTranslation(
    MPI_Barrier(MPI_COMM_WORLD);
    phiprof::stop(bt);
    
-   cerr << __FILE__ << ":" << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
-   // ------------- SLICE - map dist function in Y --------------- //
+if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+   }   // ------------- SLICE - map dist function in Y --------------- //
+
+   if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached." << endl;
    if(P::ycells_ini > 1) {
       
       trans_timer=phiprof::initializeTimer("transfer-stencil-data-y","MPI");
@@ -218,7 +265,7 @@ void calculateSpatialTranslation(
       //updateRemoteVelocityBlockLists(mpiGrid,popID,VLASOV_SOLVER_Y_NEIGHBORHOOD_ID);
       SpatialCell::set_mpi_transfer_direction(1);
       SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false,AMRtranslationActive);
-      mpiGrid.update_copies_of_remote_neighbors(VLASOV_SOLVER_Y_NEIGHBORHOOD_ID);
+      mpiGrid.update_copies_of_remote_neighbors(DIST_FUNC_NEIGHBORHOOD_ID);
       phiprof::stop(trans_timer);
       
       // bt=phiprof::initializeTimer("barrier-trans-pre-trans_map_1d-y","Barriers","MPI");
@@ -290,8 +337,12 @@ void calculateSpatialTranslation(
    vector<CellID> local_target_cells;
    vector<uint> nPencils;
    Real time=0.0;
-   cerr << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+   
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ <<":"<< __LINE__ << "checkCellsForNans" << endl;
+      abort();
+   }
 
    // If dt=0 we are either initializing or distribution functions are not translated. 
    // In both cases go to the end of this function and calculate the moments.
@@ -324,8 +375,12 @@ void calculateSpatialTranslation(
       }
    }
    phiprof::stop("compute_cell_lists");
-      cerr << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << __LINE__ << " checkCellsForNans" << endl;
+      abort();
+
+   }
    // Translate all particle species
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       if (getObjectWrapper().particleSpecies[popID].propagateSpecies == true) {
@@ -348,8 +403,11 @@ void calculateSpatialTranslation(
          phiprof::stop(profName);
       }
    }
-      cerr << __LINE__ << "checkCellsForNans" << endl;
-   checkCellsForNans(mpiGrid,localCells);
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ << ":" <<__LINE__ << " checkCellsForNans" << endl;
+
+   }
    if (Parameters::prepareForRebalance == true) {
       if(P::amrMaxSpatialRefLevel == 0) {
 //          const double deltat = (MPI_Wtime() - t1) / local_propagated_cells.size();
@@ -374,8 +432,12 @@ void calculateSpatialTranslation(
    
    // Mapping complete, update moments and maximum dt limits //
 momentCalculation:
-   cerr << __LINE__ << "checkCellsForNans via calculateMoments_R" << endl;
    calculateMoments_R(mpiGrid,localCells,true);
+   if(checkCellsForNans(mpiGrid,localCells))
+   {
+      cerr << __FILE__ <<":"<< __LINE__ << "checkCellsForNans via calculateMoments_R" << endl;
+      abort();
+   }
    
    phiprof::stop("semilag-trans");
 }

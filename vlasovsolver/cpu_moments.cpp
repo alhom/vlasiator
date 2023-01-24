@@ -490,19 +490,28 @@ void calculateMoments_V(
    phiprof::stop("Compute _V moments");
 }
 
-void checkCellsForNans(
+bool checkCellsForNans(
         dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-        const std::vector<CellID>& cells) {
-
-#pragma omp parallel for
+        const std::vector<CellID>& cells, bool skipnulls) {
+        bool retval = false;
+//#pragma omp parallel for reduction(||:retval)
 	for (size_t c=0; c<cells.size(); ++c) {
 	    SpatialCell* cell = mpiGrid[cells[c]];
-         
-	    if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
-	        continue;
-	    }
-        checkCellForNans(cell);
+        if(cell)
+        {
+            if (cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
+                    continue;
+                }
+                retval=checkCellForNans(cell);
+                if(retval) return retval;
+        }else{
+            if(!skipnulls)
+                cerr << "cellptr zero for cell " << cells[c] << endl;
+            continue;
+        }
+	    
     }
+    return retval;
 }
 
 
@@ -512,42 +521,33 @@ void checkCellsForNans(
  * @param cell Spatial cell.
  * @param computeSecond If true, second velocity moments are calculated.
  * @param doNotSkip If false, DO_NOT_COMPUTE cells are skipped.*/
-void checkCellForNans(spatial_cell::SpatialCell* cell) {
+bool checkCellForNans(spatial_cell::SpatialCell* cell) {
 
     // if doNotSkip == true then the first clause is false and we will never return,
     // i.e. always compute, otherwise we skip DO_NOT_COMPUTE cells
-    bool skipMoments = false;
+    bool retval = false;
     //std::cerr << "Checking cell " << cell->parameters[CellParams::CELLID] << " for nan block data" << std::endl;
-    // if (!doNotSkip && cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) {
-    //     skipMoments = true;
-    // }
 
-    // Clear old moments to zero value
-    if (skipMoments == false) {
+    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
+        vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
+        if (blockContainer.size() == 0) continue;
+        
+        const Realf* data       = blockContainer.getData();
+        const Real* blockParams = blockContainer.getParameters();
+        const bool istestspecies = getObjectWrapper().particleSpecies[popID].isTestSpecies;
+        
 
-    }
-
-    // Loop over all particle species
-    if (skipMoments == false) {
-       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
-          vmesh::VelocityBlockContainer<vmesh::LocalID>& blockContainer = cell->get_velocity_blocks(popID);
-          if (blockContainer.size() == 0) continue;
-          
-          const Realf* data       = blockContainer.getData();
-          const Real* blockParams = blockContainer.getParameters();
-          const bool istestspecies = getObjectWrapper().particleSpecies[popID].isTestSpecies;
-          
-
-          // Calculate species' contribution to first velocity moments
-          for (vmesh::LocalID blockLID=0; blockLID<blockContainer.size(); ++blockLID) {
-             blockVelocityNancheck(data+blockLID*WID3,
-                                       blockParams+blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS,
-                                       cell->parameters[CellParams::CELLID]);
-          }
-         
+        // Calculate species' contribution to first velocity moments
+        for (vmesh::LocalID blockLID=0; blockLID<blockContainer.size(); ++blockLID) {
+            retval = blockVelocityNancheck(data+blockLID*WID3,
+                                    blockParams+blockLID*BlockParams::N_VELOCITY_BLOCK_PARAMS,
+                                    cell->parameters[CellParams::CELLID]);
+            if(retval) break;
+        }
+         if(retval) break;
 	  
-       } // for-loop over particle species
-    }
+    } // for-loop over particle species
+    return retval;
 
 }
 
@@ -555,7 +555,7 @@ void checkCellForNans(spatial_cell::SpatialCell* cell) {
  * @param avgs Distribution function.
  * @param blockParams Parameters for the given velocity block.
  * @param id CellID of the cell for which this was called */
-void blockVelocityNancheck(
+bool blockVelocityNancheck(
         const Realf* avgs,
         const Real* blockParams,
         const CellID id
@@ -575,14 +575,14 @@ void blockVelocityNancheck(
       if(std::isnan(avgs[cellIndex(i,j,k)]))
       {
          std::cerr << "NaN encountered! CellID " << id << " at V = (" << VX << ", " << VY << ", " << VZ << ")" << std::endl;
-         abort();
+         return true;// abort();
       }
       if(!std::isfinite(avgs[cellIndex(i,j,k)]))
       {
          std::cerr << "non-finite v-cell encountered! CellID " << id << " at V = (" << VX << ", " << VY << ", " << VZ << ")" << std::endl;
-         abort();
+         return true;//abort();
       }
       
    }
-   
+   return false;
 }

@@ -43,30 +43,32 @@ inline void compute_ppm_coeff_nonuniform(const Vec * const dv, const Vec * const
    for (int index=0; index<2*VLASOV_STENCIL_WIDTH+1; ++index) {
       if (!horizontal_and(values[index] == values[index])) 
       {
-         std::cerr << "Nan in values, " << values[index].val[0] << " "
-                                          << values[index].val[1] << " "
-                                          << values[index].val[2] << " "
-                                          << values[index].val[3] << " "
-                                          << values[index].val[4] << " "
-                                          << values[index].val[5] << " "
-                                          << values[index].val[6] << " "
-                                          << values[index].val[7] << " "
+         std::cerr << "Nan in values, " 
+                                          // << values[index].val[0] << " "
+                                          // << values[index].val[1] << " "
+                                          // << values[index].val[2] << " "
+                                          // << values[index].val[3] << " "
+                                          // << values[index].val[4] << " "
+                                          // << values[index].val[5] << " "
+                                          // << values[index].val[6] << " "
+                                          // << values[index].val[7] << " "
                                           << std::endl << std::flush;
       }
       if (!horizontal_and(dv[index] == dv[index])) 
       {
-         std::cerr << "Nan in dv, " << dv[index].val[0] << " "
-                                    << dv[index].val[1] << " "
-                                    << dv[index].val[2] << " "
-                                    << dv[index].val[3] << " "
-                                    << dv[index].val[4] << " "
-                                    << dv[index].val[5] << " "
-                                    << dv[index].val[6] << " "
-                                    << dv[index].val[7] << " "
+         std::cerr << "Nan in dv, " 
+                                    // << dv[index].val[0] << " "
+                                    // << dv[index].val[1] << " "
+                                    // << dv[index].val[2] << " "
+                                    // << dv[index].val[3] << " "
+                                    // << dv[index].val[4] << " "
+                                    // << dv[index].val[5] << " "
+                                    // << dv[index].val[6] << " "
+                                    // << dv[index].val[7] << " "
                                     << std::endl << std::flush;
       }
    }
-  if (!horizontal_and(fv_r == fv_r)) 
+  /*if (!horizontal_and(fv_r == fv_r)) 
   {
       std::cerr << "Nan in fv_r, " << fv_r.val[0] << " "
                                   << fv_r.val[1] << " "
@@ -89,31 +91,33 @@ inline void compute_ppm_coeff_nonuniform(const Vec * const dv, const Vec * const
                                     << fv_l.val[6] << " "
                                     << fv_l.val[7] << " "
                                     << std::endl << std::flush;
-  }
+  }*/
 
    compute_filtered_face_values_nonuniform(dv, values, k, order, fv_l, fv_r, threshold); 
      if (!horizontal_and(fv_r == fv_r)) 
   {
-      std::cerr << "Nan in fv_r, prop, " << fv_r.val[0] << " "
-                                  << fv_r.val[1] << " "
-                                  << fv_r.val[2] << " "
-                                  << fv_r.val[3] << " "
-                                  << fv_r.val[4] << " "
-                                  << fv_r.val[5] << " "
-                                  << fv_r.val[6] << " "
-                                  << fv_r.val[7] << " "
+      std::cerr << "Nan in fv_r, prop, " 
+                                 //  << fv_r.val[0] << " "
+                                 //  << fv_r.val[1] << " "
+                                 //  << fv_r.val[2] << " "
+                                 //  << fv_r.val[3] << " "
+                                 //  << fv_r.val[4] << " "
+                                 //  << fv_r.val[5] << " "
+                                 //  << fv_r.val[6] << " "
+                                 //  << fv_r.val[7] << " "
                                   << std::endl << std::flush;
   }
   if (!horizontal_and(fv_l == fv_l)) 
   {
-      std::cerr << "Nan in fv_l, prop, " << fv_l.val[0] << " "
-                                  << fv_l.val[1] << " "
-                                  << fv_l.val[2] << " "
-                                  << fv_l.val[3] << " "
-                                  << fv_l.val[4] << " "
-                                  << fv_l.val[5] << " "
-                                  << fv_l.val[6] << " "
-                                  << fv_l.val[7] << " "
+      std::cerr << "Nan in fv_l, prop, " 
+                                 // << fv_l.val[0] << " "
+                                 //  << fv_l.val[1] << " "
+                                 //  << fv_l.val[2] << " "
+                                 //  << fv_l.val[3] << " "
+                                 //  << fv_l.val[4] << " "
+                                 //  << fv_l.val[5] << " "
+                                 //  << fv_l.val[6] << " "
+                                 //  << fv_l.val[7] << " "
                                   << std::endl << std::flush;
   }
    //Coella et al, check for monotonicity   
