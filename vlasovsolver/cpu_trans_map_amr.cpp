@@ -7,7 +7,7 @@
 #include "cpu_trans_map_amr.hpp"
 #include "cpu_trans_map.hpp"
 #include <algorithm>
-
+#include<unistd.h> 
 #include "cpu_moments.h"
 
 #define DEBUGCELL 11708
@@ -2048,12 +2048,29 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
 
                   ccell->neighbor_number_of_blocks.at(sendIndex) = pcell->get_number_of_velocity_blocks(popID);
                   
+                  vector<CellID> origs = {846, 879, 966, 1479};
+                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
                   if(send_cells.find(nbr) == send_cells.end()) {
                      // 5 We have not already sent data from this rank to this cell.
                      
                      ccell->neighbor_block_data.at(sendIndex) = pcell->get_data(popID);
                      send_cells.insert(nbr);
-                                                               
+
+                     if(std::count(origs.begin(), origs.end(), c) && std::count(recvs.begin(), recvs.end(), nbr))
+                  {
+                     bool fib = false;
+                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex); ++i)
+                     {
+                        fib = ccell->neighbor_block_data.at(sendIndex)[i] == ccell->neighbor_block_data.at(sendIndex)[i];
+                        if(fib)
+                        {
+                           break;
+                        }
+                     }
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << endl; 
+
+                  }
+
                   } else {
 
                      // The receiving cell can't know which cell is sending the data from this rank.
@@ -2067,9 +2084,26 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                      for (uint j = 0; j < ccell->neighbor_number_of_blocks.at(sendIndex) * WID3; ++j) {
                         ccell->neighbor_block_data.at(sendIndex)[j] = 0.0;
                         
+                  if(std::count(origs.begin(), origs.end(), c) && std::count(recvs.begin(), recvs.end(), nbr))
+                  {
+                     bool fib = false;
+                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex); ++i)
+                     {
+                        fib = ccell->neighbor_block_data.at(sendIndex)[i] == ccell->neighbor_block_data.at(sendIndex)[i];
+                        if(fib)
+                        {
+                           break;
+                        }
+                     }
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << endl; 
+
+                  }
+
                      } // closes for(uint j = 0; j < ccell->neighbor_number_of_blocks.at(sendIndex) * WID3; ++j)
                      
                   } // closes if(send_cells.find(nbr) == send_cells.end())
+
+
                   
                } // closes if(pcell && pcell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY)
                
@@ -2179,7 +2213,8 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
    mpiGrid.update_copies_of_remote_neighbors(neighborhood);
 
    MPI_Barrier(MPI_COMM_WORLD);
-   
+   bool failboat = false;
+   std::set<CellID> receivers_bugged, origins_bugged;
    // Reduce data: sum received data in the data array to 
    // the target grid in the temporary block container   
    //#pragma omp parallel
@@ -2201,18 +2236,22 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
                fpclassify(neighborData[vCell]) != FP_ZERO && 
                fpclassify(neighborData[vCell]) != FP_SUBNORMAL)
             {
-               cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": "<<neighborData[vCell] << endl;
-               abort();
+               //cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": "<<neighborData[vCell] << endl;
+               receivers_bugged.insert(receive_cells[c]);
+               origins_bugged.insert(receive_origin_cells[c]);
+               failboat = true;
+               // abort();
             }
 
             blockData[vCell] += neighborData[vCell];
-            if(fpclassify(blockData[vCell]) != FP_NORMAL && 
-               fpclassify(blockData[vCell]) != FP_ZERO && 
-               fpclassify(blockData[vCell]) != FP_SUBNORMAL)
-            {
-               cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c]<<": "<<blockData[vCell] << endl;
-               abort();
-            }
+            // if(fpclassify(blockData[vCell]) != FP_NORMAL && 
+            //    fpclassify(blockData[vCell]) != FP_ZERO && 
+            //    fpclassify(blockData[vCell]) != FP_SUBNORMAL)
+            // {
+            //    cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c]<<": "<<blockData[vCell] << endl;
+            //    failboat = failboat || true;
+            //    abort();
+            // }
          }
       }
       
@@ -2235,7 +2274,26 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
    for (auto p : sendBuffers) {
       aligned_free(p);
    }
+   
 
+   if(failboat)
+   {
+      cerr << __FILE__<<":"<<__LINE__ << " Dimension " << dimension << ", direction " << direction << endl;
+      cerr << "Bugged receivers: ";
+      for(CellID i : receivers_bugged)
+      {
+         cerr << i << " ";
+      }
+      cerr << endl;
+      cerr << "Bugged origins: ";
+      for(CellID i : origins_bugged)
+      {
+         cerr << i << " ";
+      }
+      cerr << endl;
+      sleep(15);
+      abort();
+   }
    // MPI_Barrier(MPI_COMM_WORLD);
    // cout << "end update_remote_mapping_contribution_amr, dimension = " << dimension << ", direction = " << direction << endl;
    // MPI_Barrier(MPI_COMM_WORLD);

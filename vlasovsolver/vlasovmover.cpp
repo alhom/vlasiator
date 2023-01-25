@@ -226,9 +226,10 @@ if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached."
       bt=phiprof::initializeTimer("barrier-trans-pre-update_remote-x","Barriers","MPI");
       phiprof::start(bt);
       MPI_Barrier(MPI_COMM_WORLD);
+              phiprof::stop(bt);
+
    if(checkCellsForNans(mpiGrid,localCells))
    {
-        phiprof::stop(bt);
    
     cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
       abort();
@@ -240,6 +241,12 @@ if(myRank==MASTER_RANK)       cerr << __FILE__ << ":" << __LINE__ << " reached."
          update_remote_mapping_contribution(mpiGrid, 0,-1,popID);
       } else {
          update_remote_mapping_contribution_amr(mpiGrid, 0,+1,popID);
+            if(checkCellsForNans(mpiGrid,localCells))
+            {
+            
+            cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans" << endl;
+               abort();
+            }
          update_remote_mapping_contribution_amr(mpiGrid, 0,-1,popID);
       }
       phiprof::stop("update_remote-x");
