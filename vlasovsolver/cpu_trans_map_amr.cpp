@@ -1988,7 +1988,10 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
    }
    vector<Realf*> receiveBuffers;
    vector<Realf*> sendBuffers;
-   
+                           vector<CellID> origs = {846, 879, 966, 1479};
+                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
+                  vector<CellID> sibls = {6602, 6732, 8106, 11692};
+
    for (auto c : local_cells) {
       
       SpatialCell *ccell = mpiGrid[c];
@@ -2014,8 +2017,6 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
       uint recvIndex = 0;
 
       int mySiblingIndex = get_sibling_index(mpiGrid,c);
-                        vector<CellID> origs = {846, 879, 966, 1479};
-                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
 
       // Set up sends if any neighbor cells in p_nbrs are non-local.
       if (!all_of(p_nbrs.begin(), p_nbrs.end(), [&mpiGrid](CellID i){return mpiGrid.is_local(i);})) {
@@ -2056,7 +2057,7 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                      ccell->neighbor_block_data.at(sendIndex) = pcell->get_data(popID);
                      send_cells.insert(nbr);
 
-                     if(std::count(origs.begin(), origs.end(), c) && std::count(recvs.begin(), recvs.end(), nbr))
+                     if(std::count(origs.begin(), origs.end(), c) && (std::count(recvs.begin(), recvs.end(), nbr) + std::count(sibls.begin(), sibls.end(), nbr)))
                   {
                      int fib = 0;
                      for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex)*WID3; ++i)
@@ -2064,7 +2065,7 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
 
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << " (level "<< mpiGrid.get_refinement_level(c)<<"), recv " << nbr << 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr <<"/"<<sendIndex << 
                      " (level "<< mpiGrid.get_refinement_level(nbr) <<") blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 <<
                       " nans in " << ccell->neighbor_number_of_blocks.at(sendIndex) << " blocks"<< endl; 
                   }
@@ -2151,7 +2152,7 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                   // }
                   if(std::count(recvs.begin(), recvs.end(), c)) 
                   {
-                     cerr << __FILE__ << ":" << __LINE__ << " " << c << "receiving (level " << mpiGrid.get_refinement_level(c) << "), expecting " << ncell->neighbor_number_of_blocks.at(recvIndex) << " blocks" << endl;
+                     cerr << __FILE__ << ":" << __LINE__ << " " << c << "receiving (recvIndex " << recvIndex << "), expecting " << ncell->neighbor_number_of_blocks.at(recvIndex) << " blocks" << endl;
                   }
                   
                } else {
@@ -2171,25 +2172,27 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                      auto sibIndices = mpiGrid.mapping.get_indices(sibling);
                      
                      // Only allocate siblings that are remote face neighbors to ncell
-                     if(mpiGrid.get_process(sibling) != mpiGrid.get_process(nbr)
+                     if(mpiGrid.get_process(sibling) != mpiGrid.get_process(nbr) 
                         && myIndices.at(dimension) == sibIndices.at(dimension)) {
                      
                         auto* scell = mpiGrid[sibling];
-                        
-                        ncell->neighbor_number_of_blocks.at(i_sib) = scell->get_number_of_velocity_blocks(popID);
-                        ncell->neighbor_block_data.at(i_sib) =
-                           (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(i_sib) * WID3 * sizeof(Realf), 64);
-                        receiveBuffers.push_back(ncell->neighbor_block_data.at(i_sib));
-                        // for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
-                        //    ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
-                        // }
-                        if(std::count(recvs.begin(), recvs.end(), c)) 
-                        {
-                           cerr << __FILE__ << ":" << __LINE__ << " " << c << " receiving from "<<nbr<<
-                           " (level " << mpiGrid.get_refinement_level(c) << "), expecting " << 
-                           ncell->neighbor_number_of_blocks.at(i_sib) << " blocks" <<
-                           endl;
-                        }
+                        //only allocate if need be? No duplicate allocation either
+                        //if(ncell->neighbor_number_of_blocks.at(i_sib) != scell->get_number_of_velocity_blocks(popID)){
+                           ncell->neighbor_number_of_blocks.at(i_sib) = scell->get_number_of_velocity_blocks(popID);
+                           ncell->neighbor_block_data.at(i_sib) =
+                              (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(i_sib) * WID3 * sizeof(Realf), 64);
+                           receiveBuffers.push_back(ncell->neighbor_block_data.at(i_sib));
+                           // for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
+                           //    ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
+                           // }
+                           if(std::count(recvs.begin(), recvs.end(), sibling)) 
+                           {
+                              cerr << __FILE__ << ":" << __LINE__ << " " << c << " [sibling "<< sibling << "(" << i_sib <<")] receiving from "<<nbr<<
+                              " (recvIndex " << recvIndex << "), expecting " << 
+                              ncell->neighbor_number_of_blocks.at(i_sib) << " blocks" <<
+                              endl;
+                           }
+                        //}
                      }
                   }
                }
@@ -2272,7 +2275,11 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
             //    abort();
             // }
          }
-         if(fails>0){cerr << __FILE__ <<":"<<__LINE__<< " " << fails << "times nan nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": " << endl; once=true;}
+         if(std::count(recvs.begin(),recvs.end(),receive_cells[c]) + std::count(sibls.begin(),sibls.end(),receive_cells[c]))
+         {
+            cerr << __FILE__ <<":"<<__LINE__<< 
+                  " " << fails << " times nan nbrdata for cell " << receive_cells[c] << "/" << receive_origin_index[c] << " from origin " << receive_origin_cells[c] << endl;
+         }
       }
       
       // send cell data is set to zero. This is to avoid double copy if
