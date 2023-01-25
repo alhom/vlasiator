@@ -2014,7 +2014,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
       uint recvIndex = 0;
 
       int mySiblingIndex = get_sibling_index(mpiGrid,c);
-      
+                        vector<CellID> origs = {846, 879, 966, 1479};
+                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
+
       // Set up sends if any neighbor cells in p_nbrs are non-local.
       if (!all_of(p_nbrs.begin(), p_nbrs.end(), [&mpiGrid](CellID i){return mpiGrid.is_local(i);})) {
 
@@ -2048,8 +2050,6 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
 
                   ccell->neighbor_number_of_blocks.at(sendIndex) = pcell->get_number_of_velocity_blocks(popID);
                   
-                  vector<CellID> origs = {846, 879, 966, 1479};
-                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
                   if(send_cells.find(nbr) == send_cells.end()) {
                      // 5 We have not already sent data from this rank to this cell.
                      
@@ -2064,8 +2064,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
 
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 << " nans"<< endl; 
-
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << " (level "<< mpiGrid.get_refinement_level(c)<<"), recv " << nbr << 
+                     " (level "<< mpiGrid.get_refinement_level(nbr) <<") blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 <<
+                      " nans in " << ccell->neighbor_number_of_blocks.at(sendIndex) << " blocks"<< endl; 
                   }
 
                   } else {
@@ -2089,7 +2090,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
 
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 << " nans"<< endl; 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << " (level "<< mpiGrid.get_refinement_level(c)<<"), recv " << nbr << 
+                     " (level "<< mpiGrid.get_refinement_level(nbr) <<") blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 <<
+                      " nans in " << ccell->neighbor_number_of_blocks.at(sendIndex) << " blocks"<< endl; 
 
                   }
 
@@ -2143,8 +2146,12 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                   ncell->neighbor_block_data.at(recvIndex) =
                      (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(recvIndex) * WID3 * sizeof(Realf), 64);
                   receiveBuffers.push_back(ncell->neighbor_block_data.at(recvIndex));
-                  for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(recvIndex) * WID3; ++j) {
-                        ncell->neighbor_block_data.at(recvIndex)[j] = 0.0;
+                  // for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(recvIndex) * WID3; ++j) {
+                  //       ncell->neighbor_block_data.at(recvIndex)[j] = 0.0;
+                  // }
+                  if(std::count(recvs.begin(), recvs.end(), c)) 
+                  {
+                     cerr << __FILE__ << ":" << __LINE__ << " " << c << "receiving (level " << mpiGrid.get_refinement_level(c) << "), expecting " << ncell->neighbor_number_of_blocks.at(recvIndex) << " blocks" << endl;
                   }
                   
                } else {
@@ -2173,8 +2180,15 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         ncell->neighbor_block_data.at(i_sib) =
                            (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(i_sib) * WID3 * sizeof(Realf), 64);
                         receiveBuffers.push_back(ncell->neighbor_block_data.at(i_sib));
-                        for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
-                           ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
+                        // for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
+                        //    ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
+                        // }
+                        if(std::count(recvs.begin(), recvs.end(), c)) 
+                        {
+                           cerr << __FILE__ << ":" << __LINE__ << " " << c << " receiving from "<<nbr<<
+                           " (level " << mpiGrid.get_refinement_level(c) << "), expecting " << 
+                           ncell->neighbor_number_of_blocks.at(i_sib) << " blocks" <<
+                           endl;
                         }
                      }
                   }
@@ -2231,16 +2245,20 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
          Realf *neighborData = origin_cell->neighbor_block_data[receive_origin_index[c]];
 
          //#pragma omp for 
+         bool once = false;
+         int fails =0;
          for(uint vCell = 0; vCell < VELOCITY_BLOCK_LENGTH * receive_cell->get_number_of_velocity_blocks(popID); ++vCell) {
             /*if(fpclassify(neighborData[vCell]) != FP_NORMAL && 
                fpclassify(neighborData[vCell]) != FP_ZERO && 
                fpclassify(neighborData[vCell]) != FP_SUBNORMAL)*/
+               
             if(isnan(neighborData[vCell]))
             {
-               //cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": "<<neighborData[vCell] << endl;
+               
                receivers_bugged.insert(receive_cells[c]);
                origins_bugged.insert(receive_origin_cells[c]);
                failboat = true;
+               fails++;
                // abort();
             }
 
@@ -2254,6 +2272,7 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
             //    abort();
             // }
          }
+         if(fails>0){cerr << __FILE__ <<":"<<__LINE__<< " " << fails << "times nan nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": " << endl; once=true;}
       }
       
       // send cell data is set to zero. This is to avoid double copy if
