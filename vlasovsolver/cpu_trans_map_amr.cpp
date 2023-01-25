@@ -2058,16 +2058,13 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
 
                      if(std::count(origs.begin(), origs.end(), c) && std::count(recvs.begin(), recvs.end(), nbr))
                   {
-                     bool fib = false;
-                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex); ++i)
+                     int fib = 0;
+                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex)*WID3; ++i)
                      {
-                        fib = ccell->neighbor_block_data.at(sendIndex)[i] == ccell->neighbor_block_data.at(sendIndex)[i];
-                        if(fib)
-                        {
-                           break;
-                        }
+                        fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
+
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << endl; 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 << " nans"<< endl; 
 
                   }
 
@@ -2086,16 +2083,13 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         
                   if(std::count(origs.begin(), origs.end(), c) && std::count(recvs.begin(), recvs.end(), nbr))
                   {
-                     bool fib = false;
-                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex); ++i)
+                     int fib = 0;
+                     for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex)*WID3; ++i)
                      {
-                        fib = ccell->neighbor_block_data.at(sendIndex)[i] == ccell->neighbor_block_data.at(sendIndex)[i];
-                        if(fib)
-                        {
-                           break;
-                        }
+                        fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
+
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << endl; 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr << " blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 << " nans"<< endl; 
 
                   }
 
@@ -2149,6 +2143,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                   ncell->neighbor_block_data.at(recvIndex) =
                      (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(recvIndex) * WID3 * sizeof(Realf), 64);
                   receiveBuffers.push_back(ncell->neighbor_block_data.at(recvIndex));
+                  for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(recvIndex) * WID3; ++j) {
+                        ncell->neighbor_block_data.at(recvIndex)[j] = 0.0;
+                  }
                   
                } else {
 
@@ -2176,6 +2173,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         ncell->neighbor_block_data.at(i_sib) =
                            (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(i_sib) * WID3 * sizeof(Realf), 64);
                         receiveBuffers.push_back(ncell->neighbor_block_data.at(i_sib));
+                        for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
+                           ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
+                        }
                      }
                   }
                }
@@ -2232,9 +2232,10 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
 
          //#pragma omp for 
          for(uint vCell = 0; vCell < VELOCITY_BLOCK_LENGTH * receive_cell->get_number_of_velocity_blocks(popID); ++vCell) {
-            if(fpclassify(neighborData[vCell]) != FP_NORMAL && 
+            /*if(fpclassify(neighborData[vCell]) != FP_NORMAL && 
                fpclassify(neighborData[vCell]) != FP_ZERO && 
-               fpclassify(neighborData[vCell]) != FP_SUBNORMAL)
+               fpclassify(neighborData[vCell]) != FP_SUBNORMAL)*/
+            if(isnan(neighborData[vCell]))
             {
                //cerr << __FILE__ <<":"<<__LINE__<< " non-normal nbrdata for cell " << receive_cells[c] << " from origin " << receive_origin_cells[c]<<": "<<neighborData[vCell] << endl;
                receivers_bugged.insert(receive_cells[c]);
