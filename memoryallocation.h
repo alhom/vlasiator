@@ -22,6 +22,7 @@
 #ifndef MEMORYALLOCATION_H
 #define MEMORYALLOCATION_H
 
+#include <cstring>
 #include <cstdlib>
 #include <cstddef>
 #include <stdexcept>
@@ -51,7 +52,7 @@ inline void * aligned_malloc(size_t size,std::size_t align) {
 #else
    void *p = malloc(size + align - 1 + sizeof(void*));
 #endif
-   
+   //memset(p, ~0u, size + align - 1 + sizeof(void*));
    if (p != NULL) {
       /* Address of the aligned memory according to the align parameter*/
       ptr = (void*) (((unsigned long)p + sizeof(void*) + align -1) & ~(align-1));

@@ -131,17 +131,18 @@ namespace SBC {
          
          // Comparison of the array defining which faces to use and the array telling on which faces this cell is
          doAssign = false;
-         for (int j=0; j<6; j++) 
+         for (int j=0; j<6; j++) {
             doAssign = doAssign || (facesToProcess[j] && isThisCellOnAFace[j]);
+         }
 
          const auto nbrs = mpiGrid.get_face_neighbors_of(dccrgId);
-         for (uint j=0; j<nbrs.size(); j++) {
-            CellID neighbor = nbrs[j].first;
+         for (uint jj=0; jj<nbrs.size(); jj++) {
+            CellID neighbor = nbrs[jj].first;
             if (neighbor) {
-               std::array<double, 3> dx = mpiGrid.geometry.get_length(neighbor);
+               std::array<double, 3> dxn = mpiGrid.geometry.get_length(neighbor);
                std::array<double, 3> x = mpiGrid.get_center(neighbor);
                isThisCellOnAFace.fill(false);
-               determineFace(isThisCellOnAFace.data(), x[0], x[1], x[2], dx[0]/2, dx[1]/2, dx[2]/2);
+               determineFace(isThisCellOnAFace.data(), x[0], x[1], x[2], dxn[0]/2, dxn[1]/2, dxn[2]/2);
                for (int j=0; j<6; j++) 
                   doAssign = doAssign || (facesToProcess[j] && isThisCellOnAFace[j]);
             }

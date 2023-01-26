@@ -29,7 +29,7 @@
 #define MESH_DATA_H
 
 #include <cstdlib>
-
+#include <string>
 namespace mesh {
 
    class MeshData {
