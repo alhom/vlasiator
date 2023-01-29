@@ -183,6 +183,10 @@ namespace spatial_cell {
 					    vmesh::VelocityMesh<vmesh::GlobalID,vmesh::LocalID>& vmesh,
 					    const Realf* src,Realf* array,Real cellSizeFractions[2]);
 
+                     std::vector<CellID> origs = {911};
+                  std::vector<CellID> recvs = {};//{7901, 7933, 7511, 7512, 11805};
+
+
       vmesh::GlobalID find_velocity_block(uint8_t& refLevel,vmesh::GlobalID cellIndices[3],const uint popID);
       Realf* get_data(const uint popID);
       const Realf* get_data(const uint popID) const;

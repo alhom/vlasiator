@@ -9,14 +9,37 @@
 #include <algorithm>
 #include<unistd.h> 
 #include "cpu_moments.h"
+#include <string>
+#include <inttypes.h> // for uint32_t
 
-#define DEBUGCELL 11708
+
+
+#define DEBUGCELL 911
 
 // use DCCRG version Nov 8th 2018 01482cfba8
 
 using namespace std;
 using namespace spatial_cell;
 
+
+string floatToBinary(float f)
+{
+    union { float f; uint32_t i; } u;
+    u.f = f;
+    string str;
+    str.clear();
+
+    for (int i = 0; i < 32; i++)
+    {
+        if (u.i % 2)  str.push_back('1');
+        else str.push_back('0');
+        u.i >>= 1;
+    }
+
+    // Reverse the string since now it's backwards
+    string temp(str.rbegin(), str.rend());
+    return str = temp;
+}
 // indices in padded source block, which is of type Vec with VECL
 // element sin each vector. b_k is the block index in z direction in
 // ordinary space [- VLASOV_STENCIL_WIDTH to VLASOV_STENCIL_WIDTH],
@@ -1900,7 +1923,9 @@ void update_remote_mapping_contribution_amr(
       abort();
    }
 
-   
+                     std::vector<CellID> origs = {911};// {911, 919, 812, 812, 1375};
+                  std::vector<CellID> recvs = {};//{7901, 7933, 7511, 7512, 11805};
+
    //normalize and set neighborhoods
    if(direction > 0) {
       direction = 1;
@@ -1988,9 +2013,9 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
    }
    vector<Realf*> receiveBuffers;
    vector<Realf*> sendBuffers;
-                           vector<CellID> origs = {846, 879, 966, 1479};
-                  vector<CellID> recvs = {7114, 7244, 8122, 11708};
-                  vector<CellID> sibls = {6602, 6732, 8106, 11692};
+                  //          vector<CellID> origs = {846, 879, 966, 1479};
+                  // vector<CellID> recvs = {7114, 7244, 8122, 11708};
+                  // vector<CellID> sibls = {6602, 6732, 8106, 11692};
 
    for (auto c : local_cells) {
       
@@ -2043,29 +2068,32 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                } else {
                   sendIndex = get_sibling_index(mpiGrid,nbr);
                }
-            
+
                SpatialCell *pcell = mpiGrid[nbr];
                
                // 4) it exists and is not a boundary cell,
                if(pcell && pcell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) {
 
                   ccell->neighbor_number_of_blocks.at(sendIndex) = pcell->get_number_of_velocity_blocks(popID);
-                  
+               if(c == 911)
+               {
+                  cerr << "911 send: sendIndex " << sendIndex<< " nblocks " << ccell->neighbor_number_of_blocks.at(sendIndex) <<endl;
+               }
                   if(send_cells.find(nbr) == send_cells.end()) {
                      // 5 We have not already sent data from this rank to this cell.
                      
                      ccell->neighbor_block_data.at(sendIndex) = pcell->get_data(popID);
                      send_cells.insert(nbr);
 
-                     if(std::count(origs.begin(), origs.end(), c) && (std::count(recvs.begin(), recvs.end(), nbr) + std::count(sibls.begin(), sibls.end(), nbr)))
+                     if(std::count(origs.begin(), origs.end(), c) && (std::count(recvs.begin(), recvs.end(), nbr) /*+ std::count(sibls.begin(), sibls.end(), nbr)*/))
                   {
                      int fib = 0;
                      for(int i = 0; i < ccell->neighbor_number_of_blocks.at(sendIndex)*WID3; ++i)
                      {
                         fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
-
+                           //ccell->neighbor_block_data.at(sendIndex)[i] = (Realf)1;
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << ", recv " << nbr <<"/"<<sendIndex << 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << "/" << sendIndex << ", recv " << nbr <<
                      " (level "<< mpiGrid.get_refinement_level(nbr) <<") blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 <<
                       " nans in " << ccell->neighbor_number_of_blocks.at(sendIndex) << " blocks"<< endl; 
                   }
@@ -2091,7 +2119,7 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                         fib += isnan(ccell->neighbor_block_data.at(sendIndex)[i]);
 
                      }
-                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c << " (level "<< mpiGrid.get_refinement_level(c)<<"), recv " << nbr << 
+                     cerr << __FILE__ << ":" << __LINE__ << " origin: " << c <<"/"<<sendIndex <<  " (level "<< mpiGrid.get_refinement_level(c)<<"), recv " << nbr << 
                      " (level "<< mpiGrid.get_refinement_level(nbr) <<") blockdata scan result: " << fib << "/" << ccell->neighbor_number_of_blocks.at(sendIndex)*WID3 <<
                       " nans in " << ccell->neighbor_number_of_blocks.at(sendIndex) << " blocks"<< endl; 
 
@@ -2152,7 +2180,7 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                   // }
                   if(std::count(recvs.begin(), recvs.end(), c)) 
                   {
-                     cerr << __FILE__ << ":" << __LINE__ << " " << c << "receiving (recvIndex " << recvIndex << "), expecting " << ncell->neighbor_number_of_blocks.at(recvIndex) << " blocks" << endl;
+                     cerr << __FILE__ << ":" << __LINE__ << " " << c << "receiving for " << nbr << "/" << recvIndex << ", expecting " << ncell->neighbor_number_of_blocks.at(recvIndex) << " blocks, data[0]="<< floatToBinary(ncell->neighbor_block_data.at(recvIndex)[0])  << endl;
                   }
                   
                } else {
@@ -2169,15 +2197,19 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                   for (uint i_sib = 0; i_sib < MAX_NEIGHBORS_PER_DIM; ++i_sib) {
 
                      auto sibling = mySiblings.at(i_sib);
+                     auto* scell = mpiGrid[sibling];
+
                      auto sibIndices = mpiGrid.mapping.get_indices(sibling);
                      
                      // Only allocate siblings that are remote face neighbors to ncell
                      if(mpiGrid.get_process(sibling) != mpiGrid.get_process(nbr) 
-                        && myIndices.at(dimension) == sibIndices.at(dimension)) {
+                        && myIndices.at(dimension) == sibIndices.at(dimension) 
+                        && scell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) {
                      
-                        auto* scell = mpiGrid[sibling];
                         //only allocate if need be? No duplicate allocation either
-                        //if(ncell->neighbor_number_of_blocks.at(i_sib) != scell->get_number_of_velocity_blocks(popID)){
+                        if(ncell->neighbor_number_of_blocks.at(i_sib) == scell->get_number_of_velocity_blocks(popID)){
+                           cerr <<  __FILE__ << ":" << __LINE__ << " Reallocation for " << nbr << "/" << i_sib << " via " << c<< endl;
+                        }
                            ncell->neighbor_number_of_blocks.at(i_sib) = scell->get_number_of_velocity_blocks(popID);
                            ncell->neighbor_block_data.at(i_sib) =
                               (Realf*) aligned_malloc(ncell->neighbor_number_of_blocks.at(i_sib) * WID3 * sizeof(Realf), 64);
@@ -2185,10 +2217,10 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
                            // for (uint j = 0; j < ncell->neighbor_number_of_blocks.at(i_sib) * WID3; ++j) {
                            //    ncell->neighbor_block_data.at(i_sib)[j] = 0.0;
                            // }
-                           if(std::count(recvs.begin(), recvs.end(), sibling)) 
+                           if(std::count(recvs.begin(), recvs.end(), nbr)) 
                            {
                               cerr << __FILE__ << ":" << __LINE__ << " " << c << " [sibling "<< sibling << "(" << i_sib <<")] receiving from "<<nbr<<
-                              " (recvIndex " << recvIndex << "), expecting " << 
+                              "/" << recvIndex << ", expecting " << 
                               ncell->neighbor_number_of_blocks.at(i_sib) << " blocks" <<
                               endl;
                            }
@@ -2209,6 +2241,49 @@ if(checkCellsForNans(mpiGrid,remote_cells, true))
       
    } // closes for (auto c : local_cells) {
    MPI_Barrier(MPI_COMM_WORLD);
+   for(auto c : local_cells) {
+      SpatialCell *ccell = mpiGrid[c];
+         const auto faceNbrs = mpiGrid.get_face_neighbors_of(c);
+
+      vector<CellID> p_nbrs;
+      vector<CellID> n_nbrs;
+      
+      for (const auto nbr : faceNbrs) {
+         if(nbr.second == ((int)dimension + 1) * direction) {
+            p_nbrs.push_back(nbr.first);
+         }
+
+         if(nbr.second == -1 * ((int)dimension + 1) * direction) {
+            n_nbrs.push_back(nbr.first);
+         }
+      }
+      for(auto n : n_nbrs){
+         SpatialCell *ncell = mpiGrid[n];
+         if(std::count(recvs.begin(), recvs.end(), ccell->parameters[CellParams::CELLID])){
+         cerr << __FILE__ << ":" << __LINE__ << " " << ccell->parameters[CellParams::CELLID] << " in recv, ranks:" << endl;
+
+            for( int i = 0; i < MAX_NEIGHBORS_PER_DIM; ++i) {
+               if(ncell->neighbor_number_of_blocks.at(i)>0)
+               cerr << __FILE__ << ":" << __LINE__ << " " << ncell->parameters[CellParams::CELLID] << " getting received by" << c <<"; "
+                  " ncell->neighbor_block_data[" << i << "] at " << ncell->neighbor_block_data[i] << " has len " << 
+                  ncell->neighbor_number_of_blocks.at(i) << " and data[0] = "<< floatToBinary(ncell->neighbor_block_data[i][0])<< endl;
+            }
+         }
+      }
+
+      
+      if(std::count(origs.begin(), origs.end(), ccell->parameters[CellParams::CELLID])){
+         for( int i = 0; i < MAX_NEIGHBORS_PER_DIM; ++i) {
+           if(ccell->neighbor_number_of_blocks.at(i)>0)
+            cerr << __FILE__ << ":" << __LINE__ << " " << ccell->parameters[CellParams::CELLID] << " in send:" <<
+               " ccell->neighbor_block_data[" << i << "] at " << ccell->neighbor_block_data[i] << " has len " << 
+               ccell->neighbor_number_of_blocks.at(i) << " with data[0]="<< floatToBinary(ccell->neighbor_block_data[i][0]) << endl;
+         }
+      }
+   
+   }
+
+
 if(checkCellsForNans(mpiGrid,local_cells))
    {
       cerr << __FILE__ << ":" << __LINE__ << " checkCellsForNans dim " << dimension << " dir" << direction  << endl;
@@ -2231,7 +2306,7 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
 
    MPI_Barrier(MPI_COMM_WORLD);
    bool failboat = false;
-   std::set<CellID> receivers_bugged, origins_bugged;
+   std::vector<CellID> receivers_bugged, origins_bugged;
    // Reduce data: sum received data in the data array to 
    // the target grid in the temporary block container   
    //#pragma omp parallel
@@ -2250,20 +2325,25 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
          //#pragma omp for 
          bool once = false;
          int fails =0;
+         bool neifail = false;
+            if(receive_origin_cells[c] == 911)
+            {
+               cerr << "911/"<<receive_origin_index[c] <<" = "  << floatToBinary(neighborData[0]) <<endl;
+            }
          for(uint vCell = 0; vCell < VELOCITY_BLOCK_LENGTH * receive_cell->get_number_of_velocity_blocks(popID); ++vCell) {
             /*if(fpclassify(neighborData[vCell]) != FP_NORMAL && 
                fpclassify(neighborData[vCell]) != FP_ZERO && 
                fpclassify(neighborData[vCell]) != FP_SUBNORMAL)*/
-               
             if(isnan(neighborData[vCell]))
             {
                
-               receivers_bugged.insert(receive_cells[c]);
-               origins_bugged.insert(receive_origin_cells[c]);
                failboat = true;
+               neifail = true;
                fails++;
                // abort();
             }
+
+
 
             blockData[vCell] += neighborData[vCell];
             // if(fpclassify(blockData[vCell]) != FP_NORMAL && 
@@ -2275,7 +2355,12 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
             //    abort();
             // }
          }
-         if(std::count(recvs.begin(),recvs.end(),receive_cells[c]) + std::count(sibls.begin(),sibls.end(),receive_cells[c]))
+         if(neifail)
+         {
+            receivers_bugged.push_back(receive_cells[c]);
+            origins_bugged.push_back(receive_origin_cells[c]);
+         }
+         if(std::count(recvs.begin(),recvs.end(),receive_cells[c]) /*+ std::count(sibls.begin(),sibls.end(),receive_cells[c])*/)
          {
             cerr << __FILE__ <<":"<<__LINE__<< 
                   " " << fails << " times nan nbrdata for cell " << receive_cells[c] << "/" << receive_origin_index[c] << " from origin " << receive_origin_cells[c] << endl;
@@ -2295,24 +2380,19 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
       }
    }
 
-   for (auto p : receiveBuffers) {
-      aligned_free(p);
-   }
-   for (auto p : sendBuffers) {
-      aligned_free(p);
-   }
+
    
 
    if(failboat)
    {
       cerr << __FILE__<<":"<<__LINE__ << " Dimension " << dimension << ", direction " << direction << endl;
-      cerr << "Bugged receivers: ";
+      cerr << myRank <<": Bugged receivers: ";
       for(CellID i : receivers_bugged)
       {
          cerr << i << " ";
       }
       cerr << endl;
-      cerr << "Bugged origins: ";
+      cerr << myRank << ": Bugged origins: ";
       for(CellID i : origins_bugged)
       {
          cerr << i << " ";
@@ -2321,7 +2401,13 @@ if(checkCellsForNans(mpiGrid,remote_cells,true))
       sleep(15);
       abort();
    }
-   // MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+   for (auto p : receiveBuffers) {
+      aligned_free(p);
+   }
+   for (auto p : sendBuffers) {
+      aligned_free(p);
+   }
    // cout << "end update_remote_mapping_contribution_amr, dimension = " << dimension << ", direction = " << direction << endl;
    // MPI_Barrier(MPI_COMM_WORLD);
 

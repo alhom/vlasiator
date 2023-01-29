@@ -654,12 +654,38 @@ namespace spatial_cell {
             // this->neighbor_number_of_blocks has been initialized to 0, on other ranks it can stay that way.
             const set<int>& ranks = this->face_neighbor_ranks[neighborhood];
             if ( P::amrMaxSpatialRefLevel == 0 || receiving || ranks.find(receiver_rank) != ranks.end()) {
-               
+                        int myRank;
+                        
+                                 MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
+
+               MPI_Aint disp[1], init[1];
                for ( int i = 0; i < MAX_NEIGHBORS_PER_DIM; ++i) {
-                  displacements.push_back((uint8_t*) this->neighbor_block_data[i] - (uint8_t*) this);
+                  MPI_Get_address(this->neighbor_block_data[i], &disp[0]);
+                  MPI_Get_address(this, &init[0]);
+                  displacements.push_back(disp[0] - init[0]);
+                  if(parameters[CellParams::CELLID]==911 && this->neighbor_number_of_blocks[i]>0)
+                  {
+                     cerr << myRank << " i" <<i  <<": disp " << disp[0] - init[0] << "; data[0] " << *reinterpret_cast<uint32_t*>(&this->neighbor_block_data[i][0])<<endl;
+
+                  }
+                  // displacements.push_back((uint8_t*) this->neighbor_block_data[i] - (uint8_t*) this);
                   block_lengths.push_back(sizeof(Realf) * VELOCITY_BLOCK_LENGTH * this->neighbor_number_of_blocks[i]);
                }
                
+               // if(std::count(recvs.begin(), recvs.end(), parameters[CellParams::CELLID])){
+               //    cerr << __FILE__ << ":" << __LINE__ << " " << parameters[CellParams::CELLID] << " in recv, ranks:" << endl;
+
+               //    for( int i = 0; i < MAX_NEIGHBORS_PER_DIM; ++i) {
+               //       cerr << __FILE__ << ":" << __LINE__ << " " << parameters[CellParams::CELLID] << " in recv:" <<
+               //          " this->neighbor_block_data[" << i << "] at " << displacements[i] << " has len " << block_lengths[i] << endl;
+               //    }
+               // }
+               // if(std::count(origs.begin(), origs.end(), parameters[CellParams::CELLID])){
+               //    for( int i = 0; i < MAX_NEIGHBORS_PER_DIM; ++i) {
+               //       cerr << __FILE__ << ":" << __LINE__ << " " << parameters[CellParams::CELLID] << " in send:" <<
+               //          " this->neighbor_block_data[" << i << "] at " << displacements[i] << " has len " << block_lengths[i] << endl;
+               //    }
+               // }
             }
          }
 
@@ -768,20 +794,27 @@ namespace spatial_cell {
       
       if (displacements.size() > 0) {
          count = 1;
-         MPI_Type_create_hindexed(
+         int error = 0;
+         error = MPI_Type_create_hindexed(
             displacements.size(),
             &block_lengths[0],
             &displacements[0],
             MPI_BYTE,
             &datatype
          );
+         if(error != MPI_SUCCESS)
+         {
+            cerr << __FILE__<<":"<<__LINE__<< " failed to create MPI datatype " << error << endl;
+            abort();
+         }
       } else {
          count = 0;
          datatype = MPI_BYTE;
       }
 
       const bool printMpiDatatype = false;
-      if(printMpiDatatype) {
+      if(printMpiDatatype//){
+      || std::count(origs.begin(), origs.end(), parameters[CellParams::CELLID]) || std::count(recvs.begin(), recvs.end(), parameters[CellParams::CELLID])) {
          int mpiSize;
          int myRank;
          MPI_Type_size(datatype,&mpiSize);

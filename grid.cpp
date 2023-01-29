@@ -961,7 +961,7 @@ SHIFT_P_X   xo
 void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid){
    // set reduced neighborhoods
    typedef dccrg::Types<3>::neighborhood_item_t neigh_t;
-   
+   bool success = false;
    // set a reduced neighborhood for nearest neighbours
    std::vector<neigh_t> neighborhood;
    for (int z = -1; z <= 1; z++) {
@@ -976,8 +976,10 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       }
    }
    //mpiGrid.add_neighborhood(FIELD_SOLVER_NEIGHBORHOOD_ID, neighborhood);
-   mpiGrid.add_neighborhood(NEAREST_NEIGHBORHOOD_ID, neighborhood);
-   mpiGrid.add_neighborhood(SYSBOUNDARIES_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(NEAREST_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
+   success = mpiGrid.add_neighborhood(SYSBOUNDARIES_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    neighborhood.clear();
    for (int z = -2; z <= 2; z++) {
@@ -991,7 +993,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          }
       }
    }
-   mpiGrid.add_neighborhood(SYSBOUNDARIES_EXTENDED_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SYSBOUNDARIES_EXTENDED_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    // In spatial AMR using DCCRG, the neighbors are considered relative to a given cell's size.
    // To get two coarse neighbors from a fine cell at interfaces, the stencil size needs to be increased by one.
@@ -1038,7 +1041,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       neighborhood.push_back({{0, 0,-d}});     
    }
    /*all possible communication pairs*/
-   mpiGrid.add_neighborhood(FULL_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(FULL_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    
    /*stencils for semilagrangian propagators*/ 
    neighborhood.clear();
@@ -1049,7 +1053,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{0, 0, d}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    // add remaining nearest neighbors for DIST_FUNC neighborhood
    for (int z = -1; z <= 1; z++) {
@@ -1065,7 +1070,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          }
       }
    }
-   mpiGrid.add_neighborhood(DIST_FUNC_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(DIST_FUNC_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    
    neighborhood.clear();
    for (int d = -VLASOV_STENCIL_WIDTH-addStencilDepth; d <= VLASOV_STENCIL_WIDTH+addStencilDepth; d++) {
@@ -1073,7 +1079,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{d, 0, 0}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_X_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_X_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
 
    neighborhood.clear();
@@ -1082,7 +1089,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{0, d, 0}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_Y_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_Y_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    
    neighborhood.clear();
@@ -1091,7 +1099,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{0, 0, d}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_Z_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_Z_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    neighborhood.clear();
    for (int d = -1; d <= 1; d++) {
@@ -1099,7 +1108,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{d, 0, 0}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_X_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_X_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    neighborhood.clear();
    for (int d = -1; d <= 1; d++) {
@@ -1107,7 +1117,8 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{0, d, 0}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_Y_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_Y_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
    neighborhood.clear();
    for (int d = -1; d <= 1; d++) {
@@ -1115,27 +1126,39 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
         neighborhood.push_back({{0, 0, d}});
      }
    }
-   mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_Z_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(VLASOV_SOLVER_TARGET_Z_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 
 
    neighborhood.clear();
    neighborhood.push_back({{1, 0, 0}});
-   mpiGrid.add_neighborhood(SHIFT_M_X_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_M_X_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    neighborhood.clear();
+
    neighborhood.push_back({{0, 1, 0}});
-   mpiGrid.add_neighborhood(SHIFT_M_Y_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_M_Y_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    neighborhood.clear();
+
    neighborhood.push_back({{0, 0, 1}});
-   mpiGrid.add_neighborhood(SHIFT_M_Z_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_M_Z_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    neighborhood.clear();
+
    neighborhood.push_back({{-1, 0, 0}});
-   mpiGrid.add_neighborhood(SHIFT_P_X_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_P_X_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    neighborhood.clear();
+
    neighborhood.push_back({{0, -1, 0}});
-   mpiGrid.add_neighborhood(SHIFT_P_Y_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_P_Y_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
    neighborhood.clear();
+
    neighborhood.push_back({{0, 0, -1}});
-   mpiGrid.add_neighborhood(SHIFT_P_Z_NEIGHBORHOOD_ID, neighborhood);
+   success = mpiGrid.add_neighborhood(SHIFT_P_Z_NEIGHBORHOOD_ID, neighborhood);
+   if(!success) {cerr << __FILE__ <<":"<<__LINE__<< " Failed to create a neighborhood. Aborting." << endl; abort();}
 }
 
 bool validateMesh(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,const uint popID) {
