@@ -94,9 +94,9 @@ namespace spatial_cell {
     * neighbouring cells, but these are not written to here. We only
     * modify local cell.
     * 
-    * NOTE: The AMR mesh must be valid, otherwise this function will
+    * NOTE: The VAMR mesh must be valid, otherwise this function will
     * remove some blocks that should not be removed.*/
-   #ifndef AMR
+   #ifndef VAMR
    void SpatialCell::adjust_velocity_blocks(const std::vector<SpatialCell*>& spatial_neighbors,
                                             const uint popID,bool doDeleteEmptyBlocks) {
       #ifdef DEBUG_SPATIAL_CELL
@@ -194,7 +194,7 @@ namespace spatial_cell {
       }
    }
 
-   #else       // AMR version
+   #else       // VAMR version
 
    void SpatialCell::adjust_velocity_blocks(const std::vector<SpatialCell*>& spatial_neighbors,
                                             const uint popID,bool doDeleteEmptyBlocks) {
@@ -419,7 +419,7 @@ namespace spatial_cell {
       }
    }
 
-   void SpatialCell::coarsen_blocks(amr_ref_criteria::Base* refCriterion,const uint popID) {
+   void SpatialCell::coarsen_blocks(vamr_ref_criteria::Base* refCriterion,const uint popID) {
       #ifdef DEBUG_SPATIAL_CELL
       if (popID >= populations.size()) {
          std::cerr << "ERROR, popID " << popID << " exceeds populations.size() " << populations.size() << " in ";
@@ -452,7 +452,7 @@ namespace spatial_cell {
          for (size_t b=0; b<blocks[r].size(); ++b) {
             const vmesh::GlobalID blockGID = blocks[r][b];
             fetch_data<1>(blockGID,populations[popID].vmesh,get_data(popID),array);
-            if (refCriterion->evaluate(array,popID) < Parameters::amrCoarsenLimit) coarsenList.insert(blockGID);
+            if (refCriterion->evaluate(array,popID) < Parameters::vamrCoarsenLimit) coarsenList.insert(blockGID);
          }
 
          // List of blocks created and removed during the coarsening. The first element (=key) 
@@ -575,7 +575,6 @@ namespace spatial_cell {
 
       std::vector<MPI_Aint> displacements;
       std::vector<int> block_lengths;
-      vmesh::LocalID block_index = 0;
 
       // create datatype for actual data if we are in the first two 
       // layers around a boundary, or if we send for the whole system
@@ -656,10 +655,10 @@ namespace spatial_cell {
             block_lengths.push_back(sizeof(Real) * CellParams::N_SPATIAL_CELL_PARAMS);
          }
          
-         // send  spatial cell dimensions
+         // send spatial cell dimensions and coordinates
          if ((SpatialCell::mpi_transfer_type & Transfer::CELL_DIMENSIONS)!=0){
-            displacements.push_back((uint8_t*) &(this->parameters[CellParams::DX]) - (uint8_t*) this);
-            block_lengths.push_back(sizeof(Real) * 3);
+            displacements.push_back((uint8_t*) &(this->parameters[CellParams::XCRD]) - (uint8_t*) this);
+            block_lengths.push_back(sizeof(Real) * 6);
          }
                   
          // send  BGBXVOL BGBYVOL BGBZVOL PERBXVOL PERBYVOL PERBZVOL
@@ -827,8 +826,9 @@ namespace spatial_cell {
       vector<vmesh::GlobalID> childrenGIDs;
       populations[popID].vmesh.getChildren(blockGID,childrenGIDs);
 
-      #warning FIXME activePopID is not correct here (AMR, hence TBD)
-      
+#ifdef VAMR
+#warning FIXME activePopID is not correct here (VAMR, hence TBD)
+#endif
       // Check if any of block's children exist:
       bool hasChildren = false;
       for (size_t c=0; c<childrenGIDs.size(); ++c) {
@@ -885,7 +885,6 @@ namespace spatial_cell {
       }
       
       // Iterate over all octants, each octant corresponds to a different child:
-      bool removeBlock = false;
       for (int k_oct=0; k_oct<2; ++k_oct) for (int j_oct=0; j_oct<2; ++j_oct) for (int i_oct=0; i_oct<2; ++i_oct) {
          // Copy data belonging to the octant to a temporary array:
          Realf array[WID3];

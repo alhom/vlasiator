@@ -52,6 +52,7 @@
 #include "derivatives.hpp"
 #include "fs_limiters.h"
 #include "mpiconversion.h"
+#include "../fieldtracing/fieldtracing.h"
 
 /*! Re-initialize field propagator after rebalance. E, BGB, RHO, RHO_V,
  cell_dimensions, sysboundaryflag need to be up to date for the
@@ -109,7 +110,7 @@ bool propagateFields(
    
    const int* gridDims = &technicalGrid.getLocalSize()[0];
    
-   #pragma omp parallel for collapse(3)
+   #pragma omp parallel for collapse(2)
    for (int k=0; k<gridDims[2]; k++) {
       for (int j=0; j<gridDims[1]; j++) {
          for (int i=0; i<gridDims[0]; i++) {
@@ -323,7 +324,7 @@ bool propagateFields(
             RK_ORDER2_STEP2
          );
          
-         phiprof::start("FS subcycle stuff");
+         phiprof::Timer subcyclingTimer {"FS subcycle stuff"};
          subcycleT += subcycleDt; 
          subcycleCount++;
 
@@ -333,10 +334,6 @@ bool propagateFields(
                //due to roundoff we might hit this, should add delta
                std::cerr << "subcycleT > targetT, should not happen! (values: subcycleT " << subcycleT << ", subcycleDt " << subcycleDt << ", targetT " << targetT << ")" << std::endl;
             }
-
-            // Make sure the phiprof group is closed when leaving the loop
-            phiprof::stop("FS subcycle stuff");
-
             break;
          }
 
@@ -360,9 +357,9 @@ bool propagateFields(
             }
          }
 
-         phiprof::start("MPI_Allreduce");
+         phiprof::Timer allreduceTimer {"MPI_Allreduce"};
          technicalGrid.Allreduce(&(dtMaxLocal), &(dtMaxGlobal), 1, MPI_Type<Real>(), MPI_MIN);
-         phiprof::stop("MPI_Allreduce");
+         allreduceTimer.stop();
          
          //reduce dt if it is too high
          if( subcycleDt > dtMaxGlobal * P::fieldSolverMaxCFL ) {
@@ -385,7 +382,7 @@ bool propagateFields(
             }
          }
          
-         phiprof::stop("FS subcycle stuff");
+         subcyclingTimer.stop();
       }
       
       
@@ -396,5 +393,9 @@ bool propagateFields(
    
    calculateVolumeAveragedFields(perBGrid,EGrid,dPerBGrid,volGrid,technicalGrid);
    calculateBVOLDerivativesSimple(volGrid, technicalGrid, sysBoundaries);
+   if(FieldTracing::fieldTracingParameters.doTraceFullBox || Parameters::computeCurvature) {
+      volGrid.updateGhostCells();
+      calculateCurvatureSimple(volGrid, BgBGrid, technicalGrid, sysBoundaries);
+   }
    return true;
 }

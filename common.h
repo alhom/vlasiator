@@ -189,22 +189,47 @@ namespace CellParams {
       AMR_TRANSLATE_COMM_X, /*! < Flag to include this cell in AMR pre-translate communication  */
       AMR_TRANSLATE_COMM_Y, /*! < Flag to include this cell in AMR pre-translate communication  */
       AMR_TRANSLATE_COMM_Z, /*! < Flag to include this cell in AMR pre-translate communication  */
+      CONNECTION, /*!< Magnetic connection. See TracingPointConnectionType for assigned values. */
+      CONNECTION_FW_X, /*!< Endpoint x (forward-propagated) for the magnetic connection tracer*/
+      CONNECTION_FW_Y, /*!< Endpoint y (forward-propagated) for the magnetic connection tracer*/
+      CONNECTION_FW_Z, /*!< Endpoint z (forward-propagated) for the magnetic connection tracer*/
+      CONNECTION_BW_X, /*!< Endpoint x (backward-propagated) for the magnetic connection tracer*/
+      CONNECTION_BW_Y, /*!< Endpoint y (backward-propagated) for the magnetic connection tracer*/
+      CONNECTION_BW_Z, /*!< Endpoint z (backward-propagated) for the magnetic connection tracer*/
+      CURVATUREX, /*!< Magnetic field curvature vector x component */
+      CURVATUREY, /*!< Magnetic field curvature vector y component */
+      CURVATUREZ, /*!< Magnetic field curvature vector z component */
+      FLUXROPE,   /*!< 0 for regular cells, 1 for cells considered to be in a flux rope */
+      AMR_DRHO,
+      AMR_DU,
+      AMR_DPSQ,
+      AMR_DBSQ,
+      AMR_DB,
+      AMR_ALPHA,
+      RECENTLY_REFINED,
+      AMR_JPERB,
+      BULKV_FORCING_X, /*! Externally forced drift velocity (ex. from the ionosphere) */
+      BULKV_FORCING_Y, /*! Externally forced drift velocity (ex. from the ionosphere) */
+      BULKV_FORCING_Z, /*! Externally forced drift velocity (ex. from the ionosphere) */
+      FORCING_CELL_NUM, /*! Number of boundary cells that have forced a bulkv here */
       N_SPATIAL_CELL_PARAMS
    };
 }
 
 /*! The namespace bvolderivatives contains the indices to an array which stores the spatial
  * derivatives of the volume-averaged magnetic field, needed for Lorentz force. 
- * TODO: Vol values may be removed if background field is curlfree
  */
 namespace bvolderivatives {
    enum {
-      dPERBXVOLdy,
-      dPERBXVOLdz,
-      dPERBYVOLdx,
-      dPERBYVOLdz,
-      dPERBZVOLdx,
-      dPERBZVOLdy,
+      dPERBXVOLdx, /*!< Derivative of perturbed volume-averaged Bx in x-direction. */
+      dPERBXVOLdy, /*!< Derivative of perturbed volume-averaged Bx in y-direction. */
+      dPERBXVOLdz, /*!< Derivative of perturbed volume-averaged Bx in z-direction. */
+      dPERBYVOLdx, /*!< Derivative of perturbed volume-averaged By in x-direction. */
+      dPERBYVOLdy, /*!< Derivative of perturbed volume-averaged By in y-direction. */
+      dPERBYVOLdz, /*!< Derivative of perturbed volume-averaged By in z-direction. */
+      dPERBZVOLdx, /*!< Derivative of perturbed volume-averaged Bz in x-direction. */
+      dPERBZVOLdy, /*!< Derivative of perturbed volume-averaged Bz in y-direction. */
+      dPERBZVOLdz, /*!< Derivative of perturbed volume-averaged Bz in z-direction. */
       N_BVOL_DERIVATIVES
    };
 }
@@ -332,23 +357,26 @@ namespace fsgrids {
    // NOTE This contains the BGB derivatives as they do not change either
    enum bgbfield {
       BGBX,   /*!< Background magnetic field x-component, averaged over cell x-face.*/
-      BGBY,   /*!< Background magnetic field x-component, averaged over cell x-face.*/
-      BGBZ,   /*!< Background magnetic field x-component, averaged over cell x-face.*/
-      BGBXVOL,   /*!< background magnetic field averaged over spatial cell.*/
-      BGBYVOL,   /*!< background magnetic field averaged over spatial cell.*/
-      BGBZVOL,   /*!< background magnetic field averaged over spatial cell.*/
-      dBGBxdy,     /*!< Derivative of face-averaged Bx to y-direction. */
-      dBGBxdz,     /*!< Derivative of face-averaged Bx to z-direction. */
-      dBGBydx,     /*!< Derivative of face-averaged By to x-direction. */
-      dBGBydz,     /*!< Derivative of face-averaged By to z-direction. */
-      dBGBzdx,     /*!< Derivative of face-averaged Bz to x-direction. */
-      dBGBzdy,     /*!< Derivative of face-averaged Bz to y-direction. */
-      dBGBXVOLdy,
-      dBGBXVOLdz,
-      dBGBYVOLdx,
-      dBGBYVOLdz,
-      dBGBZVOLdx,
-      dBGBZVOLdy,
+      BGBY,   /*!< Background magnetic field y-component, averaged over cell y-face.*/
+      BGBZ,   /*!< Background magnetic field z-component, averaged over cell z-face.*/
+      BGBXVOL,   /*!< background magnetic field x-component averaged over spatial cell.*/
+      BGBYVOL,   /*!< background magnetic field y-component averaged over spatial cell.*/
+      BGBZVOL,   /*!< background magnetic field z-component averaged over spatial cell.*/
+      dBGBxdy,     /*!< Derivative of background face-averaged Bx in y-direction. */
+      dBGBxdz,     /*!< Derivative of background face-averaged Bx in z-direction. */
+      dBGBydx,     /*!< Derivative of background face-averaged By in x-direction. */
+      dBGBydz,     /*!< Derivative of background face-averaged By in z-direction. */
+      dBGBzdx,     /*!< Derivative of background face-averaged Bz in x-direction. */
+      dBGBzdy,     /*!< Derivative of background face-averaged Bz in y-direction. */
+      dBGBXVOLdx,  /*!< Derivative of background volume-averaged Bx in x-direction. */
+      dBGBXVOLdy,  /*!< Derivative of background volume-averaged Bx in y-direction. */
+      dBGBXVOLdz,  /*!< Derivative of background volume-averaged Bx in z-direction. */
+      dBGBYVOLdx,  /*!< Derivative of background volume-averaged By in x-direction. */
+      dBGBYVOLdy,  /*!< Derivative of background volume-averaged By in y-direction. */
+      dBGBYVOLdz,  /*!< Derivative of background volume-averaged By in z-direction. */
+      dBGBZVOLdx,  /*!< Derivative of background volume-averaged Bz in x-direction. */
+      dBGBZVOLdy,  /*!< Derivative of background volume-averaged Bz in y-direction. */
+      dBGBZVOLdz,  /*!< Derivative of background volume-averaged Bz in z-direction. */
       N_BGB
    };
    
@@ -357,20 +385,26 @@ namespace fsgrids {
       PERBXVOL,  /*!< perturbed magnetic field  PERBX averaged over spatial cell.*/
       PERBYVOL,  /*!< perturbed magnetic field  PERBY averaged over spatial cell.*/
       PERBZVOL,  /*!< perturbed magnetic field  PERBZ averaged over spatial cell.*/
-      dPERBXVOLdy,
-      dPERBXVOLdz,
-      dPERBYVOLdx,
-      dPERBYVOLdz,
-      dPERBZVOLdx,
-      dPERBZVOLdy,
+      dPERBXVOLdx, /*!< Derivative of perturbed volume-averaged Bx in x-direction. */
+      dPERBXVOLdy, /*!< Derivative of perturbed volume-averaged Bx in y-direction. */
+      dPERBXVOLdz, /*!< Derivative of perturbed volume-averaged Bx in z-direction. */
+      dPERBYVOLdx, /*!< Derivative of perturbed volume-averaged By in x-direction. */
+      dPERBYVOLdy, /*!< Derivative of perturbed volume-averaged By in y-direction. */
+      dPERBYVOLdz, /*!< Derivative of perturbed volume-averaged By in z-direction. */
+      dPERBZVOLdx, /*!< Derivative of perturbed volume-averaged Bz in x-direction. */
+      dPERBZVOLdy, /*!< Derivative of perturbed volume-averaged Bz in y-direction. */
+      dPERBZVOLdz, /*!< Derivative of perturbed volume-averaged Bz in z-direction. */
       EXVOL,   /*!< volume-averaged electric field x component */
       EYVOL,   /*!< volume-averaged electric field y component */
       EZVOL,   /*!< volume-averaged electric field z component */
+      CURVATUREX, /*!< Magnetic field curvature vector x component, grid-glued to DCCRG */
+      CURVATUREY, /*!< Magnetic field curvature vector y component, grid-glued to DCCRG */
+      CURVATUREZ, /*!< Magnetic field curvature vector z component, grid-glued to DCCRG */
       N_VOL
    };
    
    struct technical {
-      int sysBoundaryFlag;  /*!< System boundary flags. */
+      uint sysBoundaryFlag;  /*!< System boundary flags. */
       int sysBoundaryLayer; /*!< System boundary layer index. */
       Real maxFsDt;         /*!< maximum timestep allowed in ordinary space by fieldsolver for this cell**/
       int fsGridRank;       /*!< Rank in the fsGrids cartesian coordinator */
@@ -393,7 +427,7 @@ enum ionosphereParameters {
   PRECIP,   /*!< Precipitation */
   RHON,     /*!< Downmapped magnetospheric plasma number density */
   TEMPERATURE, /*!< Downmapped electron temperature */
-  POYNTINGFLUX, /*!< Downwards poynting flux from the magnetosphre into the ionosphere */
+  NODE_BX,NODE_BY,NODE_BZ, /*!< Magnetic field at the node */
   UPMAPPED_BX,UPMAPPED_BY,UPMAPPED_BZ, /*!< Magnetic field at the upper and of the mapping fieldline */
   SOLUTION, /*!< Currently considered solution potential */
   BEST_SOLUTION, /*!< Best solution found so far */
@@ -415,7 +449,7 @@ namespace sysboundarytype {
       IONOSPHERE,       /*!< Ionospheric current model */
       OUTFLOW,          /*!< No fixed conditions on the fields and distribution function. */
       SET_MAXWELLIAN,   /*!< Set Maxwellian boundary condition, i.e. set fields and distribution function. */
-      CONDUCTINGSPHERE, /*!< A perfectly conducting sphere as the simple inner boundary */
+      COPYSPHERE,       /*!< A sphere with copy-condition for perturbed B as the simple inner boundary */
       N_SYSBOUNDARY_CONDITIONS
    };
 }
@@ -448,6 +482,12 @@ template<typename INT> inline INT cellIndex(const INT& i,const INT& j,const INT&
 
 const int SIZE_VELBLOCK    = WID3; /*!< Number of cells in a velocity block. */
 
+template<typename T> inline int sign(const T& value) {
+   const T ZERO = 0.0;
+   if (value < ZERO) return -1;
+   return 1;
+}
+
 /*!
  * Name space for flags needed globally, such as the bailout flag.
  */
@@ -456,6 +496,7 @@ struct globalflags {
    static bool writeRestart; /*!< Global flag raised to true if a restart writing is needed (without bailout). NOTE: used only by MASTER_RANK in vlasiator.cpp. */
    static bool balanceLoad; /*!< Global flag raised to true if a load balancing is needed. NOTE: used only by MASTER_RANK in vlasiator.cpp. */
    static int AMRstencilWidth; /*!< Global variable used for the extended AMR stencil width */
+   static bool ionosphereJustSolved; /*!< Flag used to notify that the ionosphere has been freshly solved, used to check whether the Vlasov boundary/bulk forcing need updating. */
 };
 
 /*!
