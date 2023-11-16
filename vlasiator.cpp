@@ -304,14 +304,14 @@ void computeNewTimeStep(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
    
    }
    else if(true){ // Rank-based tc, only +1
-      if(P::maxTimeclass != 1){
-         std::cerr << "This test requires P::maxTimeclass=1\n";
-         abort();
-      }
-      localTimeClass = myRank % P::maxTimeclass;
+      // if(P::maxTimeclass != 1){
+      //    std::cerr << "This test requires P::maxTimeclass=1\n";
+      //    abort();
+      // }
+      localTimeClass = myRank % 2;
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
          SpatialCell* cell = mpiGrid[*cell_id];
-         cell->parameters[CellParams::TIMECLASS] = localTimeClass;
+         cell->parameters[CellParams::TIMECLASS] = min(localTimeClass, P::maxTimeclass);
          cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
       }
    }
