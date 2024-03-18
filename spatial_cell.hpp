@@ -117,6 +117,7 @@ namespace spatial_cell {
       const uint64_t POP_METADATA             = (1ull<<26);
       const uint64_t RANDOMGEN                = (1ull<<27);
       const uint64_t CELL_GRADPE_TERM         = (1ull<<28);
+      const uint64_t REFINEMENT_PARAMETERS    = (1ull<<29);
       //all data
       const uint64_t ALL_DATA =
       CELL_PARAMETERS
@@ -264,7 +265,7 @@ namespace spatial_cell {
       bool add_velocity_block(const vmesh::GlobalID& block,const uint popID);
       void add_velocity_blocks(const std::vector<vmesh::GlobalID>& blocks,const uint popID);
       bool add_velocity_block_octant(const vmesh::GlobalID& blockGID,const uint popID);
-      void adjustSingleCellVelocityBlocks(const uint popID);
+      void adjustSingleCellVelocityBlocks(const uint popID, bool doDeleteEmpty=false);
       void adjust_velocity_blocks(const std::vector<SpatialCell*>& spatial_neighbors,
                                   const uint popID,
                                   bool doDeleteEmptyBlocks=true);
