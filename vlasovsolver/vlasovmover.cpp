@@ -389,14 +389,9 @@ void calculateAcceleration(const uint popID,const uint globalMaxSubcycles,const 
       // for all cells, but varies with timestep.
       rndState.seed(P::tstep);
 
-<<<<<<< Updated upstream
       // uint map_order=std::uniform_int_distribution<>(0,2)(rndState);
       uint map_order=1;
 
-=======
-      uint map_order=std::uniform_int_distribution<>(0,2)(rndState);
-      map_order = 1;
->>>>>>> Stashed changes
       phiprof::Timer semilagAccTimer {"cell-semilag-acc"};
       cpu_accelerate_cell(mpiGrid[cellID],popID,map_order,subcycleDt);
       semilagAccTimer.stop();
