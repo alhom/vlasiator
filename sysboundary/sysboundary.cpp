@@ -24,8 +24,10 @@
  * \brief Implementation of the class SysBoundary.
  */
 
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
 #include "../grid.h"
 #include "../object_wrapper.h"
@@ -688,6 +690,17 @@ void SysBoundary::applySysBoundaryVlasovConditions(
       phiprof::Timer computeInnerTimer {"Compute process inner cells"};
       // Compute Vlasov boundary condition on system boundary/process inner cells
       vector<CellID> localCells;
+      vector<CellID> timeclassCells;
+
+      for (size_t c=0; c<localCells.size(); c++) {
+         const CellID cellID = localCells[c];
+         SpatialCell* SC = mpiGrid[cellID];
+
+         if (SC->get_timeclass_turn_v() == true) {
+            timeclassCells.push_back(cellID);
+         }
+      }
+
       getBoundaryCellList(mpiGrid, mpiGrid.get_local_cells_not_on_process_boundary(SYSBOUNDARIES_EXTENDED_NEIGHBORHOOD_ID), localCells);
 
 #pragma omp parallel for
@@ -698,9 +711,9 @@ void SysBoundary::applySysBoundaryVlasovConditions(
       if (popID==getObjectWrapper().particleSpecies.size()-1) {
          // Only calculate moments when handling last population
          if (calculate_V_moments) {
-            calculateMoments_V(mpiGrid, localCells, true);
+            calculateMoments_V(mpiGrid, timeclassCells, true);
          } else {
-            calculateMoments_R(mpiGrid, localCells, true);
+            calculateMoments_R(mpiGrid, timeclassCells, true);
          }
       }
       computeInnerTimer.stop();
@@ -712,8 +725,19 @@ void SysBoundary::applySysBoundaryVlasovConditions(
       // Compute vlasov boundary on system boundary/process boundary cells
       phiprof::Timer computeBoundaryTimer {"Compute process boundary cells"};
       vector<CellID> boundaryCells;
+      vector<CellID> timeclassBoundaryCells;
       getBoundaryCellList(mpiGrid, mpiGrid.get_local_cells_on_process_boundary(SYSBOUNDARIES_EXTENDED_NEIGHBORHOOD_ID),
                           boundaryCells);
+
+      for (size_t c=0; c<boundaryCells.size(); c++) {
+         const CellID cellID = boundaryCells[c];
+         SpatialCell* SC = mpiGrid[cellID];
+
+         if (SC->get_timeclass_turn_v() == true) {
+            timeclassBoundaryCells.push_back(cellID);
+         }
+      }
+
 #pragma omp parallel for
       for (uint i = 0; i < boundaryCells.size(); i++) {
          cuint sysBoundaryType = mpiGrid[boundaryCells[i]]->sysBoundaryFlag;
@@ -722,9 +746,9 @@ void SysBoundary::applySysBoundaryVlasovConditions(
       if (popID==getObjectWrapper().particleSpecies.size()-1) {
          // Only calculate moments when handling last population
          if (calculate_V_moments) {
-            calculateMoments_V(mpiGrid, boundaryCells, true);
+            calculateMoments_V(mpiGrid, timeclassBoundaryCells, true);
          } else {
-            calculateMoments_R(mpiGrid, boundaryCells, true);
+            calculateMoments_R(mpiGrid, timeclassBoundaryCells, true);
          }
       }
       computeBoundaryTimer.stop();

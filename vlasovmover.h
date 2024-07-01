@@ -40,7 +40,8 @@ void calculateAcceleration(
 
 void calculateSpatialTranslation(
                                  dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-                                 Real dt);
+                                 Real dt,
+                                 const bool initializationOrLB);
 
 /** Calculate velocity moments for the given spatial cell.
  * This function is defined in cpu_moments.cpp file.*/
@@ -68,13 +69,45 @@ void calculateInterpolatedVelocityMoments(
 );
 
 /*!
+  \brief Function for interpolating y(x) with y_0(x_0) and y_1(x_1) given.
+*/
+double linearInterpolation(double x0, double y0, double x1, double y1, double x);
+
+double lagrangeInterpolation3(double x0, double y0, double x1, double y1, double x2, double y2, double x);
+
+double lagrangeInterpolation4(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x);
+
+double cubicHermiteSplineInterpolation(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x);
+
+/*!
+  \brief Function for interpolating moments for field solver with moments from vlasov solver, combatible with timeclasses.
+*/
+void interpolateMomentsForTimeclasses(
+  dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+   const int cp_rhom,
+   const int cp_vx,
+   const int cp_vy,
+   const int cp_vz,
+   const int cp_rhoq,
+   const int cp_p11,
+   const int cp_p22,
+   const int cp_p33,
+   const int fracTimeStep,
+   const int maxTC,
+   const bool dt2
+);
+
+/*!
   \brief Compute 0th, 1st and 2nd velocity moments (RHO,VX,VY,VZ,P_11,P_22,P_33 and *_DT2) for all cells in the grid directly from distribution function. The simulation should be at a true time-step! This is at the moment only called at initialisation.
   \param mpiGrid Grid of spatial cells for which moments are computed 
   
 */
 void calculateInitialVelocityMoments(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
-
+/*!
+  \brief Update _V_PREV buffers with the values from _V. Compatible with timeclass turns.
+*/
+void updatePreviousVMoments(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, bool isInitialization);
 
 #endif
 

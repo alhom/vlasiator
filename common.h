@@ -133,16 +133,6 @@ namespace CellParams {
       DX,     /*!< Grid separation in x-coordinate.*/
       DY,     /*!< Grid separation in y-coordinate.*/
       DZ,     /*!< Grid separation in z-coordinate.*/
-      RHOM,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VX,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VY,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VZ,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      RHOQ,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      RHOM_DT2,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VX_DT2,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VY_DT2,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      VZ_DT2,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
-      RHOQ_DT2,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
       BGBXVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBYVOL,   /*!< background magnetic field averaged over spatial cell.*/
       BGBZVOL,   /*!< background magnetic field averaged over spatial cell.*/
@@ -152,28 +142,81 @@ namespace CellParams {
       EXGRADPE,         /*!< Electron pressure gradient term x.*/
       EYGRADPE,         /*!< Electron pressure gradient term y.*/
       EZGRADPE,         /*!< Electron pressure gradient term z.*/
+
+      // !! All these following moment blocks must be in the order: RHOM, RHOQ, VX, VY, VZ, P_11, P_22, P_33.
+
+      RHOM,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VX,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VY,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VZ,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      RHOQ,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      P_11,     /*!< Pressure P_xx component, computed by Vlasov propagator. */
+      P_22,     /*!< Pressure P_yy component, computed by Vlasov propagator. */
+      P_33,     /*!< Pressure P_zz component, computed by Vlasov propagator. */
+
+      RHOM_DT2,    /*!< Total mass density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VX_DT2,  /*!< Vx. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VY_DT2,  /*!< Vy. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      VZ_DT2,  /*!< Vz. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      RHOQ_DT2,    /*!< Total charge density. Calculated by Vlasov propagator, used to propagate BX,BY,BZ.*/
+      P_11_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_11_R and P_11_V. */
+      P_22_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_22_R and P_22_V. */
+      P_33_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_33_R and P_33_V. */
+      
       RHOM_R,     /*!< RHO after propagation in ordinary space*/
       VX_R,   /*!< VX after propagation in ordinary space*/
       VY_R,   /*!< VY after propagation in ordinary space*/
       VZ_R,   /*!< VZ after propagation in ordinary space*/
       RHOQ_R,     /*!< RHOQ after propagation in ordinary space*/
+      P_11_R,   /*!< P_xx component after propagation in ordinary space */
+      P_22_R,   /*!< P_yy component after propagation in ordinary space */
+      P_33_R,   /*!< P_zz component after propagation in ordinary space */
+
+      RHOM_R_PREV, /* !< Previous value of RHOM_R, used for timeclass interpolation */
+      VX_R_PREV, /* !< Previous value of VX_R, used for timeclass interpolation */
+      VY_R_PREV, /* !< Previous value of VY_R, used for timeclass interpolation */
+      VZ_R_PREV, /* !< Previous value of VZ_R, used for timeclass interpolation */
+      RHOQ_R_PREV, /* !< Previous value of RHOQ_R, used for timeclass interpolation */
+      P_11_R_PREV, /* !< Previous value of P_11_R, used for timeclass interpolation */
+      P_22_R_PREV, /* !< Previous value of P_22_R, used for timeclass interpolation */
+      P_33_R_PREV, /* !< Previous value of P_33_R, used for timeclass interpolation */
+
+      RHOM_R_PREV_PREV, /* !< Value of RHOM_R from two updates back*/
+      VX_R_PREV_PREV, /* !< Value of VX_R from two updates back*/
+      VY_R_PREV_PREV, /* !< Value of VY_R from two updates back*/
+      VZ_R_PREV_PREV, /* !< Value of VZ_R from two updates back*/
+      RHOQ_R_PREV_PREV, /* !< Value of RHOQ_R from two updates back*/
+      P_11_R_PREV_PREV, /* !< Value of P_11_R from two updates back*/
+      P_22_R_PREV_PREV, /* !< Value of P_22_R from two updates back*/
+      P_33_R_PREV_PREV, /* !< Value of P_33_R from two updates back*/
+
       RHOM_V,     /*!< RHOM after propagation in velocity space*/
       VX_V,   /*!< VX after propagation in velocity space*/
       VY_V,   /*!< VY after propagation in velocity space*/
       VZ_V,   /*!< VZ after propagation in velocity space*/
       RHOQ_V,     /*!< RHOQ after propagation in velocity space*/
-      P_11,     /*!< Pressure P_xx component, computed by Vlasov propagator. */
-      P_22,     /*!< Pressure P_yy component, computed by Vlasov propagator. */
-      P_33,     /*!< Pressure P_zz component, computed by Vlasov propagator. */
-      P_11_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_11_R and P_11_V. */
-      P_22_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_22_R and P_22_V. */
-      P_33_DT2, /*!< Intermediate step value for RK2 time stepping in field solver. Computed from P_33_R and P_33_V. */
-      P_11_R,   /*!< P_xx component after propagation in ordinary space */
-      P_22_R,   /*!< P_yy component after propagation in ordinary space */
-      P_33_R,   /*!< P_zz component after propagation in ordinary space */
       P_11_V,   /*!< P_xx component after propagation in velocity space */
       P_22_V,   /*!< P_yy component after propagation in velocity space */
       P_33_V,   /*!< P_zz component after propagation in velocity space */
+
+      RHOM_V_PREV, /* !< Previous value of RHOM_V, used for timeclass interpolation */
+      VX_V_PREV, /* !< Previous value of VX_V, used for timeclass interpolation */
+      VY_V_PREV, /* !< Previous value of VY_V, used for timeclass interpolation */
+      VZ_V_PREV, /* !< Previous value of VZ_V, used for timeclass interpolation */
+      RHOQ_V_PREV, /* !< Previous value of RHOQ_V, used for timeclass interpolation */
+      P_11_V_PREV, /* !< Previous value of P_11_V, used for timeclass interpolation */
+      P_22_V_PREV, /* !< Previous value of P_22_V, used for timeclass interpolation */
+      P_33_V_PREV, /* !< Previous value of P_33_V, used for timeclass interpolation */
+
+      RHOM_V_PREV_PREV, /* !< Value of RHOM_V from two updates back*/
+      VX_V_PREV_PREV, /* !< Value of VX_V from two updates back*/
+      VY_V_PREV_PREV, /* !< Value of VY_V from two updates back*/
+      VZ_V_PREV_PREV, /* !< Value of VZ_V from two updates back*/
+      RHOQ_V_PREV_PREV, /* !< Value of RHOQ_V from two updates back*/
+      P_11_V_PREV_PREV, /* !< Value of P_11_V from two updates back*/
+      P_22_V_PREV_PREV, /* !< Value of P_22_V from two updates back*/
+      P_33_V_PREV_PREV, /* !< Value of P_33_V from two updates back*/
+      
       EXVOL,    /*!< Volume electric field averaged over spatial cell, x-component.*/
       EYVOL,    /*!< Volume electric field averaged over spatial cell, y-component.*/
       EZVOL,    /*!< Volume electric field averaged over spatial cell, z-component.*/
@@ -182,6 +225,7 @@ namespace CellParams {
       MAXRDT,             /*!< maximum timestep allowed in ordinary space for this cell,
                            * this is the max allowed timestep over all particle species.*/
       MAXFDT,             /*!< maximum timestep allowed in ordinary space by fieldsolver for this cell**/
+
       TIMECLASS,           /*!< timeclass of this cell*/
       TIMECLASSDT,           /*!< timeclass-adjusted timestep, ...*/
       TIME_R,           /*!< Current time of the cell due to timeclass timestepping*/
@@ -192,7 +236,6 @@ namespace CellParams {
       TIME_V,           /*!< Current time of the cell due to timeclass timestepping*/
       TIMESTEP_V,           /*!< Current timestep of the cell due to timeclass timestepping - obs float precision*/
       TIMESTEP_FRACTIONAL_V,           /*!< Current timestep of the cell due to timeclass timestepping*/
-
       TIMECLASS_RANK,           /*!< timeclass of this rank*/
       TIMECLASSDT_RANK,           /*!< timeclass-adjusted timestep, ...*/
 
