@@ -1,0 +1,21 @@
+<map id="vlasovsolver/vec.h" name="vlasovsolver/vec.h">
+<area shape="rect" id="Node000001" title="An interface to a type with floating point values." alt="" coords="65,5,209,31"/>
+<area shape="rect" id="Node000002" href="$dc/d54/common_8h.html" title=" " alt="" coords="86,79,188,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,31,140,65,134,65,134,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="54,225,113,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,105,45,123,27,136,13,153,9,170,16,187,32,203,51,216,48,221,28,207,12,190,4,171,8,151,24,133,43,118,85,100"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="22,152,81,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="125,106,78,145,74,141,122,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="106,152,168,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="140,104,140,138,134,138,134,104"/>
+<area shape="rect" id="Node000006" href="$d6/dc2/definitions_8h.html" title=" " alt="" coords="192,152,295,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="156,102,217,142,214,147,153,106"/>
+<area shape="rect" id="Node000008" href="$dc/d9d/arch__device__api_8h.html" title=" " alt="" coords="320,152,490,177"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="181,101,350,146,348,151,180,107"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="219,180,123,222,121,217,217,175"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="222,225,292,251"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="249,177,255,211,250,212,243,178"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="383,180,295,222,292,217,380,175"/>
+<area shape="rect" id="Node000009" href="$d9/d13/arch__device__host_8h.html" title=" " alt="" coords="332,225,478,251"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="408,178,408,212,402,212,402,178"/>
+</map>

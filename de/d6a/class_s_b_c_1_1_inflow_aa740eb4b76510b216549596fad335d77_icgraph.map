@@ -1,0 +1,7 @@
+<map id="SBC::Inflow::setBFromTemplate" name="SBC::Inflow::setBFromTemplate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="235,42,459,67"/>
+<area shape="rect" id="Node000002" href="$de/d6a/class_s_b_c_1_1_inflow.html#a2a8ce464187a3121ee26a69a2da7413b" title=" " alt="" coords="9,5,183,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,43,183,38,184,33,225,38"/>
+<area shape="rect" id="Node000003" href="$de/d6a/class_s_b_c_1_1_inflow.html#a816e0e82f5ba04e983b234591a5ba4ba" title=" " alt="" coords="5,70,187,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,71,187,75,187,70,221,66"/>
+</map>

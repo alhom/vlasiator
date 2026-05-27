@@ -1,0 +1,65 @@
+<map id="projects::MaxwellianPhaseSpaceDensity" name="projects::MaxwellianPhaseSpaceDensity">
+<area shape="rect" id="Node000001" title=" " alt="" coords="781,837,977,877"/>
+<area shape="rect" id="Node000002" href="$d9/d08/classprojects_1_1_alfven.html#a680489dd7243af7dec6fc1533788d9b6" title=" " alt="" coords="537,5,724,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="874,824,863,663,838,434,820,316,796,208,766,119,750,85,731,59,718,47,721,43,735,56,754,82,771,117,801,207,825,315,844,433,868,663,879,824"/>
+<area shape="rect" id="Node000003" href="$d2/d03/classprojects_1_1_dispersion.html#a72a42e7f3db32f0021368d5f577b5ce6" title=" " alt="" coords="555,69,706,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="873,824,861,675,834,464,815,357,792,259,764,178,748,147,731,123,705,105,708,100,735,119,753,144,769,176,797,257,821,356,840,463,866,674,879,823"/>
+<area shape="rect" id="Node000004" href="$dd/d62/classprojects_1_1_flowthrough.html#a0ea15f899978dc5a82a391ef8438a497" title=" " alt="" coords="549,133,712,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="873,824,858,686,830,495,811,398,788,309,762,236,747,208,731,187,711,172,714,167,735,183,752,206,767,234,793,308,816,397,836,494,863,686,878,824"/>
+<area shape="rect" id="Node000005" href="$d2/d61/classprojects_1_1_harris.html#afe2e74a785c1f27cf8cfeffe9d806d35" title=" " alt="" coords="539,197,723,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="872,824,855,698,826,526,807,439,785,360,759,295,731,251,717,239,720,235,735,248,764,293,790,358,812,438,831,525,861,697,877,823"/>
+<area shape="rect" id="Node000006" href="$db/d4a/classprojects_1_1_i_p_shock.html#a2c3b87ed199362356e6980fa3d6f0c4c" title=" " alt="" coords="560,261,701,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="871,824,852,710,822,557,803,480,781,411,757,354,731,315,717,304,700,295,703,291,720,299,735,312,762,351,786,409,808,479,827,556,858,709,876,823"/>
+<area shape="rect" id="Node000007" href="$de/da1/classprojects_1_1_k_h_b.html#ad74c072205c1b6142494de1a839d1385" title=" " alt="" coords="544,325,717,365"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="875,824,870,736,862,678,850,616,831,553,806,490,773,431,731,379,716,367,719,363,735,375,778,428,811,487,836,551,855,615,867,678,875,735,881,823"/>
+<area shape="rect" id="Node000008" href="$de/d23/classprojects_1_1_larmor.html#ab308ef6e5b38e6c6a356100b83de9152" title=" " alt="" coords="535,389,726,429"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="874,824,864,746,841,644,823,590,799,537,769,487,732,443,716,431,719,427,735,439,773,484,804,534,828,588,846,642,869,745,879,823"/>
+<area shape="rect" id="Node000009" href="$df/d57/classprojects_1_1_magnetosphere.html#aec1a71d2331bcefb696a27aa419fb030" title=" " alt="" coords="539,453,722,493"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="871,824,858,758,833,672,815,628,792,584,764,543,732,507,715,496,718,491,735,503,769,540,796,581,819,625,838,671,863,757,876,823"/>
+<area shape="rect" id="Node000010" href="$d4/d0a/classprojects_1_1_riemann1.html#a9c70e1ecf2fe2e91a68be464feb5c4d7" title=" " alt="" coords="557,517,705,557"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="868,825,851,770,824,701,785,631,760,599,732,571,704,555,706,550,735,567,764,596,789,628,829,699,856,768,873,823"/>
+<area shape="rect" id="Node000011" href="$d5/db6/classprojects_1_1_shock.html#ad43cbc1668bdb129908928b51286c524" title=" " alt="" coords="539,581,723,621"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="863,826,843,783,815,731,777,680,732,635,712,624,715,619,735,631,781,676,819,728,848,780,868,824"/>
+<area shape="rect" id="Node000012" href="$d5/dbc/classprojects_1_1_shocktest.html#aae4b21b727a3db703eeb8e87ebf70b93" title=" " alt="" coords="557,645,704,685"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="855,827,804,763,770,729,732,700,703,685,706,681,735,695,773,725,808,759,859,824"/>
+<area shape="rect" id="Node000013" href="$df/d44/classprojects_1_1_template.html#aba84646f87f3aafec2aafe4087daf52e" title=" " alt="" coords="559,709,702,749"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="840,831,790,797,732,764,701,751,703,746,734,759,793,792,843,827"/>
+<area shape="rect" id="Node000014" href="$da/df8/classprojects_1_1test__fp.html#aa1eab25835dc96e75d9e511623fed937" title=" " alt="" coords="563,773,698,813"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="787,836,697,813,699,808,789,831"/>
+<area shape="rect" id="Node000015" href="$d9/d72/classprojects_1_1_test_hall.html#a930556c3f9915b5b10cc74965ddf07d2" title=" " alt="" coords="563,837,698,877"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="767,860,698,860,698,855,767,855"/>
+<area shape="rect" id="Node000016" href="$d4/de8/namespace_s_b_c.html#a0cea5d5845a2d12ad49a0b3b048460be" title="SBC::findMaxwellianBlocksToInitialize returns a list of blocks to construct the VDF with." alt="" coords="531,1003,730,1043"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="852,889,800,938,735,986,696,1005,694,1000,732,982,797,934,848,885"/>
+<area shape="rect" id="Node000017" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#a489a1683d7537fb427aafbb3528387b5" title=" " alt="" coords="260,897,459,937"/>
+<area shape="poly" id="edge22_Node000001_Node000017" title=" " alt="" coords="784,883,734,892,590,908,459,916,459,911,589,903,733,887,783,878"/>
+<area shape="rect" id="Node000019" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a66dd6c8d7e5b91522b6b05c51910d982" title=" " alt="" coords="262,963,457,1003"/>
+<area shape="poly" id="edge23_Node000001_Node000019" title=" " alt="" coords="824,885,734,919,590,952,457,974,456,968,589,947,733,913,822,880"/>
+<area shape="rect" id="Node000021" href="$da/ddf/class_s_b_c_1_1_maxwellian.html#a833c7cf658faf049300eec716cc4b8c7" title="Generate the template cell for the face corresponding to the index passed. This function generates a ..." alt="" coords="261,1029,458,1069"/>
+<area shape="poly" id="edge24_Node000001_Node000021" title=" " alt="" coords="868,892,848,932,819,979,782,1023,759,1042,735,1057,697,1072,658,1082,618,1088,577,1089,500,1084,433,1072,434,1067,500,1079,577,1084,617,1082,657,1077,696,1067,732,1052,756,1037,778,1019,815,976,843,930,863,889"/>
+<area shape="rect" id="Node000022" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#ac904b9ee61069aa1314aa2b638a2f4e9" title=" " alt="" coords="239,1099,480,1139"/>
+<area shape="poly" id="edge33_Node000001_Node000022" title=" " alt="" coords="871,891,853,938,825,994,786,1049,762,1073,735,1093,705,1108,674,1120,608,1135,542,1140,480,1139,480,1134,542,1135,607,1130,672,1115,703,1104,732,1088,758,1069,782,1046,820,992,848,936,866,889"/>
+<area shape="rect" id="Node000023" href="$dd/d62/classprojects_1_1_flowthrough.html#a21f2c55a8ada176941b44f9b0326f62a" title=" " alt="" coords="549,1168,712,1208"/>
+<area shape="poly" id="edge25_Node000001_Node000023" title=" " alt="" coords="873,891,856,947,828,1016,788,1088,764,1122,735,1151,707,1170,704,1166,732,1147,759,1118,784,1085,823,1014,851,945,868,890"/>
+<area shape="rect" id="Node000024" href="$d2/d61/classprojects_1_1_harris.html#a3275ce26793b9a345ff151394f477df9" title=" " alt="" coords="528,1232,733,1272"/>
+<area shape="poly" id="edge26_Node000001_Node000024" title=" " alt="" coords="877,891,864,960,839,1049,821,1096,798,1141,769,1184,735,1222,719,1234,716,1230,732,1218,765,1181,793,1139,816,1093,834,1047,859,959,872,890"/>
+<area shape="rect" id="Node000025" href="$db/d4a/classprojects_1_1_i_p_shock.html#aafea26803501ad99a4d216d64c2d6116" title=" " alt="" coords="560,1296,701,1336"/>
+<area shape="poly" id="edge27_Node000001_Node000025" title=" " alt="" coords="879,891,870,971,848,1077,829,1133,805,1188,774,1240,735,1286,720,1298,703,1306,701,1301,717,1293,731,1282,770,1237,800,1186,824,1131,843,1075,865,970,874,891"/>
+<area shape="rect" id="Node000026" href="$de/da1/classprojects_1_1_k_h_b.html#a0963716260a467adc2aae867efd8e037" title=" " alt="" coords="533,1360,728,1400"/>
+<area shape="poly" id="edge28_Node000001_Node000026" title=" " alt="" coords="881,891,876,981,868,1040,856,1104,838,1170,812,1235,779,1296,735,1350,720,1362,716,1358,731,1346,774,1293,807,1233,833,1168,851,1103,863,1039,870,981,876,891"/>
+<area shape="rect" id="Node000027" href="$df/d57/classprojects_1_1_magnetosphere.html#a539f67b3dc136e473c181541acf858da" title=" " alt="" coords="539,1424,722,1464"/>
+<area shape="poly" id="edge29_Node000001_Node000027" title=" " alt="" coords="876,891,858,1008,828,1164,809,1243,787,1314,762,1373,735,1414,720,1426,717,1422,731,1410,757,1371,782,1312,803,1241,823,1163,853,1007,871,891"/>
+<area shape="rect" id="Node000028" href="$d5/dbc/classprojects_1_1_shocktest.html#ac23968fcbcc9729f8f036e33550fdd94" title=" " alt="" coords="557,1488,704,1528"/>
+<area shape="poly" id="edge30_Node000001_Node000028" title=" " alt="" coords="877,891,861,1020,832,1195,813,1284,790,1365,765,1432,750,1458,735,1478,721,1489,706,1498,703,1493,719,1485,731,1474,746,1455,760,1429,785,1363,808,1283,827,1194,856,1019,872,891"/>
+<area shape="rect" id="Node000029" href="$df/d44/classprojects_1_1_template.html#a9c8c08d28af16d9963aa5398aad758a7" title=" " alt="" coords="558,1552,703,1592"/>
+<area shape="poly" id="edge31_Node000001_Node000029" title=" " alt="" coords="878,891,864,1031,836,1225,817,1325,794,1415,767,1490,752,1519,735,1542,721,1554,705,1562,702,1558,718,1549,731,1538,747,1517,762,1488,789,1414,812,1324,831,1225,859,1030,873,891"/>
+<area shape="rect" id="Node000030" href="$da/df8/classprojects_1_1test__fp.html#ae29374298a009cdd01ad053c8531019e" title=" " alt="" coords="562,1616,699,1656"/>
+<area shape="poly" id="edge32_Node000001_Node000030" title=" " alt="" coords="879,891,866,1043,840,1256,821,1366,798,1466,769,1549,753,1581,735,1606,719,1619,701,1628,698,1623,716,1615,731,1602,748,1578,764,1547,793,1465,816,1365,835,1256,861,1042,873,891"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="579,999,479,953,439,940,441,935,481,948,581,994"/>
+<area shape="poly" id="edge18_Node000016_Node000019" title=" " alt="" coords="518,1009,456,1000,457,994,518,1003"/>
+<area shape="poly" id="edge20_Node000016_Node000021" title=" " alt="" coords="518,1036,458,1042,458,1037,517,1031"/>
+<area shape="poly" id="edge21_Node000016_Node000022" title=" " alt="" coords="569,1050,481,1084,429,1101,427,1096,479,1079,568,1045"/>
+<area shape="rect" id="Node000018" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#ab4651d3096619878a02f39f1dce1b97f" title=" " alt="" coords="5,897,191,937"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="246,920,191,920,191,915,246,915"/>
+<area shape="rect" id="Node000020" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a0693f4fad25c7739a9189f9c25162e1f" title=" " alt="" coords="8,963,188,1003"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="248,985,188,985,188,980,248,980"/>
+</map>

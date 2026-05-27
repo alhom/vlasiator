@@ -1,0 +1,35 @@
+<map id="spatial_cells/block_adjust_wrapper.hpp" name="spatial_cells/block_adjust_wrapper.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1121,5,1277,45"/>
+<area shape="rect" id="Node000002" href="$da/d15/grid_8h.html" title=" " alt="" coords="1169,93,1228,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1201,59,1201,93,1196,93,1196,59"/>
+<area shape="rect" id="Node000003" href="$dd/d12/grid_glue_8cpp.html" title=" " alt="" coords="5,174,181,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1155,111,998,114,761,124,480,141,194,169,148,177,147,171,193,164,480,136,761,119,998,109,1155,105"/>
+<area shape="rect" id="Node000004" href="$d7/d70/grid_8cpp.html" title=" " alt="" coords="205,174,280,199"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="1156,111,728,128,476,145,371,157,293,169,269,177,268,171,291,164,371,151,476,140,728,123,1156,106"/>
+<area shape="rect" id="Node000005" href="$de/deb/ioread_8cpp.html" title=" " alt="" coords="304,174,395,199"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="1156,110,1028,111,842,119,626,136,515,151,407,169,381,176,379,171,406,164,514,145,625,131,842,113,1028,106,1156,104"/>
+<area shape="rect" id="Node000006" href="$da/daf/iowrite_8cpp.html" title=" " alt="" coords="419,174,514,199"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="1156,111,1045,114,888,123,708,141,526,169,499,177,497,171,525,164,707,135,888,118,1044,109,1155,105"/>
+<area shape="rect" id="Node000007" href="$da/d08/memory__report_8cpp.html" title=" " alt="" coords="538,174,689,199"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="1156,114,959,134,702,169,663,177,662,171,701,164,958,129,1155,109"/>
+<area shape="rect" id="Node000008" href="$da/df2/trans__test_8cpp.html" title=" " alt="" coords="713,167,884,207"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="1157,118,885,171,884,166,1156,113"/>
+<area shape="rect" id="Node000009" href="$d3/d2c/inflow_8cpp.html" title="Implementation of the class SysBoundaryCondition::Inflow. This serves as the base class for inherited..." alt="" coords="909,174,1083,199"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1158,126,1026,176,1025,171,1156,121"/>
+<area shape="rect" id="Node000010" href="$df/d1d/outflow_8cpp.html" title="Implementation of the class SysBoundaryCondition::Outflow to handle cells classified as sysboundaryty..." alt="" coords="1107,174,1290,199"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="1201,132,1201,174,1196,174,1196,132"/>
+<area shape="rect" id="Node000011" href="$d9/dd6/sysboundary_8cpp.html" title="Implementation of the class SysBoundary." alt="" coords="1314,174,1531,199"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="1242,120,1391,171,1389,176,1240,125"/>
+<area shape="rect" id="Node000012" href="$d4/d5b/vlasiator_8cpp.html" title=" " alt="" coords="1555,174,1661,199"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="1242,111,1378,131,1545,164,1572,171,1571,177,1543,169,1377,137,1241,116"/>
+<area shape="rect" id="Node000013" href="$db/df3/cpu__trans__map_8cpp.html" title=" " alt="" coords="1685,167,1857,207"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="1242,109,1430,130,1674,164,1685,166,1684,171,1673,169,1429,136,1241,114"/>
+<area shape="rect" id="Node000014" href="$da/d92/cpu__trans__map__amr_8cpp.html" title=" " alt="" coords="1881,167,2053,207"/>
+<area shape="poly" id="edge13_Node000002_Node000014" title=" " alt="" coords="1242,107,1508,125,1687,142,1870,164,1881,166,1880,171,1869,169,1687,147,1507,131,1242,112"/>
+<area shape="rect" id="Node000015" href="$d0/d80/cpu__trans__pencils_8cpp.html" title=" " alt="" coords="2077,167,2249,207"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="1242,106,1583,121,1822,138,2066,164,2077,166,2076,171,2065,169,1822,144,1583,126,1242,111"/>
+<area shape="rect" id="Node000016" href="$dd/d10/gpu__trans__map__amr_8cpp.html" title=" " alt="" coords="2273,167,2447,207"/>
+<area shape="poly" id="edge15_Node000002_Node000016" title=" " alt="" coords="1242,105,1407,108,1659,117,1957,135,2262,164,2273,166,2273,171,2261,169,1956,140,1658,122,1407,114,1242,110"/>
+<area shape="rect" id="Node000017" href="$d5/d5d/vlasovmover_8cpp.html" title=" " alt="" coords="2471,174,2691,199"/>
+<area shape="poly" id="edge16_Node000002_Node000017" title=" " alt="" coords="1241,105,1432,108,1732,117,2090,135,2459,164,2516,171,2515,177,2458,169,2090,140,1732,123,1432,114,1241,110"/>
+</map>

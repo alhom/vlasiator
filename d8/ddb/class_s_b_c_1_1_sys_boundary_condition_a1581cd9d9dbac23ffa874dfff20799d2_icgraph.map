@@ -1,0 +1,11 @@
+<map id="SBC::SysBoundaryCondition::setCellBVOLDerivativesToZero" name="SBC::SysBoundaryCondition::setCellBVOLDerivativesToZero">
+<area shape="rect" id="Node000001" title=" " alt="" coords="280,101,509,141"/>
+<area shape="rect" id="Node000002" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#a46fdc70797be713393cbf5c6d7cd3cf9" title=" " alt="" coords="5,5,232,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,99,231,60,194,48,195,43,233,55,335,94"/>
+<area shape="rect" id="Node000003" href="$de/d6a/class_s_b_c_1_1_inflow.html#a7313a490206ac141b768b4e7fca74ba0" title=" " alt="" coords="5,69,232,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,109,232,105,233,100,267,104"/>
+<area shape="rect" id="Node000004" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a3eccb4e9407c61c5e6849baac9d7b120" title=" " alt="" coords="5,133,232,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="267,139,233,143,232,138,266,134"/>
+<area shape="rect" id="Node000005" href="$d5/d71/class_s_b_c_1_1_outflow.html#afdf8047f24709a54f76bf0d385952cdd" title=" " alt="" coords="5,197,232,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="335,149,233,188,195,200,194,195,231,183,333,144"/>
+</map>

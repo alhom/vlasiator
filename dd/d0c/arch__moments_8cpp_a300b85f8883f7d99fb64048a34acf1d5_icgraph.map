@@ -1,0 +1,42 @@
+<map id="calculateCellMoments" name="calculateCellMoments">
+<area shape="rect" id="Node000001" title=" " alt="" coords="919,255,1085,281"/>
+<area shape="rect" id="Node000002" href="$d5/d5d/vlasovmover_8cpp.html#a96670c2221f80397fea84660fb97ff40" title="Compute 0th, 1st and 2nd velocity moments (RHO,VX,VY,VZ,P_11,P_22,P_33 and *_DT2) for all cells in th..." alt="" coords="403,427,573,467"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="988,294,942,355,910,386,872,410,835,426,797,438,717,453,641,458,574,457,574,452,641,453,717,448,795,433,833,421,869,406,906,381,938,351,984,291"/>
+<area shape="rect" id="Node000003" href="$d7/d70/grid_8cpp.html#a1787e9ee97555055ad3dc0587e460344" title="Initialize DCCRG and fsgrids." alt="" coords="235,219,347,245"/>
+<area shape="poly" id="edge14_Node000001_Node000003" title=" " alt="" coords="981,293,934,333,904,352,872,367,826,378,767,386,631,391,560,389,495,382,438,371,393,356,359,332,331,302,296,246,301,244,335,298,363,328,396,351,439,366,495,377,561,383,631,386,767,380,825,372,870,361,901,347,931,329,978,289"/>
+<area shape="rect" id="Node000006" href="$db/d19/classprojects_1_1_project.html#af44d068807a3bc0122e4b2615d9272a7" title="Boxcar filters spatial cells that were recently refined." alt="" coords="683,69,817,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="983,245,937,185,905,152,869,125,844,112,817,103,819,98,846,107,872,120,909,148,941,181,988,242"/>
+<area shape="rect" id="Node000008" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#a489a1683d7537fb427aafbb3528387b5" title=" " alt="" coords="651,5,849,45"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="990,244,973,203,947,153,913,102,892,79,869,60,848,47,851,43,872,55,896,76,917,99,952,150,978,201,995,242"/>
+<area shape="rect" id="Node000010" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a66dd6c8d7e5b91522b6b05c51910d982" title=" " alt="" coords="653,184,847,224"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="937,254,829,227,830,222,938,249"/>
+<area shape="rect" id="Node000012" href="$da/ddf/class_s_b_c_1_1_maxwellian.html#a833c7cf658faf049300eec716cc4b8c7" title="Generate the template cell for the face corresponding to the index passed. This function generates a ..." alt="" coords="651,312,849,352"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="938,287,830,314,829,309,937,282"/>
+<area shape="rect" id="Node000013" href="$db/d19/classprojects_1_1_project.html#afb2a412ae6cedce4e914650ea35b8f42" title="Set the perturbed fields and distribution of a cell according to the default simulation settings...." alt="" coords="683,248,817,288"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="905,271,817,271,817,265,905,265"/>
+<area shape="rect" id="Node000015" href="$d7/d70/grid_8cpp.html#ab889fc28d268ff8b7f32654247817acb" title=" " alt="" coords="691,134,809,159"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="976,248,929,210,870,174,839,164,808,156,809,151,841,158,872,170,932,205,979,244"/>
+<area shape="rect" id="Node000017" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#ac904b9ee61069aa1314aa2b638a2f4e9" title=" " alt="" coords="629,477,871,517"/>
+<area shape="poly" id="edge23_Node000001_Node000017" title=" " alt="" coords="992,295,974,332,948,376,914,422,872,461,838,480,836,475,869,457,910,418,943,373,970,329,988,292"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,422,393,410,356,369,327,322,306,278,294,246,299,244,311,276,332,319,360,365,396,406,413,418"/>
+<area shape="rect" id="Node000004" href="$d4/d5b/vlasiator_8cpp.html#acfd343080edd07ae79384688a7e48693" title=" " alt="" coords="108,138,187,163"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="254,215,170,166,172,161,257,210"/>
+<area shape="rect" id="Node000005" href="$d4/d5b/vlasiator_8cpp.html#a54790573f350e250ccca3cbb94733391" title=" " alt="" coords="5,138,60,163"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="94,153,60,153,60,148,94,148"/>
+<area shape="rect" id="Node000007" href="$d7/d70/grid_8cpp.html#a333de5e10ce6bf9d4e75b2cdfb4a5c22" title=" " alt="" coords="421,87,555,113"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="669,95,556,100,556,95,669,90"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="411,120,396,128,366,149,340,175,303,221,299,217,336,171,363,145,393,123,409,115"/>
+<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="407,110,235,133,188,143,186,138,234,128,407,105"/>
+<area shape="rect" id="Node000009" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#ab4651d3096619878a02f39f1dce1b97f" title=" " alt="" coords="395,5,581,45"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="637,28,581,28,581,23,637,23"/>
+<area shape="rect" id="Node000011" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a0693f4fad25c7739a9189f9c25162e1f" title=" " alt="" coords="398,187,578,227"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="639,208,578,208,578,203,639,202"/>
+<area shape="poly" id="edge17_Node000013_Node000003" title=" " alt="" coords="668,264,346,239,347,234,669,259"/>
+<area shape="rect" id="Node000014" href="$d5/d71/class_s_b_c_1_1_outflow.html#ab81fa2d4bc924e1b8406ae4e83b8365b" title=" " alt="" coords="395,301,581,341"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="670,287,582,305,581,300,669,282"/>
+<area shape="poly" id="edge19_Node000015_Node000007" title=" " alt="" coords="677,136,555,115,556,109,678,131"/>
+<area shape="rect" id="Node000016" href="$d7/d70/grid_8cpp.html#a874a66df2ab86fe718f89ca7dbe8efb6" title="Balance load." alt="" coords="436,137,540,162"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="677,150,540,151,540,146,677,145"/>
+<area shape="poly" id="edge21_Node000016_Node000003" title=" " alt="" coords="424,167,396,177,350,199,313,222,310,217,348,195,394,172,422,162"/>
+<area shape="poly" id="edge22_Node000016_Node000004" title=" " alt="" coords="422,152,187,153,187,148,422,147"/>
+</map>

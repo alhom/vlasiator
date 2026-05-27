@@ -1,0 +1,15 @@
+<map id="SBC::findMaxwellianBlocksToInitialize" name="SBC::findMaxwellianBlocksToInitialize">
+<area shape="rect" id="Node000001" title="SBC::findMaxwellianBlocksToInitialize returns a list of blocks to construct the VDF with." alt="" coords="528,101,727,141"/>
+<area shape="rect" id="Node000002" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#a489a1683d7537fb427aafbb3528387b5" title=" " alt="" coords="260,5,459,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="571,98,479,60,441,48,443,43,481,55,573,93"/>
+<area shape="rect" id="Node000004" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a66dd6c8d7e5b91522b6b05c51910d982" title=" " alt="" coords="262,69,457,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="514,111,457,104,457,98,515,105"/>
+<area shape="rect" id="Node000006" href="$da/ddf/class_s_b_c_1_1_maxwellian.html#a833c7cf658faf049300eec716cc4b8c7" title="Generate the template cell for the face corresponding to the index passed. This function generates a ..." alt="" coords="261,133,458,173"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="515,137,459,144,458,139,514,132"/>
+<area shape="rect" id="Node000007" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#ac904b9ee61069aa1314aa2b638a2f4e9" title=" " alt="" coords="239,197,480,237"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="573,150,481,188,443,200,441,195,479,183,571,145"/>
+<area shape="rect" id="Node000003" href="$dd/d8a/class_s_b_c_1_1_copysphere.html#ab4651d3096619878a02f39f1dce1b97f" title=" " alt="" coords="5,5,191,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="246,28,191,28,191,23,246,23"/>
+<area shape="rect" id="Node000005" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a0693f4fad25c7739a9189f9c25162e1f" title=" " alt="" coords="8,69,188,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="248,92,188,92,188,87,248,87"/>
+</map>

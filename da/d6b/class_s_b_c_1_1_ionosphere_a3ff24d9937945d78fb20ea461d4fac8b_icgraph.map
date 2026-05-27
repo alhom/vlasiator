@@ -1,0 +1,9 @@
+<map id="SBC::Ionosphere::getIndex" name="SBC::Ionosphere::getIndex">
+<area shape="rect" id="Node000001" title=" " alt="" coords="483,45,676,70"/>
+<area shape="rect" id="Node000002" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#afa36af2c7e177ffa619a59f87bfdfa32" title=" " alt="" coords="233,5,435,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="469,46,434,41,435,36,469,40"/>
+<area shape="rect" id="Node000003" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a66dd6c8d7e5b91522b6b05c51910d982" title=" " alt="" coords="237,69,431,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="469,74,432,79,431,74,469,69"/>
+<area shape="rect" id="Node000004" href="$da/d6b/class_s_b_c_1_1_ionosphere.html#a0693f4fad25c7739a9189f9c25162e1f" title=" " alt="" coords="5,69,185,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,92,185,92,185,87,223,87"/>
+</map>

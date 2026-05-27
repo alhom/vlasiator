@@ -1,0 +1,23 @@
+<map id="calculateEdgeElectricFieldY" name="calculateEdgeElectricFieldY">
+<area shape="rect" id="Node000001" title="Low&#45;level electric field propagation function." alt="" coords="5,78,205,103"/>
+<area shape="rect" id="Node000002" href="$df/dd2/ldz__electric__field_8cpp.html#abedaf61b47c565113e4351a33906649f" title="Low&#45;level helper function." alt="" coords="271,27,410,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,75,267,53,268,58,166,81"/>
+<area shape="rect" id="Node000003" href="$d8/dbc/vectorclass__fallback_8h.html#a92b2075c51472d120e4ef0a663e3814b" title=" " alt="" coords="514,27,565,53"/>
+<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="123,76,179,42,215,25,253,12,321,3,389,6,452,15,501,27,500,32,451,21,389,11,321,9,254,17,217,30,181,46,126,80"/>
+<area shape="rect" id="Node000006" href="$de/d31/_dispersion_8m.html#af276a2aede715061015c735080cf65df" title=" " alt="" coords="516,78,563,103"/>
+<area shape="poly" id="edge12_Node000001_Node000006" title=" " alt="" coords="206,88,502,88,502,93,206,93"/>
+<area shape="rect" id="Node000007" href="$df/dd2/ldz__electric__field_8cpp.html#aa0dfeb5fa074ab35e1d5ad77ce389460" title="Low&#45;level helper function." alt="" coords="253,129,428,154"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="166,101,268,123,267,129,165,106"/>
+<area shape="rect" id="Node000009" href="$d8/dbc/vectorclass__fallback_8h.html#a1896c5fbdb17de74189d1d18cdd4cf29" title=" " alt="" coords="317,178,364,203"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="129,101,185,132,254,164,305,180,303,185,252,169,182,137,127,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,37,500,37,500,43,410,43"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="392,50,503,79,502,84,391,56"/>
+<area shape="rect" id="Node000004" href="$d7/d8b/class_vec_simple.html#a145923009b9b82410c5a072b8f8127f0" title=" " alt="" coords="651,103,785,129"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="566,47,604,63,677,95,675,100,602,68,564,52"/>
+<area shape="rect" id="Node000005" href="$d7/d8b/class_vec_simple.html#ae16798cf2ee14257d0706c60613cd733" title=" " alt="" coords="833,103,1000,129"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="786,113,820,113,820,119,786,119"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="391,126,502,97,503,103,392,131"/>
+<area shape="rect" id="Node000008" href="$d4/d24/fs__common_8cpp.html#a3959a03cdb34ae89650ec5dd57948787" title="Helper function." alt="" coords="476,127,603,153"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="429,138,462,138,462,143,429,144"/>
+<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="364,188,468,184,535,176,602,163,643,149,680,133,682,137,645,154,603,168,536,181,468,189,364,194"/>
+</map>

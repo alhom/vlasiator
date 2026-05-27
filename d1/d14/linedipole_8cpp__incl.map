@@ -1,0 +1,39 @@
+<map id="backgroundfield/linedipole.cpp" name="backgroundfield/linedipole.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,5,302,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,76,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,33,79,75,77,70,166,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="100,79,168,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,33,154,70,150,66,180,29"/>
+<area shape="rect" id="Node000004" href="$dc/d89/linedipole_8hpp.html" title=" " alt="" coords="193,79,307,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,29,234,67,230,70,199,33"/>
+<area shape="rect" id="Node000013" href="$dc/d54/common_8h.html" title=" " alt="" coords="448,225,551,251"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="223,28,270,49,321,76,368,111,413,148,481,213,477,217,409,152,365,115,318,81,268,53,221,33"/>
+<area shape="rect" id="Node000005" href="$de/dea/fieldfunction_8hpp.html" title=" " alt="" coords="147,152,278,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="246,106,227,141,223,139,241,103"/>
+<area shape="rect" id="Node000006" href="$db/d1a/functions_8hpp.html" title=" " alt="" coords="157,225,268,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="215,178,215,212,210,212,210,178"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="51,299,137,324"/>
+<area shape="poly" id="edge12_Node000005_Node000007" title=" " alt="" coords="199,180,173,201,147,227,125,258,108,288,103,285,120,255,143,224,169,197,195,175"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="293,225,373,251"/>
+<area shape="poly" id="edge10_Node000005_Node000011" title=" " alt="" coords="233,175,302,216,300,220,231,180"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="16,225,81,251"/>
+<area shape="poly" id="edge11_Node000005_Node000012" title=" " alt="" coords="187,180,89,222,87,217,185,175"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="195,253,127,294,124,289,192,248"/>
+<area shape="rect" id="Node000008" href="$d6/dc2/definitions_8h.html" title=" " alt="" coords="357,299,471,324"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="246,248,369,291,368,297,244,253"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="361,372,432,397"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="414,325,405,360,400,358,409,324"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="509,372,567,397"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="435,322,507,363,505,367,433,326"/>
+<area shape="poly" id="edge17_Node000013_Node000008" title=" " alt="" coords="487,253,440,292,437,288,484,249"/>
+<area shape="poly" id="edge14_Node000013_Node000010" title=" " alt="" coords="522,249,547,269,568,298,572,314,570,331,557,361,552,359,565,330,567,315,564,300,543,273,518,253"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="495,299,554,324"/>
+<area shape="poly" id="edge15_Node000013_Node000014" title=" " alt="" coords="506,250,519,285,514,287,501,252"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="629,299,692,324"/>
+<area shape="poly" id="edge16_Node000013_Node000015" title=" " alt="" coords="526,248,623,291,621,295,524,253"/>
+<area shape="rect" id="Node000016" href="$dc/d9d/arch__device__api_8h.html" title=" " alt="" coords="162,299,333,324"/>
+<area shape="poly" id="edge18_Node000013_Node000016" title=" " alt="" coords="460,253,302,297,301,292,458,248"/>
+<area shape="poly" id="edge19_Node000016_Node000009" title=" " alt="" coords="272,322,361,364,359,368,270,326"/>
+<area shape="rect" id="Node000017" href="$d9/d13/arch__device__host_8h.html" title=" " alt="" coords="174,372,321,397"/>
+<area shape="poly" id="edge20_Node000016_Node000017" title=" " alt="" coords="250,324,250,358,245,358,245,324"/>
+</map>

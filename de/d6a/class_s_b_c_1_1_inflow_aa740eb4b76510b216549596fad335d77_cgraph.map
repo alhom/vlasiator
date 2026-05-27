@@ -1,0 +1,7 @@
+<map id="SBC::Inflow::setBFromTemplate" name="SBC::Inflow::setBFromTemplate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,229,60"/>
+<area shape="rect" id="Node000002" href="$d9/df9/common_8cpp.html#a3ccffabea3435cf184592d88e6a470c8" title=" " alt="" coords="335,5,423,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,32,321,22,321,27,230,37"/>
+<area shape="rect" id="Node000003" href="$d8/ddb/class_s_b_c_1_1_sys_boundary_condition.html#ad221370a8ea49706dc7cf74ec6a07d9f" title="Function used to determine on which face(s) if any the cell at given coordinates is." alt="" coords="277,55,480,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,57,264,60,263,66,229,62"/>
+</map>

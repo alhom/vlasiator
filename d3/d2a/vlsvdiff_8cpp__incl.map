@@ -1,0 +1,54 @@
+<map id="tools/vlsvdiff.cpp" name="tools/vlsvdiff.cpp">
+<area shape="rect" id="Node000001" title="File containing write IO for vlasiator. More info at: https://agora.fmi.fi/display/CORSAIR/VLSV+File+..." alt="" coords="832,5,965,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,91,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="832,24,522,40,316,57,105,81,104,76,316,52,521,35,832,19"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="115,79,178,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="832,24,556,39,376,56,192,81,191,76,376,50,555,33,832,18"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="202,79,267,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="832,25,593,42,440,59,282,81,281,76,439,53,593,37,832,20"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="292,79,359,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="832,27,630,45,504,61,373,81,372,76,503,56,630,40,832,21"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="383,79,455,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="832,29,670,49,468,81,468,76,670,44,831,24"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="479,79,566,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="836,33,580,81,579,76,835,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="591,79,665,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="856,33,679,79,678,74,855,28"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="689,79,769,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="872,33,771,76,769,71,870,28"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="971,152,1029,177"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="880,33,859,47,840,65,830,84,830,93,834,102,859,127,891,143,925,153,957,159,956,164,924,159,889,148,856,131,830,106,825,94,825,83,836,62,856,43,877,29"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="844,79,887,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="896,32,879,67,874,65,891,30"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="911,79,953,104"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="907,30,923,65,918,67,902,32"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="977,79,1052,104"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="919,28,985,69,983,74,916,33"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1173,152,1243,177"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="966,20,1081,27,1213,39,1327,55,1366,65,1387,77,1397,94,1394,110,1381,123,1362,134,1311,150,1257,160,1256,155,1309,145,1360,129,1378,119,1389,108,1392,95,1383,81,1364,70,1326,60,1213,44,1081,33,965,25"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="1215,79,1273,104"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="965,28,1202,76,1201,81,964,33"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1298,79,1374,104"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="966,26,1108,46,1285,76,1284,81,1108,52,965,31"/>
+<area shape="rect" id="Node000017" href="$d6/dc2/definitions_8h.html" title=" " alt="" coords="1076,79,1191,104"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="937,28,1083,72,1082,77,936,33"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="1375,152,1484,177"/>
+<area shape="poly" id="edge19_Node000001_Node000018" title=" " alt="" coords="966,20,1225,40,1345,56,1387,66,1411,77,1422,90,1429,106,1433,138,1428,139,1423,108,1417,93,1408,81,1385,71,1344,61,1224,45,966,26"/>
+<area shape="rect" id="Node000019" href="$dd/d03/vlsvreaderinterface_8h.html" title=" " alt="" coords="1501,79,1662,104"/>
+<area shape="poly" id="edge20_Node000001_Node000019" title=" " alt="" coords="966,23,1482,76,1488,77,1487,82,1481,81,965,29"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="1686,79,1791,104"/>
+<area shape="poly" id="edge26_Node000001_Node000024" title=" " alt="" coords="966,20,1268,38,1467,54,1673,76,1672,81,1467,60,1267,43,966,25"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="1815,79,1902,104"/>
+<area shape="poly" id="edge27_Node000001_Node000025" title=" " alt="" coords="966,18,1319,33,1557,50,1802,76,1801,81,1557,55,1319,38,966,23"/>
+<area shape="poly" id="edge18_Node000017_Node000010" title=" " alt="" coords="1113,106,1035,148,1033,143,1111,102"/>
+<area shape="poly" id="edge17_Node000017_Node000014" title=" " alt="" coords="1147,102,1188,141,1184,144,1143,106"/>
+<area shape="poly" id="edge25_Node000019_Node000018" title=" " alt="" coords="1558,106,1467,149,1465,144,1556,102"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="1588,152,1639,177"/>
+<area shape="poly" id="edge21_Node000019_Node000020" title=" " alt="" coords="1589,103,1605,139,1600,141,1584,105"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="1663,152,1726,177"/>
+<area shape="poly" id="edge22_Node000019_Node000021" title=" " alt="" coords="1601,102,1666,142,1663,147,1598,106"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="1750,152,1874,177"/>
+<area shape="poly" id="edge23_Node000019_Node000022" title=" " alt="" coords="1619,101,1763,145,1761,151,1618,107"/>
+<area shape="rect" id="Node000023" title=" " alt="" coords="1508,152,1564,177"/>
+<area shape="poly" id="edge24_Node000019_Node000023" title=" " alt="" coords="1576,106,1553,142,1548,139,1572,103"/>
+</map>

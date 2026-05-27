@@ -1,0 +1,27 @@
+<map id="SBC::SysBoundaryCondition::determineFace" name="SBC::SysBoundaryCondition::determineFace">
+<area shape="rect" id="Node000001" title="Function used to determine on which face(s) if any the cell at given coordinates is." alt="" coords="523,235,725,275"/>
+<area shape="rect" id="Node000002" href="$d5/d71/class_s_b_c_1_1_outflow.html#ab81fa2d4bc924e1b8406ae4e83b8365b" title=" " alt="" coords="261,5,448,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="605,224,583,185,554,141,517,97,473,60,447,46,449,41,476,55,521,93,558,138,588,183,610,221"/>
+<area shape="rect" id="Node000003" href="$de/d6a/class_s_b_c_1_1_inflow.html#aacf8d416158c6f6026f60ee4ea02931b" title=" " alt="" coords="240,70,469,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="598,226,546,166,511,136,473,110,443,98,445,93,476,106,515,131,549,162,602,222"/>
+<area shape="rect" id="Node000004" href="$d2/d68/class_s_b_c_1_1_outer_boundary_condition.html#a73b02cdd2fe51ebf6c4ce9e798ee6b67" title=" " alt="" coords="247,120,463,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="579,230,529,201,474,174,440,163,441,158,476,170,532,196,582,225"/>
+<area shape="rect" id="Node000005" href="$d5/d71/class_s_b_c_1_1_outflow.html#ad66110d4d11cbe99a0693d5abcdb32eb" title=" " alt="" coords="235,185,475,210"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="517,234,474,225,415,213,416,207,475,220,518,229"/>
+<area shape="rect" id="Node000006" href="$de/d6a/class_s_b_c_1_1_inflow.html#a6a0232305dffe1a134e5d205763382d7" title=" " alt="" coords="251,235,459,275"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="509,257,459,257,459,252,509,252"/>
+<area shape="rect" id="Node000007" href="$de/d6a/class_s_b_c_1_1_inflow.html#aa740eb4b76510b216549596fad335d77" title=" " alt="" coords="243,363,467,389"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="589,285,537,321,476,353,437,366,435,361,474,348,534,316,586,281"/>
+<area shape="rect" id="Node000010" href="$de/d6a/class_s_b_c_1_1_inflow.html#aa7d9968f464d39490fb18f03f298d2d9" title=" " alt="" coords="261,299,448,339"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="526,281,440,301,439,296,525,275"/>
+<area shape="rect" id="Node000011" href="$d5/d71/class_s_b_c_1_1_outflow.html#a588e93aff17a561cc0705e806102b3eb" title=" " alt="" coords="247,413,462,453"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="602,287,549,347,514,377,476,404,450,416,448,411,473,399,511,373,545,343,598,284"/>
+<area shape="rect" id="Node000012" href="$d5/d71/class_s_b_c_1_1_outflow.html#a4f96a3d49d78299422d68a9b890d1763" title=" " alt="" coords="245,477,464,517"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="611,289,590,330,560,378,522,427,476,468,455,479,452,475,473,463,518,423,556,375,585,327,606,286"/>
+<area shape="rect" id="Node000008" href="$de/d6a/class_s_b_c_1_1_inflow.html#a2a8ce464187a3121ee26a69a2da7413b" title=" " alt="" coords="9,299,183,339"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="279,363,234,353,182,341,183,336,235,348,280,358"/>
+<area shape="rect" id="Node000009" href="$de/d6a/class_s_b_c_1_1_inflow.html#a816e0e82f5ba04e983b234591a5ba4ba" title=" " alt="" coords="5,363,187,389"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="229,379,187,379,187,373,229,373"/>
+<area shape="poly" id="edge10_Node000010_Node000008" title=" " alt="" coords="247,321,183,321,183,316,247,316"/>
+<area shape="poly" id="edge11_Node000010_Node000009" title=" " alt="" coords="251,344,155,366,153,361,250,339"/>
+</map>

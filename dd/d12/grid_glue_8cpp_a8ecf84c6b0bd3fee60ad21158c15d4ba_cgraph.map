@@ -1,0 +1,11 @@
+<map id="copyMomentFromClosestSimCell" name="copyMomentFromClosestSimCell">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,244,56"/>
+<area shape="rect" id="Node000002" href="$d9/df9/common_8cpp.html#a3ccffabea3435cf184592d88e6a470c8" title=" " alt="" coords="292,5,380,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,28,278,22,279,28,231,33"/>
+<area shape="rect" id="Node000003" href="$d8/dbc/vectorclass__fallback_8h.html#a1896c5fbdb17de74189d1d18cdd4cf29" title=" " alt="" coords="313,55,359,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,53,299,61,299,66,236,59"/>
+<area shape="rect" id="Node000004" href="$d7/d8b/class_vec_simple.html#a145923009b9b82410c5a072b8f8127f0" title=" " alt="" coords="428,55,563,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="359,65,414,65,414,70,359,70"/>
+<area shape="rect" id="Node000005" href="$d7/d8b/class_vec_simple.html#ae16798cf2ee14257d0706c60613cd733" title=" " alt="" coords="611,55,777,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="563,65,597,65,597,70,563,70"/>
+</map>

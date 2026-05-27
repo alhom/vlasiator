@@ -1,0 +1,11 @@
+<map id="calculateCflSpeed" name="calculateCflSpeed">
+<area shape="rect" id="Node000001" title="Low&#45;level helper function." alt="" coords="5,31,144,56"/>
+<area shape="rect" id="Node000002" href="$d8/dbc/vectorclass__fallback_8h.html#a92b2075c51472d120e4ef0a663e3814b" title=" " alt="" coords="192,5,243,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,28,178,22,179,27,145,34"/>
+<area shape="rect" id="Node000005" href="$de/d31/_dispersion_8m.html#af276a2aede715061015c735080cf65df" title=" " alt="" coords="194,55,241,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="145,52,181,59,180,64,144,58"/>
+<area shape="rect" id="Node000003" href="$d7/d8b/class_vec_simple.html#a145923009b9b82410c5a072b8f8127f0" title=" " alt="" coords="291,5,425,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="243,15,277,15,277,21,243,21"/>
+<area shape="rect" id="Node000004" href="$d7/d8b/class_vec_simple.html#ae16798cf2ee14257d0706c60613cd733" title=" " alt="" coords="473,5,640,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="426,15,460,15,460,21,426,21"/>
+</map>

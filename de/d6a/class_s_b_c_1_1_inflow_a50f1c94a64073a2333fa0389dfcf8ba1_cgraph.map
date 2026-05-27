@@ -1,0 +1,5 @@
+<map id="SBC::Inflow::generateTemplateCells" name="SBC::Inflow::generateTemplateCells">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,45"/>
+<area shape="rect" id="Node000002" href="$de/d6a/class_s_b_c_1_1_inflow.html#a72ba6dcc15e75238ceeeaaad31e1adfe" title=" " alt="" coords="273,13,519,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,23,260,23,260,28,225,28"/>
+</map>

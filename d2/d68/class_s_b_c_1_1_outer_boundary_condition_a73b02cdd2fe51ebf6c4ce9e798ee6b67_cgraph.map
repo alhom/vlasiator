@@ -1,0 +1,9 @@
+<map id="SBC::OuterBoundaryCondition::assignSysBoundary" name="SBC::OuterBoundaryCondition::assignSysBoundary">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,221,109"/>
+<area shape="rect" id="Node000002" href="$d8/ddb/class_s_b_c_1_1_sys_boundary_condition.html#ad221370a8ea49706dc7cf74ec6a07d9f" title="Function used to determine on which face(s) if any the cell at given coordinates is." alt="" coords="269,5,472,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,67,276,46,277,51,195,72"/>
+<area shape="rect" id="Node000003" href="$d8/ddb/class_s_b_c_1_1_sys_boundary_condition.html#a4d21bac3207da2db415f9b0a6f6c9dc6" title=" " alt="" coords="269,69,472,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,87,256,87,256,92,222,92"/>
+<area shape="rect" id="Node000004" href="$d4/d5b/vlasiator_8cpp.html#a0e89e9e9c29d929027088b0a8dd56585" title=" " alt="" coords="316,134,425,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="204,107,304,129,302,134,203,112"/>
+</map>

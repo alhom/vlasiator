@@ -1,0 +1,11 @@
+<map id="calculateEdgeHallTermYComponents" name="calculateEdgeHallTermYComponents">
+<area shape="rect" id="Node000001" title="Low&#45;level function computing the Hall term numerator y components." alt="" coords="5,80,265,105"/>
+<area shape="rect" id="Node000002" href="$d0/dd7/ldz__hall_8cpp.html#aa58a45d8d38843e52ea7f355b7076747" title="Low&#45;level Hall component computation." alt="" coords="313,5,427,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,77,315,32,317,37,177,82"/>
+<area shape="rect" id="Node000003" href="$d0/dd7/ldz__hall_8cpp.html#a392835fc9f3509ca85dbc9a5bc65ff65" title="Low&#45;level Hall component computation." alt="" coords="313,55,427,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,77,299,72,300,78,253,83"/>
+<area shape="rect" id="Node000004" href="$d0/dd7/ldz__hall_8cpp.html#a644f20615d72ee20477331298d78fd5f" title="Low&#45;level Hall component computation." alt="" coords="313,104,427,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="259,103,300,107,299,112,259,108"/>
+<area shape="rect" id="Node000005" href="$d0/dd7/ldz__hall_8cpp.html#a4874d7f162904a8308b67e735090edf2" title="Low&#45;level Hall component computation." alt="" coords="313,153,427,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,103,316,147,314,152,176,108"/>
+</map>

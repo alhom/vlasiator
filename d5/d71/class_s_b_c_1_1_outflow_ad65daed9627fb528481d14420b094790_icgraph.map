@@ -1,0 +1,9 @@
+<map id="SBC::Outflow::getIndex" name="SBC::Outflow::getIndex">
+<area shape="rect" id="Node000001" title=" " alt="" coords="293,63,464,88"/>
+<area shape="rect" id="Node000002" href="$d5/d71/class_s_b_c_1_1_outflow.html#ad66110d4d11cbe99a0693d5abcdb32eb" title=" " alt="" coords="5,5,245,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="312,62,245,46,187,33,188,28,246,41,314,57"/>
+<area shape="rect" id="Node000003" href="$d5/d71/class_s_b_c_1_1_outflow.html#a588e93aff17a561cc0705e806102b3eb" title=" " alt="" coords="18,55,233,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,78,233,78,233,73,280,73"/>
+<area shape="rect" id="Node000004" href="$d5/d71/class_s_b_c_1_1_outflow.html#a4f96a3d49d78299422d68a9b890d1763" title=" " alt="" coords="16,119,235,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="315,94,206,122,205,117,313,89"/>
+</map>

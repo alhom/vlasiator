@@ -1,0 +1,13 @@
+<map id="SBC::Outflow::fieldSolverBoundaryCondMagneticField" name="SBC::Outflow::fieldSolverBoundaryCondMagneticField">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,213,63"/>
+<area shape="rect" id="Node000002" href="$d8/ddb/class_s_b_c_1_1_sys_boundary_condition.html#a10d7ae9d4db954aba7d7c76eef05d7f8" title=" " alt="" coords="261,16,496,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,41,247,41,247,46,213,46"/>
+<area shape="rect" id="Node000003" href="$d9/df9/common_8cpp.html#a3ccffabea3435cf184592d88e6a470c8" title=" " alt="" coords="544,5,632,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="496,26,530,22,530,28,496,32"/>
+<area shape="rect" id="Node000004" href="$d8/dbc/vectorclass__fallback_8h.html#a1896c5fbdb17de74189d1d18cdd4cf29" title=" " alt="" coords="565,55,611,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="496,54,552,61,551,66,496,59"/>
+<area shape="rect" id="Node000005" href="$d7/d8b/class_vec_simple.html#a145923009b9b82410c5a072b8f8127f0" title=" " alt="" coords="680,55,815,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="611,65,666,65,666,70,611,70"/>
+<area shape="rect" id="Node000006" href="$d7/d8b/class_vec_simple.html#ae16798cf2ee14257d0706c60613cd733" title=" " alt="" coords="863,55,1029,80"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="815,65,849,65,849,70,815,70"/>
+</map>

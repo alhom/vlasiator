@@ -1,0 +1,53 @@
+<map id="calculateUpwindedElectricFieldSimple" name="calculateUpwindedElectricFieldSimple">
+<area shape="rect" id="Node000001" title="High&#45;level electric field computation function." alt="" coords="5,359,200,399"/>
+<area shape="rect" id="Node000002" href="$df/dd2/ldz__electric__field_8cpp.html#a499ea7ad7eee3d88c694caf6942537c4" title="Electric field propagation function." alt="" coords="248,367,408,392"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,377,234,377,234,382,200,382"/>
+<area shape="rect" id="Node000003" href="$df/dd2/ldz__electric__field_8cpp.html#a57cd880d9d8671f7e84b1102836ec0cf" title="Low&#45;level electric field propagation function." alt="" coords="492,173,693,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,365,562,205,565,209,348,369"/>
+<area shape="rect" id="Node000012" href="$df/dd2/ldz__electric__field_8cpp.html#aecbbbf19c674c3a1e1e1529ea9374ea6" title="Low&#45;level electric field propagation function." alt="" coords="493,299,693,324"/>
+<area shape="poly" id="edge15_Node000002_Node000012" title=" " alt="" coords="378,364,528,325,530,330,379,369"/>
+<area shape="rect" id="Node000014" href="$df/dd2/ldz__electric__field_8cpp.html#a77eb3605f447b90c9e1ec6ba6915583d" title="Low&#45;level electric field propagation function." alt="" coords="492,367,693,392"/>
+<area shape="poly" id="edge23_Node000002_Node000014" title=" " alt="" coords="408,377,478,377,478,382,408,382"/>
+<area shape="rect" id="Node000016" href="$d8/ddb/class_s_b_c_1_1_sys_boundary_condition.html#a386433f30c3fea1da6b6e58322ae6140" title=" " alt="" coords="456,417,729,457"/>
+<area shape="poly" id="edge31_Node000002_Node000016" title=" " alt="" coords="388,390,487,411,486,416,387,395"/>
+<area shape="rect" id="Node000017" href="$dd/d3d/class_sys_boundary.html#a421b3fcc380523724e054d0b2778f3cf" title=" " alt="" coords="483,499,703,524"/>
+<area shape="poly" id="edge32_Node000002_Node000017" title=" " alt="" coords="346,390,394,427,457,466,526,492,524,497,455,471,391,432,343,395"/>
+<area shape="rect" id="Node000004" href="$df/dd2/ldz__electric__field_8cpp.html#abedaf61b47c565113e4351a33906649f" title="Low&#45;level helper function." alt="" coords="795,135,934,160"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="682,171,781,157,782,162,683,176"/>
+<area shape="rect" id="Node000005" href="$d8/dbc/vectorclass__fallback_8h.html#a92b2075c51472d120e4ef0a663e3814b" title=" " alt="" coords="1038,135,1089,160"/>
+<area shape="poly" id="edge11_Node000003_Node000005" title=" " alt="" coords="601,172,627,139,667,98,718,56,746,39,776,25,825,9,865,3,906,8,953,25,985,44,1012,70,1050,121,1046,124,1008,73,982,49,951,30,904,13,865,8,826,14,778,30,749,43,721,61,671,102,631,143,605,175"/>
+<area shape="rect" id="Node000008" href="$de/d31/_dispersion_8m.html#af276a2aede715061015c735080cf65df" title=" " alt="" coords="1040,287,1087,312"/>
+<area shape="poly" id="edge14_Node000003_Node000008" title=" " alt="" coords="614,171,675,140,716,123,762,109,810,99,859,96,908,102,953,120,979,145,1007,186,1053,273,1048,276,1002,189,975,148,951,124,906,107,859,101,811,104,763,114,718,128,677,145,617,176"/>
+<area shape="rect" id="Node000009" href="$df/dd2/ldz__electric__field_8cpp.html#a9ce5af0866fe0835fa99757c2d2b97b2" title="Low&#45;level helper function." alt="" coords="777,287,952,312"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="625,196,822,279,820,284,623,201"/>
+<area shape="rect" id="Node000011" href="$d8/dbc/vectorclass__fallback_8h.html#a1896c5fbdb17de74189d1d18cdd4cf29" title=" " alt="" coords="841,385,888,411"/>
+<area shape="poly" id="edge12_Node000003_Node000011" title=" " alt="" coords="618,197,673,232,704,257,731,284,747,309,754,331,762,351,779,371,803,384,829,391,827,397,801,389,776,375,757,354,749,332,742,311,727,288,700,261,670,237,615,201"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="934,145,1024,145,1024,150,934,150"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="914,158,953,177,982,200,1008,226,1048,274,1044,277,1004,229,979,204,951,182,911,163"/>
+<area shape="rect" id="Node000006" href="$d7/d8b/class_vec_simple.html#a145923009b9b82410c5a072b8f8127f0" title=" " alt="" coords="1175,261,1309,287"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1084,158,1214,251,1210,256,1081,163"/>
+<area shape="rect" id="Node000007" href="$d7/d8b/class_vec_simple.html#ae16798cf2ee14257d0706c60613cd733" title=" " alt="" coords="1357,261,1524,287"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1310,271,1344,271,1344,277,1310,277"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="953,297,1026,297,1026,302,953,302"/>
+<area shape="rect" id="Node000010" href="$d4/d24/fs__common_8cpp.html#a3959a03cdb34ae89650ec5dd57948787" title="Helper function." alt="" coords="1000,336,1127,361"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="917,310,999,330,998,335,916,315"/>
+<area shape="poly" id="edge13_Node000011_Node000006" title=" " alt="" coords="888,398,933,400,994,399,1061,390,1126,370,1154,355,1179,336,1220,295,1224,299,1183,340,1157,359,1128,375,1062,395,994,404,933,405,888,403"/>
+<area shape="poly" id="edge16_Node000012_Node000004" title=" " alt="" coords="609,296,694,233,776,177,808,163,811,167,779,182,697,237,613,301"/>
+<area shape="poly" id="edge20_Node000012_Node000005" title=" " alt="" coords="615,296,670,260,700,236,727,209,741,184,747,161,756,139,776,120,807,106,841,98,875,96,909,98,974,111,1026,129,1024,134,972,116,909,104,875,101,841,103,809,111,779,124,760,142,752,163,746,186,731,212,704,240,673,264,618,301"/>
+<area shape="poly" id="edge22_Node000012_Node000008" title=" " alt="" coords="642,296,706,282,777,271,865,265,952,272,1027,287,1026,292,952,277,865,271,778,277,707,288,643,301"/>
+<area shape="poly" id="edge21_Node000012_Node000011" title=" " alt="" coords="638,322,730,352,778,370,829,386,828,391,776,375,728,357,636,327"/>
+<area shape="rect" id="Node000013" href="$df/dd2/ldz__electric__field_8cpp.html#aa0dfeb5fa074ab35e1d5ad77ce389460" title="Low&#45;level helper function." alt="" coords="777,336,952,361"/>
+<area shape="poly" id="edge17_Node000012_Node000013" title=" " alt="" coords="686,322,764,332,763,338,685,327"/>
+<area shape="poly" id="edge19_Node000013_Node000008" title=" " alt="" coords="916,334,1026,306,1028,311,917,339"/>
+<area shape="poly" id="edge18_Node000013_Node000010" title=" " alt="" coords="953,346,986,346,986,351,953,351"/>
+<area shape="poly" id="edge24_Node000014_Node000004" title=" " alt="" coords="669,364,700,352,728,334,746,309,754,285,760,259,775,229,804,195,834,167,838,171,808,198,780,232,765,260,759,286,751,312,731,337,702,357,671,369"/>
+<area shape="poly" id="edge28_Node000014_Node000005" title=" " alt="" coords="658,364,694,352,728,333,743,319,751,304,760,288,776,272,839,230,908,197,972,172,1024,155,1026,160,974,177,910,202,842,235,779,276,764,292,756,307,747,322,731,338,696,357,660,369"/>
+<area shape="poly" id="edge30_Node000014_Node000008" title=" " alt="" coords="676,390,730,402,754,412,778,421,869,442,907,440,928,433,951,421,963,411,970,400,975,376,981,349,987,335,998,321,1026,306,1028,310,1002,326,992,338,986,350,981,377,974,403,967,415,953,426,930,438,908,446,868,447,777,426,752,417,729,407,675,395"/>
+<area shape="poly" id="edge29_Node000014_Node000011" title=" " alt="" coords="694,384,828,393,827,398,693,389"/>
+<area shape="rect" id="Node000015" href="$df/dd2/ldz__electric__field_8cpp.html#a20170ddd0be2652286d43da53c0d478a" title="Low&#45;level helper function." alt="" coords="777,487,952,512"/>
+<area shape="poly" id="edge25_Node000014_Node000015" title=" " alt="" coords="695,387,731,403,748,418,756,434,764,450,779,465,803,479,800,484,776,470,760,453,752,436,743,421,728,407,693,392"/>
+<area shape="poly" id="edge27_Node000015_Node000008" title=" " alt="" coords="921,485,950,466,963,448,970,431,973,395,977,359,984,340,998,322,1011,312,1026,305,1028,310,1014,316,1002,325,989,343,982,360,979,396,975,432,968,451,954,469,924,489"/>
+<area shape="poly" id="edge26_Node000015_Node000010" title=" " alt="" coords="911,484,951,465,978,443,1004,418,1043,371,1047,374,1008,422,982,447,953,470,913,489"/>
+<area shape="rect" id="Node000018" href="$d9/df9/common_8cpp.html#a3ccffabea3435cf184592d88e6a470c8" title=" " alt="" coords="821,536,909,561"/>
+<area shape="poly" id="edge33_Node000017_Node000018" title=" " alt="" coords="686,522,807,538,807,544,685,527"/>
+</map>
