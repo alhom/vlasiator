@@ -635,7 +635,7 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
 
          SpatialCell* cell = mpiGrid[*cell_id];
-         if (cell->parameters[CellParams::XCRD]  <= 0.0) {
+         if (cell->parameters[CellParams::XCRD] <= -100.0) {
             cell->parameters[CellParams::TIMECLASS] = 1;
             cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
          } else {

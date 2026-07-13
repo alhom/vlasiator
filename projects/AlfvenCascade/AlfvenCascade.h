@@ -71,6 +71,10 @@ namespace projects {
       Real spectralIndex;            // Power law index for initial spectrum
       int randomSeed;               // Seed for random phase generation
 
+      bool gaussianMask;
+      Real gaussianMaskLocation;
+      Real gaussianMaskWidth; 
+
       bool verbose;
       std::vector<WaveParameters> waves;
    }; // class AlfvenCascade
