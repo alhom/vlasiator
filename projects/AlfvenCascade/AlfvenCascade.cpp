@@ -74,6 +74,9 @@ bool AlfvenCascade::initialize(void) {
          std::cout << "Number of waves: " << nWaves << "\n";
          std::cout << "Background field strength: " << B << " T\n";
          std::cout << "Alfvén speed: " << VA << " m/s\n";
+         std::cout << "Gaussian mask state: " << gaussianMask << "\n";
+         std::cout << "Center of gaussian mask: " << gaussianMaskLocation << "\n";
+         std::cout << "Width of gaussian mask: " << gaussianMaskWidth << "\n";
          
          for (int idx = 0; idx < nWaves; idx++) {
              std::cout << "\nWave " << idx + 1 << ":\n";
@@ -96,8 +99,8 @@ void AlfvenCascade::addParameters() {
    RP::addComposing("AlfvenCascade.wavelength", "Wavelength of wave (m)");
    RP::addComposing("AlfvenCascade.amplitude", "Velocity amplitude (m/s)");
    RP::addComposing("AlfvenCascade.phase", "Initial phase (rad)");
-   
-   
+      
+
    RP::add("AlfvenCascade.n0", "Background density (1/m^3)", 1e6);
    RP::add("AlfvenCascade.B", "Background magnetic field strength (T)", 1e-8);
    RP::add("AlfvenCascade.T", "Temperature (K)", 1e6);
@@ -105,6 +108,10 @@ void AlfvenCascade::addParameters() {
    RP::add("AlfvenCascade.randomSeed", "Seed for random phase generation", 12345);
    RP::add("AlfvenCascade.verbose", "Verbose output", 1);
    RP::add("AlfvenCascade.angle", "Wave angle (rad)",0.0);
+   RP::add("AlfvenCascade.gaussianMask", "True if using gaussian mask to initial perturbation", false);
+   RP::add("AlfvenCascade.gaussianMaskLocation", "Location of gaussian mask", 0.0);
+   RP::add("AlfvenCascade.gaussianMaskWidth", "Width of gaussian mask", 1.0);
+
 }
 
 void AlfvenCascade::getParameters() {
@@ -134,6 +141,10 @@ void AlfvenCascade::getParameters() {
    RP::get("AlfvenCascade.randomSeed", randomSeed);
    RP::get("AlfvenCascade.verbose", verbose);
    RP::get("AlfvenCascade.angle", angle);
+   RP::get("AlfvenCascade.gaussianMask", gaussianMask);
+   RP::get("AlfvenCascade.gaussianMaskLocation", gaussianMaskLocation);
+   RP::get("AlfvenCascade.gaussianMaskWidth", gaussianMaskWidth);
+
 }
 
 // std::vector<std::array<Real, 3>> AlfvenCascade::getV0(creal x, creal y, creal z, const uint popID) const {
@@ -177,10 +188,18 @@ Realf AlfvenCascade::fillPhaseSpace(spatial_cell::SpatialCell *cell,
          Real sinalpha = sin(angle);
          Real kwave = 2 * M_PI / wavelength.at(idx);
          Real xpar = x * cosalpha + y * sinalpha;
-         
-         Real uperp = amplitude.at(idx) * sin(kwave * xpar + phase.at(idx));
-         Real upara = amplitude.at(idx) * cos(kwave * xpar + phase.at(idx));
-         
+
+         Real uperp = 0.0, upara = 0.0;
+
+         if (!gaussianMask) {
+            uperp = amplitude.at(idx) * sin(kwave * xpar + phase.at(idx));
+            upara = amplitude.at(idx) * cos(kwave * xpar + phase.at(idx));
+         } else {
+            Real gaussianVal = exp(-((x - gaussianMaskLocation) * (x - gaussianMaskLocation)) / (2 * gaussianMaskWidth * gaussianMaskWidth));
+            uperp = amplitude.at(idx) * sin(kwave * xpar + phase.at(idx)) * gaussianVal;
+            upara = amplitude.at(idx) * cos(kwave * xpar + phase.at(idx)) * gaussianVal;
+         }
+
          ux += -uperp * sinalpha;
          uy += uperp * cosalpha;
          uz += upara;
@@ -262,9 +281,16 @@ void AlfvenCascade::setProjectBField(FsGrid<std::array<Real, fsgrids::bfield::N_
                    // Calculate B1 from v1 using Alfvén wave relation
                    Real B1 = std::pow(-1.0,idx) * amplitude.at(idx) * sqrt(mu0 * rho0);
 
-                   Real Bperp = B1 * sin(kwave * xpar + phase.at(idx));
-                   Real Bpara = B1 * cos(kwave * xpar + phase.at(idx));
-                   
+                   Real Bperp = 0.0, Bpara = 0.0;
+
+                   if (!gaussianMask) {
+                     Bperp = B1 * sin(kwave * xpar + phase.at(idx));
+                     Bpara = B1 * cos(kwave * xpar + phase.at(idx));
+                   } else {
+                     Real gaussianVal = exp(-((x[0] - gaussianMaskLocation) * (x[0] - gaussianMaskLocation)) / (2 * gaussianMaskWidth * gaussianMaskWidth));
+                     Bperp = B1 * sin(kwave * xpar + phase.at(idx)) * gaussianVal;
+                     Bpara = B1 * cos(kwave * xpar + phase.at(idx)) * gaussianVal;
+                   }
                    Bx += -Bperp * sinalpha;
                    By += Bperp * cosalpha;
                    Bz += Bpara;
