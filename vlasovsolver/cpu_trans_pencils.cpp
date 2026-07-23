@@ -905,15 +905,24 @@ CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
       neighborIndex = path;
    }
 
-   if (check_is_active(grid, myNeighbors[neighborIndex], dimension, timeghost_active[timeclass])) {
-     neighbor = myNeighbors[neighborIndex];
-   }
-   else{
-      #ifdef DEBUG_PENCILS
-         std::cerr << __FILE__ <<":"<<__LINE__ << " " << myNeighbors[neighborIndex] << " not active "<< std::endl;
-      #endif
-   }
+   if (P::currentMaxTimeclass == 0) {
+      if (check_is_active(grid, myNeighbors[neighborIndex], dimension)) {
+      neighbor = myNeighbors[neighborIndex];
+      } else {
+         #ifdef DEBUG_PENCILS
+            std::cerr << __FILE__ <<":"<<__LINE__ << " " << myNeighbors[neighborIndex] << " not active "<< std::endl;
+         #endif
+      }
+   } else {
+      if (check_is_active(grid, myNeighbors[neighborIndex], dimension, timeghost_active[timeclass])) {
+      neighbor = myNeighbors[neighborIndex];
+      } else {
+         #ifdef DEBUG_PENCILS
+            std::cerr << __FILE__ <<":"<<__LINE__ << " " << myNeighbors[neighborIndex] << " not active "<< std::endl;
+         #endif
+      }
 
+   }
    return neighbor;
 }
 
