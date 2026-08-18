@@ -252,11 +252,6 @@ void assignCellTimeclass(SpatialCell* cell, const double cellDt) {
 
 }
 
-void updateCellDtLimits() {
-
-
-}
-
 // goes through all cells, and sets their timeclasses according to some baseDt. also sets all timeclass--related cell parameters
 void assingCellTimeclassesPhysically(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
 
@@ -481,30 +476,6 @@ std::vector<Real> computeNewTimeStep(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_G
 }
 
 
-// // called when a cell changes its timeclass. checks if that cells' neighbors possess all required timeghosts. If not, returns vector of pairs, each containing a cellid and timeclass of timeghost needed to be created.
-// std::vector<std::pair<CellID, int>> checkNeighborTimeghosts(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, SpatialCell* cell) {
-
-//    std::vector<std::pair<CellID, int>> ret;
-
-//    auto neighbors = mpiGrid.get_neighbors_of(cell->get_cellid(), Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
-
-//    for (auto n : *neighbors){
-//       CellID cid = n.first;
-
-      
-
-//    }
-
-
-// }
-
-// //creates timeghosts in cells where they were requested
-// void createNewTimeghosts(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, CellID cell) {
-
-//    getGhostNeighborsforTC(mpiGrid, {cell}, std::set<CellID> &active_cells, int timeclass)
-
-// }
-
 // check goodness of current used fsdt, if it isnt good, changes newDt to good one and sets isChanged to true. Also sets subcycling number.
 void handleChangingofDt(const std::vector<Real>& dtMaxGlobal, bool& isChanged, Real& newDt) {
 
@@ -612,8 +583,11 @@ void calculateGlobalTcVariables(Real fsdt, Real globalMaxDt) {
 
 void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
 
+   if (P::tc_test_type == 0) {
+      // normal case, assign timeclasses based on CFL
+      assingCellTimeclassesPhysically(mpiGrid);
 
-   if(P::tc_test_type == 1){
+   } else if(P::tc_test_type == 1){
 
       // if (P::dynamicTimestep) {
       //    std::cerr << "using dynamic timestep and special test not supported, aborting...\n";
@@ -721,120 +695,13 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
             abort();
          }
       }
-
-      
-   } else if (P::tc_test_type ==4) {
-      // //for 2d testing with tc box in the middle
-
-      // int sidelen = P::xcells_ini;
-
-      // if(P::initialMaxTimeclass > 0) {
-      //    P::currentMaxTimeclass = P::initialMaxTimeclass;
-      // }
-      // else{
-      //    P::currentMaxTimeclass = 0;
-      // }
-      // for(int i = 0; i <= P::initialMaxTimeclass; ++i){
-      //    newTimeclassDts[i] = fsdt*pow(2,P::currentMaxTimeclass - min(i,P::currentMaxTimeclass));
-      // }
-      // P::timeclassDt = newTimeclassDts;
-      // // if(P::tcOverrideTimeclass > -1){
-      // //    localTimeClass = P::tcOverrideTimeclass;
-      // // }
-      // // else {
-      // //    localTimeClass = myRank % 2;
-      // // }
-      
-      // for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
-      //    SpatialCell* cell = mpiGrid[*cell_id];
-
-      //    if (cell->parameters[CellParams::XCRD] > (sidelen/4.0)*cell->parameters[CellParams::DX] && cell->parameters[CellParams::XCRD] < (3.0*sidelen/4.0)*cell->parameters[CellParams::DX] &&
-      //    cell->parameters[CellParams::YCRD] > (sidelen/4.0)*cell->parameters[CellParams::DX] && cell->parameters[CellParams::YCRD] < (3.0*sidelen/4.0)*cell->parameters[CellParams::DX]) {
-      //       cell->parameters[CellParams::TIMECLASS] = 1;   
-      //    } else {
-      //       cell->parameters[CellParams::TIMECLASS] = 0;
-      //    }
-      //    cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
-      // }
-
-
-   } else if (P::tc_test_type == 5) {
-      // //for 2d testing with tc box in the middle, only with one side longer than the other
-
-      // int sidelenX = P::xcells_ini;
-      // int sidelenY = P::ycells_ini;
-
-      // if(P::initialMaxTimeclass > 0) {
-      //    P::currentMaxTimeclass = P::initialMaxTimeclass;
-      // }
-      // else{
-      //    P::currentMaxTimeclass = 0;
-      // }
-      // for(int i = 0; i <= P::initialMaxTimeclass; ++i){
-      //    newTimeclassDts[i] = fsdt*pow(2,P::currentMaxTimeclass - min(i,P::currentMaxTimeclass));
-      // }
-      // P::timeclassDt = newTimeclassDts;
-      // // if(P::tcOverrideTimeclass > -1){
-      // //    localTimeClass = P::tcOverrideTimeclass;
-      // // }
-      // // else {
-      // //    localTimeClass = myRank % 2;
-      // // }
-      
-      // for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
-      //    SpatialCell* cell = mpiGrid[*cell_id];
-
-      //    if (cell->parameters[CellParams::XCRD] > (sidelenX/4.0)*cell->parameters[CellParams::DX] && cell->parameters[CellParams::XCRD] < (3.0*sidelenX/4.0)*cell->parameters[CellParams::DX] &&
-      //    cell->parameters[CellParams::YCRD] > (sidelenY/4.0)*cell->parameters[CellParams::DX] && cell->parameters[CellParams::YCRD] < (3.0*sidelenY/4.0)*cell->parameters[CellParams::DX]) {
-      //       cell->parameters[CellParams::TIMECLASS] = 1;   
-      //    } else {
-      //       cell->parameters[CellParams::TIMECLASS] = 0;
-      //    }
-      //    cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
-      // }
-
    } else {
-
-      // For normal operation, set the timeclass and timeclassdt for each cell according to their timestep lenght calculated by reducers.
-
-      assingCellTimeclassesPhysically(mpiGrid);         
-
+      
+      std::cerr << "not supported tc test, aborting...\n";
+      abort();
    }
 }
 
-// void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-//                               const std::vector<CellID>& cellsToCheckNeighbors) {
-//    /*
-//    1st version
-//    every timestep, go through every cell c, and get its ghost neighbours. 
-//    Then, for every ghost neighbour, send c's timeclass to its requested_timeclass_ghosts
-//    */
-//    /*
-//    2nd version TODO:
-//    every timestep, check if computeNewTimestep changes any cells' timeclass. Then go through v1 functionality.
-//    */
-
-//    for (size_t c=0; c<cellsToCheckNeighbors.size(); ++c) {
-//       const CellID cell = cellsToCheckNeighbors[c];
-//       auto neighbors = mpiGrid.get_neighbors_of(cell, VLASOV_SOLVER_GHOST_NEIGHBORHOOD_ID);
-//       auto& neighborsRef = *neighbors;
-//       auto neighborsRemote = mpiGrid.get_remote_neighbors_of(cell, VLASOV_SOLVER_GHOST_NEIGHBORHOOD_ID);
-
-//       // get_neighbours_of returns a pointer to a vector of pairs, and each pairs' first element is the CellID
-//       // get_remote_neighbors_of returns a vector of CellIDs
-
-//       for (size_t i=0; i<neighborsRef.size(); ++i) {
-//          if (mpiGrid[(neighborsRef)[i].first]->parameters[CellParams::TIMECLASS] != mpiGrid[cell]->parameters[CellParams::TIMECLASS]) {
-//             mpiGrid[(neighborsRef)[i].first]->requested_timeclass_ghosts.insert(mpiGrid[cell]->parameters[CellParams::TIMECLASS]);
-//          }
-//       }
-//       for (size_t i=0; i<neighborsRemote.size(); ++i) {
-//          if (mpiGrid[(neighborsRemote)[i]]->parameters[CellParams::TIMECLASS] != mpiGrid[cell]->parameters[CellParams::TIMECLASS]) {
-//             mpiGrid[neighborsRemote[i]]->requested_timeclass_ghosts.insert(mpiGrid[cell]->parameters[CellParams::TIMECLASS]);
-//          }
-//       }
-//    }
-// }
 
 int simulate(int argn,char* args[]) {
    int myRank, doBailout=0;
@@ -2159,17 +2026,6 @@ int simulate(int argn,char* args[]) {
 
       updateParticlePopulations(mpiGrid);
 
-      // auto cell1 = mpiGrid[cells[5]];
-      // auto cell2 = mpiGrid[cells[20]];
-
-      // std::cout << "maxtc: " << P::maxTimeclass << std::endl;
-
-      // std::cout << "cell 1 tc "<< cell1->parameters[CellParams::TIMECLASS] << " VX " << cell1->parameters[CellParams::VX] << " VY " << cell1->parameters[CellParams::VY] << " VZ " << cell1->parameters[CellParams::VZ] << std::endl;
-      // std::cout << "cell 2 tc "<< cell2->parameters[CellParams::TIMECLASS] << " VX " << cell2->parameters[CellParams::VX] << " VY " << cell2->parameters[CellParams::VY] << " VZ " << cell2->parameters[CellParams::VZ] << std::endl;
-
-      // std::cout << "cell1 vx_v " << cell1->parameters[CellParams::VX_V] << " vx_r " << cell1->parameters[CellParams::VX_R] << std::endl;
-      // std::cout << "cell2 vx_v " << cell2->parameters[CellParams::VX_V] << " vx_r " << cell2->parameters[CellParams::VX_R] << std::endl;
-
       momentsTimer.stop();
       
       // Propagate fields forward in time by dt. This needs to be done before the
@@ -2277,24 +2133,6 @@ int simulate(int argn,char* args[]) {
          timer.stop();
          addTimedBarrier("barrier-boundary-conditions");
       }
-      
-      // momentsTimer.start();
-      // *here we compute rho and rho_v for timestep t + dt, so next
-      // timestep * //
-      // calculateInterpolatedVelocityMoments(
-      //    mpiGrid,
-      //    CellParams::RHOM,
-      //    CellParams::VX,
-      //    CellParams::VY,
-      //    CellParams::VZ,
-      //    CellParams::RHOQ,
-      //    CellParams::P_11,
-      //    CellParams::P_22,
-      //    CellParams::P_33,
-      //    CellParams::P_23,
-      //    CellParams::P_13,
-      //    CellParams::P_12
-      // );
       
       updateParticlePopulations(mpiGrid);
 
