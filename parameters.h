@@ -76,6 +76,9 @@ struct Parameters {
    static bool tcVMomentPropagation;
    static int timeclassExactHaloExtent;
    static int timeclassOuterHaloExtent;
+   static Real tcStaticSphereRadiusLvl1;
+   static Real tcStaticSphereRadiusLvl2;
+   static Real tcStaticSphereRadiusLvl3;
 
    static bool tcDebugBox;          // Force timeclass 1 with the box
    static int tcOverrideTimeclass;  // Set fixed timeclass everywhere [debugging, default -1 i.e. off]

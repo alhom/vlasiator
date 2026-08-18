@@ -76,6 +76,9 @@ Real P::dtSettingModifier = 1.0;
 int P::currentMaxTimeclass = 0;
 bool P::tcRankwise = false;
 bool P::forcedConvection = false;
+Real P::tcStaticSphereRadiusLvl1 = 0.0;
+Real P::tcStaticSphereRadiusLvl2 = 0.0;
+Real P::tcStaticSphereRadiusLvl3 = 0.0;
 
 vector<Real> P::timeclassDt;
 vector<Real> P::timeclassTime;
@@ -383,6 +386,9 @@ bool P::addParameters() {
    RP::add("gridbuilder.dtSettingModifier", "modifier to setting dt lengths", 1.0);
    RP::add("gridbuilder.dtUpdatingModifier", "modifier to updating dt lengths", 1.0);
    RP::add("gridbuilder.timeclass_domain_modifier", "modifier to tc domain sizes", 1.0);
+   RP::add("gridbuilder.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for level 1, meters", 0.0);
+   RP::add("gridbuilder.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for level 2, meters", 0.0);
+   RP::add("gridbuilder.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for level 3, meters", 0.0);
    RP::add("gridbuilder.forcedConvection", "Force a convection velocity of 200 km/s along +x [false]", false);
 
    RP::add("gridbuilder.tc_test_type", "Enumerated tc test", 0);
@@ -1063,6 +1069,10 @@ void Parameters::getParameters() {
    RP::get("gridbuilder.timeclass_domain_modifier", P::timeclassDomainModifier);
    RP::get("gridbuilder.tcRankwise", P::tcRankwise);
    RP::get("gridbuilder.forcedConvection", P::forcedConvection);
+
+   RP::get("gridbuilder.tcStaticSphereRadiusLvl1", P::tcStaticSphereRadiusLvl1);
+   RP::get("gridbuilder.tcStaticSphereRadiusLvl2", P::tcStaticSphereRadiusLvl2);
+   RP::get("gridbuilder.tcStaticSphereRadiusLvl3", P::tcStaticSphereRadiusLvl3);
 
    RP::get("gridbuilder.tcDebugBox", P::tcDebugBox);
    RP::get("gridbuilder.tcOverrideTimeclass", P::tcOverrideTimeclass);
