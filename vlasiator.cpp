@@ -675,7 +675,9 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       auto cells = getLocalCells();
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
          SpatialCell* cell = mpiGrid[*cell_id];
-         const Real cellRadius = sqrt(pow(cell->parameters[CellParams::XCRD]+cell->parameters[CellParams::DX],2) + pow(cell->parameters[CellParams::YCRD]+cell->parameters[CellParams::DY],2) + pow(cell->parameters[CellParams::ZCRD]+cell->parameters[CellParams::DZ],2));
+
+         // calculate position of cell center
+         const Real cellRadius = sqrt(pow(cell->parameters[CellParams::XCRD]+0.5*cell->parameters[CellParams::DX],2) + pow(cell->parameters[CellParams::YCRD]+0.5*cell->parameters[CellParams::DY],2) + pow(cell->parameters[CellParams::ZCRD]+0.5*cell->parameters[CellParams::DZ],2));
          
 
          if (P::currentMaxTimeclass==0) {
