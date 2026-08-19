@@ -702,6 +702,23 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
    }
 }
 
+//check that timeclass settings are sensible
+void timeclassDebugAssertions(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
+
+   assert(P::currentMaxTimeclass >= 0 && P::initialMaxTimeclass >= 0 && "Current and initial max timeclass must be non-negative");
+   // fair assumption that no more than 20 timeclass need to exist (in reality more like 10)
+   assert(P::currentMaxTimeclass < 20 && P::initialMaxTimeclass < 20 && "Do you really need more than 20 timeclasses?");
+   for (int i=0; i<=P::currentMaxTimeclass; ++i) {
+      assert(P::timeclassDt[i] >= 0.0 && "Timeclass dt must be non-negative");
+   }
+
+   for (const auto& cell_id : getLocalCells()) {
+      SpatialCell* cell = mpiGrid[cell_id];
+      assert(cell->parameters[CellParams::TIMECLASS] >= 0 && cell->parameters[CellParams::TIMECLASS] <= P::currentMaxTimeclass && "Cell timeclass must be within valid range");
+      assert(cell->parameters[CellParams::TIMECLASSDT] == P::timeclassDt[cell->parameters[CellParams::TIMECLASS]] && "Cell timeclass dt must match global timeclass dt");
+   }
+}
+
 
 int simulate(int argn,char* args[]) {
    int myRank, doBailout=0;
@@ -1423,7 +1440,8 @@ int simulate(int argn,char* args[]) {
       logFile << "some parameters: \n";
       logFile << P::currentMaxTimeclass << " " << P::initialMaxTimeclass << " " << P::timeclassDt.at(0) << " " << P::dt << "\n";  
 
-
+      timeclassDebugAssertions(mpiGrid);
+      
       //std::cout << "start of main simulation loop, below dt, timeclassDts, currentmaxtimeclass" << std::endl;
       //std::cout << P::dt << std::endl;
       for (auto i: P::timeclassDt) {
