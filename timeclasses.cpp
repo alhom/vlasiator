@@ -159,13 +159,13 @@ void assingCellTimeclassesPhysically(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_G
    for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
 
       SpatialCell* cell = mpiGrid[*cell_id];
-      if (cell->parameters[CellParams::MAXVDT] != 0.0) {
-         cellMaxDt = min(cell->parameters[CellParams::MAXRDT], cell->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
-      } else {
-         cellMaxDt = cell->parameters[CellParams::MAXRDT];
-      }
+      // if (cell->parameters[CellParams::MAXVDT] != 0.0) {
+      //    cellMaxDt = min(cell->parameters[CellParams::MAXRDT], cell->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
+      // } else {
+      //    cellMaxDt = cell->parameters[CellParams::MAXRDT];
+      // }
       //std::cerr << "cellMaxDt for cell " << *cell_id << " is " << cellMaxDt << std::endl;
-      cell->assignCellTimeclass(cellMaxDt);
+      cell->assignCellTimeclass();
    }
 }
 
