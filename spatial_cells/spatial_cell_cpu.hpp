@@ -353,6 +353,9 @@ namespace spatial_cell {
       void clear(const uint popID, bool shrink=false, const int timeclass=-1);
       void setNewSizeClear(const uint popID, const vmesh::LocalID& newSize, const int timeclass=-1);
       void setNewSizeClear(const uint popID, const int timeclass=-1);
+      bool cellTimeclassIsCorrect();
+      bool cellIsTimeclassRelevant();
+      void assignCellTimeclass(const Real cellDt);
 
       uint64_t get_cell_memory_capacity();
       uint64_t get_cell_memory_size();

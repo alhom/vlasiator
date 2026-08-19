@@ -423,6 +423,77 @@ namespace spatial_cell {
          }
    }
 
+   bool SpatialCell::cellTimeclassIsCorrect() {
+
+      Real cellDt;
+      if (this->parameters[CellParams::MAXVDT] != 0.0) {
+         cellDt = min(this->parameters[CellParams::MAXRDT], this->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
+      } else {
+         cellDt = this->parameters[CellParams::MAXRDT];
+      }
+
+      // if we want to change cell timeclasses before the actual limit is reached
+      if (P::dtUpdateModifier != 1.0) {
+         if (cellDt > P::dtUpdateModifier*P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
+            return true;
+         } else {
+            return false;
+         }
+      }
+
+      if (cellDt > P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   bool SpatialCell::cellIsTimeclassRelevant() {
+
+      // relevancy for acceleration
+      if (!this->parameters[CellParams::MAXVDT] != 0 &&
+         (this->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
+         (P::vlasovAccelerateMaxwellianBoundaries && this->sysBoundaryFlag == sysboundarytype::MAXWELLIAN))) {
+            return false;
+         }
+
+      // relevancy for translation
+      if (!(this->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
+         (this->sysBoundaryLayer == 1 && this->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY))) {
+            return false;
+         }
+
+      return true;
+   }
+
+   void SpatialCell::assignCellTimeclass(const Real cellDt) {
+
+      double baseTcDt = P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer];
+
+      if (P::tcOverrideTimeclass > -1) {
+         this->parameters[CellParams::TIMECLASS] = P::tcOverrideTimeclass;
+         this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();
+         return;
+      }
+
+      if (this->sysBoundaryFlag == sysboundarytype::COPYSPHERE || 
+         this->sysBoundaryFlag == sysboundarytype::IONOSPHERE ||
+         this->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) { // Copysphere and ionosphere cells always use the maximum timeclass
+         this->parameters[CellParams::TIMECLASS] = P::currentMaxTimeclass - P::timeclassBuffer;
+         this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();
+         return;
+      }
+
+      // should this be a ceiling instead of floor??
+      double dtdiff = int(log2((cellDt * P::timeclassDomainModifier)/baseTcDt));
+      int cellTimeClass = max(0.0,(P::currentMaxTimeclass - P::timeclassBuffer) - max(0.0, dtdiff));
+
+      //std::cout << "assigning tc " << cellTimeClass << " for cell " << cell->get_cellid() << " with tcdt " << P::timeclassDt[cellTimeClass] << std::endl;
+
+      this->parameters[CellParams::TIMECLASS] = cellTimeClass;
+      this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();
+   }
+
    /** Get MPI datatype for sending the cell data.
     * @param cellID Spatial cell (dccrg) ID.
     * @param sender_rank Rank of the MPI process sending data from this cell.
