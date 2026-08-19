@@ -466,9 +466,20 @@ namespace spatial_cell {
       return true;
    }
 
-   void SpatialCell::assignCellTimeclass(const Real cellDt) {
+   void SpatialCell::assignCellTimeclass() {
 
       double baseTcDt = P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer];
+      double cellMaxDt = 0.0;
+
+      if (this->parameters[CellParams::MAXVDT] != 0.0) {
+         cellMaxDt = min(this->parameters[CellParams::MAXRDT], this->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
+      } else {
+         cellMaxDt = this->parameters[CellParams::MAXRDT];
+      }
+
+      assert(cellMaxDt > 0.0 && "cellMaxDt is zero, this should not happen");
+      assert(baseTcDt > 0.0 && "baseTcDt is zero, this should not happen");
+      assert(baseTcDt <= cellMaxDt && "baseTcDt is larger than cellMaxDt, this should not happen");
 
       if (P::tcOverrideTimeclass > -1) {
          this->parameters[CellParams::TIMECLASS] = P::tcOverrideTimeclass;
@@ -485,10 +496,8 @@ namespace spatial_cell {
       }
 
       // should this be a ceiling instead of floor??
-      double dtdiff = int(log2((cellDt * P::timeclassDomainModifier)/baseTcDt));
+      double dtdiff = int(log2((cellMaxDt * P::timeclassDomainModifier)/baseTcDt));
       int cellTimeClass = max(0.0,(P::currentMaxTimeclass - P::timeclassBuffer) - max(0.0, dtdiff));
-
-      //std::cout << "assigning tc " << cellTimeClass << " for cell " << cell->get_cellid() << " with tcdt " << P::timeclassDt[cellTimeClass] << std::endl;
 
       this->parameters[CellParams::TIMECLASS] = cellTimeClass;
       this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();

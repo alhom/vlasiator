@@ -355,7 +355,7 @@ namespace spatial_cell {
       void setNewSizeClear(const uint popID, const int timeclass=-1);
       bool cellTimeclassIsCorrect();
       bool cellIsTimeclassRelevant();
-      void assignCellTimeclass(const Real cellDt);
+      void assignCellTimeclass();
 
       uint64_t get_cell_memory_capacity();
       uint64_t get_cell_memory_size();
