@@ -34,8 +34,6 @@ bool isDtTooSmall(Real dt, Real rdt, Real vdt, Real fsdt);
 
 std::vector<CellID> checkCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
-void assingCellTimeclassesPhysically(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
-
 void updateTimeclassDts(Real fsdt, const bool applyModifier = true);
 
 void increaseTimeclass(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
