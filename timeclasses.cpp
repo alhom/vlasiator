@@ -63,7 +63,7 @@ void updateTimeclassDts(Real fsdt, const bool applyModifier) {
 
    // reduce fsdt by buffer amount
 
-   fsdt /= pow(2.0, P::timeclassBuffer);
+   //fsdt /= pow(2.0, P::timeclassBuffer);
 
    std::vector<Real> newTimeclassDts(P::currentMaxTimeclass+1);
    //logFile << std::endl;

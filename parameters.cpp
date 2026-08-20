@@ -68,13 +68,13 @@ Real P::dt_ceil = -1.0;
 Real P::dt = NAN;
 Real P::dt0 = NAN;
 int P::initialMaxTimeclass = 0;
-int P::timeclassBuffer = 0;
+//int P::timeclassBuffer = 0;
 bool P::dynamicTimeclasses = true;
 Real P::timeclassDomainModifier = 1.0;
 Real P::dtUpdateModifier = 1.0;
 Real P::dtSettingModifier = 1.0;
 int P::currentMaxTimeclass = 0;
-bool P::tcRankwise = false;
+//bool P::tcRankwise = false;
 bool P::forcedConvection = false;
 Real P::tcStaticSphereRadiusLvl1 = 0.0;
 Real P::tcStaticSphereRadiusLvl2 = 0.0;
@@ -381,7 +381,7 @@ bool P::addParameters() {
    RP::add("gridbuilder.dt", "Initial timestep in seconds.", 0.0);
    RP::add("gridbuilder.initial_timeclass_max", "Maximum number of timeclasses.", 0);
    RP::add("gridbuilder.tcRankwise", "Use timeclasses at MPI rank level insted of cell-wise timeclasses.", false);
-   RP::add("gridbuilder.timeclass_buffer", "Number of buffer timeclasses.", 0);
+   //RP::add("gridbuilder.timeclass_buffer", "Number of buffer timeclasses.", 0);
    RP::add("gridbuilder.dynamic_timeclasses", "True if timeclass changes should abort", 0);
    RP::add("gridbuilder.dtSettingModifier", "modifier to setting dt lengths", 1.0);
    RP::add("gridbuilder.dtUpdatingModifier", "modifier to updating dt lengths", 1.0);
@@ -1062,12 +1062,12 @@ void Parameters::getParameters() {
    RP::get("gridbuilder.initial_timeclass_max", P::initialMaxTimeclass);
    //set current max timeclass to initial timeclass max, do initializer functions know we are using timeclasses
    P::currentMaxTimeclass = P::initialMaxTimeclass;
-   RP::get("gridbuilder.timeclass_buffer", P::timeclassBuffer);
+   //RP::get("gridbuilder.timeclass_buffer", P::timeclassBuffer);
    RP::get("gridbuilder.dynamic_timeclasses", P::dynamicTimeclasses);
    RP::get("gridbuilder.dtSettingModifier", P::dtSettingModifier);
    RP::get("gridbuilder.dtUpdatingModifier", P::dtUpdateModifier);
    RP::get("gridbuilder.timeclass_domain_modifier", P::timeclassDomainModifier);
-   RP::get("gridbuilder.tcRankwise", P::tcRankwise);
+   //RP::get("gridbuilder.tcRankwise", P::tcRankwise);
    RP::get("gridbuilder.forcedConvection", P::forcedConvection);
 
    RP::get("gridbuilder.tcStaticSphereRadiusLvl1", P::tcStaticSphereRadiusLvl1);
@@ -1081,10 +1081,10 @@ void Parameters::getParameters() {
       P::initialMaxTimeclass = P::tcOverrideTimeclass;
    }
 
-   if (P::timeclassBuffer > 0) {
-      std::cout << "adding buffer to initialMaxTimeclass: " << P::initialMaxTimeclass << " + " << P::timeclassBuffer << std::endl;
-      P::initialMaxTimeclass += P::timeclassBuffer; // Add buffer to initialMaxTimeclass
-   }
+   // if (P::timeclassBuffer > 0) {
+   //    std::cout << "adding buffer to initialMaxTimeclass: " << P::initialMaxTimeclass << " + " << P::timeclassBuffer << std::endl;
+   //    P::initialMaxTimeclass += P::timeclassBuffer; // Add buffer to initialMaxTimeclass
+   // }
 
    RP::get("gridbuilder.tcBoxHalfWidthX", P::tcBoxHalfWidthX);
    RP::get("gridbuilder.tcBoxHalfWidthY", P::tcBoxHalfWidthY);
