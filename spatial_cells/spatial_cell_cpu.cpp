@@ -451,9 +451,9 @@ namespace spatial_cell {
    bool SpatialCell::cellIsTimeclassRelevant() {
 
       // relevancy for acceleration
-      if (!this->parameters[CellParams::MAXVDT] != 0 &&
+      if (!(this->parameters[CellParams::MAXVDT] != 0 &&
          (this->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
-         (P::vlasovAccelerateMaxwellianBoundaries && this->sysBoundaryFlag == sysboundarytype::MAXWELLIAN))) {
+         (P::vlasovAccelerateMaxwellianBoundaries && this->sysBoundaryFlag == sysboundarytype::MAXWELLIAN)))) {
             return false;
          }
 
