@@ -285,8 +285,8 @@ namespace CellParams {
       TIME_V,           /*!< Current time of the cell due to timeclass timestepping*/
       TIMESTEP_V,           /*!< Current timestep of the cell due to timeclass timestepping - obs float precision*/
       TIMESTEP_FRACTIONAL_V,           /*!< Current timestep of the cell due to timeclass timestepping*/
-      TIMECLASS_RANK,           /*!< timeclass of this rank*/
-      TIMECLASSDT_RANK,           /*!< timeclass-adjusted timestep, ...*/
+      //TIMECLASS_RANK,           /*!< timeclass of this rank*/
+      //TIMECLASSDT_RANK,           /*!< timeclass-adjusted timestep, ...*/
 
       LBWEIGHTCOUNTER,    /*!< Counter for storing compute time weights needed by the load balancing**/
       ISCELLSAVINGF,      /*!< Value telling whether a cell is saving its distribution function when partial f data is written out. */

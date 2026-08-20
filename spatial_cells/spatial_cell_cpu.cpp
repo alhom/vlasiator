@@ -468,7 +468,7 @@ namespace spatial_cell {
 
    void SpatialCell::assignCellTimeclass() {
 
-      double baseTcDt = P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer];
+      double baseTcDt = P::timeclassDt[P::currentMaxTimeclass];
       double cellMaxDt = 0.0;
 
       if (this->parameters[CellParams::MAXVDT] != 0.0) {
@@ -490,14 +490,14 @@ namespace spatial_cell {
       if (this->sysBoundaryFlag == sysboundarytype::COPYSPHERE || 
          this->sysBoundaryFlag == sysboundarytype::IONOSPHERE ||
          this->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) { // Copysphere and ionosphere cells always use the maximum timeclass
-         this->parameters[CellParams::TIMECLASS] = P::currentMaxTimeclass - P::timeclassBuffer;
+         this->parameters[CellParams::TIMECLASS] = P::currentMaxTimeclass;
          this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();
          return;
       }
 
       // should this be a ceiling instead of floor??
       double dtdiff = int(log2((cellMaxDt * P::timeclassDomainModifier)/baseTcDt));
-      int cellTimeClass = max(0.0,(P::currentMaxTimeclass - P::timeclassBuffer) - max(0.0, dtdiff));
+      int cellTimeClass = max(0.0,(P::currentMaxTimeclass) - max(0.0, dtdiff));
 
       this->parameters[CellParams::TIMECLASS] = cellTimeClass;
       this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();

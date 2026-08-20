@@ -215,8 +215,8 @@ void handleChangingofDt(const std::vector<Real>& dtMaxGlobal, bool& isChanged, R
    isChanged = false;
 
       // reduce/increase dt if it is too high for any of the three propagators or too low for all propagators
-   if (isDtTooLarge(P::dtUpdateModifier * P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2]) ||
-          isDtTooSmall(P::dtUpdateModifier * P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2])) {
+   if (isDtTooLarge(P::dtUpdateModifier * P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2]) ||
+          isDtTooSmall(P::dtUpdateModifier * P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2])) {
 
 
       if (P::fractionalTimestep != 0) {
