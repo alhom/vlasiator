@@ -36,65 +36,6 @@ bool isDtTooSmall(Real dt, Real rdt, Real vdt, Real fsdt){
            dt < fsdt * P::fieldSolverMinCFL * P::maxFieldSolverSubcycles);
 }
 
-// assume that maxrdt and maxvdt are updated before calling
-// !! moved to spatialcell member function
-// bool cellTimeclassIsCorrect(SpatialCell* cell) {
-
-//    Real cellDt;
-//    if (cell->parameters[CellParams::MAXVDT] != 0.0) {
-//       cellDt = min(cell->parameters[CellParams::MAXRDT], cell->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
-//    } else {
-//       cellDt = cell->parameters[CellParams::MAXRDT];
-//    }
-
-//    // if we want to change cell timeclasses before the actual limit is reached
-//    if (P::dtUpdateModifier != 1.0) {
-//       if (cellDt > P::dtUpdateModifier*P::timeclassDt[cell->parameters[CellParams::TIMECLASS]]) {
-//          //std::cerr << "cell timeclass is correct" << std::endl;
-//          return true;
-//       } else {
-//          //std::cerr << "bad cell found!" << std::endl;
-//          //std::cerr << "cells sysboundaryflag and sysboundarylayer: " << cell->sysBoundaryFlag << ", " << cell->sysBoundaryLayer << std::endl;
-//          return false;
-//       }
-//    }
-
-//    //std::cerr << "comparing celldt " << cellDt << " and timeclassdt " << P::timeclassDt[cell->parameters[CellParams::TIMECLASS]] << " for cell " << cell->get_cellid() << std::endl;
-//    //std::cerr << "their ratio: " << cellDt / P::timeclassDt[cell->parameters[CellParams::TIMECLASS]] << std::endl;
-//    if (cellDt > P::timeclassDt[cell->parameters[CellParams::TIMECLASS]]) {
-//       //std::cerr << "cell timeclass is correct" << std::endl;
-//       return true;
-//    } else {
-//       //std::cerr << "bad cell found!" << std::endl;
-//       //std::cerr << "cells sysboundaryflag and sysboundarylayer: " << cell->sysBoundaryFlag << ", " << cell->sysBoundaryLayer << std::endl;
-//       return false;
-//    }
-// }
-
-// checks if cells' boundarytype is such that it should be taken into consideration for 
-// timestep limiting and such
-// checks taken from reduce_vlasov_dt
-
-// should be changed into a member function
-
-// !! moved to spatialcell member function
-// bool cellIsTimeclassRelevant(SpatialCell* cell) {
-
-//    // relevancy for acceleration
-//    if (!(cell->parameters[CellParams::MAXVDT] != 0 &&
-//       (cell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
-//       (P::vlasovAccelerateMaxwellianBoundaries && cell->sysBoundaryFlag == sysboundarytype::MAXWELLIAN)))) {
-//          return false;
-//       }
-
-//    // relevancy for translation
-//    if (!(cell->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY ||
-//       (cell->sysBoundaryLayer == 1 && cell->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY))) {
-//          return false;
-//       }
-
-//    return true;
-// }
 
 // returns empty vector if all timeclasses are fine (= their timestep fits their timeclass)
 // if not, returns those cells which need a bigger timeclass
@@ -116,57 +57,6 @@ std::vector<CellID> checkCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesi
    }
 
    return retVec;
-}
-
-// should be a member function of SC class
-// sets cell parameters
-// !! moved to spatialcell member function
-// void assignCellTimeclass(SpatialCell* cell, const double cellDt) {
-
-//    double baseTcDt = P::timeclassDt[P::currentMaxTimeclass - P::timeclassBuffer];
-
-//    if (P::tcOverrideTimeclass > -1) {
-//       cell->parameters[CellParams::TIMECLASS] = P::tcOverrideTimeclass;
-//       cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
-//       return;
-//    }
-
-//    if (cell->sysBoundaryFlag == sysboundarytype::COPYSPHERE || 
-//       cell->sysBoundaryFlag == sysboundarytype::IONOSPHERE ||
-//       cell->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) { // Copysphere and ionosphere cells always use the maximum timeclass
-//       cell->parameters[CellParams::TIMECLASS] = P::currentMaxTimeclass - P::timeclassBuffer;
-//       cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
-//       return;
-//    }
-
-//    // should this be a ceiling instead of floor??
-//    double dtdiff = int(log2((cellDt * P::timeclassDomainModifier)/baseTcDt));
-//    int cellTimeClass = max(0.0,(P::currentMaxTimeclass - P::timeclassBuffer) - max(0.0, dtdiff));
-
-//    //std::cout << "assigning tc " << cellTimeClass << " for cell " << cell->get_cellid() << " with tcdt " << P::timeclassDt[cellTimeClass] << std::endl;
-
-//    cell->parameters[CellParams::TIMECLASS] = cellTimeClass;
-//    cell->parameters[CellParams::TIMECLASSDT] = cell->get_tc_dt();
-
-// }
-
-// goes through all cells, and sets their timeclasses according to some baseDt. also sets all timeclass--related cell parameters
-void assingCellTimeclassesPhysically(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
-
-   const vector<CellID>& cells = getLocalCells();
-   
-   double cellMaxDt;
-   for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
-
-      SpatialCell* cell = mpiGrid[*cell_id];
-      // if (cell->parameters[CellParams::MAXVDT] != 0.0) {
-      //    cellMaxDt = min(cell->parameters[CellParams::MAXRDT], cell->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
-      // } else {
-      //    cellMaxDt = cell->parameters[CellParams::MAXRDT];
-      // }
-      //std::cerr << "cellMaxDt for cell " << *cell_id << " is " << cellMaxDt << std::endl;
-      cell->assignCellTimeclass();
-   }
 }
 
 void updateTimeclassDts(Real fsdt, const bool applyModifier) {
@@ -295,8 +185,7 @@ void calculateGlobalTcVariables(Real fsdt, Real globalMaxDt) {
    //fsdt = fsdt / pow(2, P::timeclassBuffer);
 
    // This is the full range of timeclasses that could be used based on the physical environment
-   int timeclassRange = int(log2(globalMaxDt/fsdt));
-
+   int timeclassRange = max(int(log2(globalMaxDt/fsdt)),0);
    if (timeclassRange < P::initialMaxTimeclass) {
       // TODO figure this out if needed
       //std::cerr << "timeclassrange (" << (timeclassRange) << ") bigger than initialmaxtimeclass (" << P::initialMaxTimeclass << "), aborting" << std::endl;
@@ -325,8 +214,19 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
 
    if (P::tc_test_type == 0) {
       // normal case, assign timeclasses based on CFL
-      assingCellTimeclassesPhysically(mpiGrid);
+      const vector<CellID>& cells = getLocalCells();
+   
+      for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
 
+         SpatialCell* cell = mpiGrid[*cell_id];
+         // if (cell->parameters[CellParams::MAXVDT] != 0.0) {
+         //    cellMaxDt = min(cell->parameters[CellParams::MAXRDT], cell->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
+         // } else {
+         //    cellMaxDt = cell->parameters[CellParams::MAXRDT];
+         // }
+         //std::cerr << "cellMaxDt for cell " << *cell_id << " is " << cellMaxDt << std::endl;
+         cell->assignCellTimeclass();
+      }
    } else if(P::tc_test_type == 1){
 
       // if (P::dynamicTimestep) {
