@@ -364,7 +364,7 @@ struct setOfPencils {
 };
 // Note: Splitting does not handle target or source cells, as those are computed after all pencil splitting has concluded.
 
-bool do_translate_cell(const spatial_cell::SpatialCell* const SC, const int tc = -1);
+bool do_translate_cell(const spatial_cell::SpatialCell* const SC);
 
 // grid.cpp calls this function to both find seed cells and build pencils for all dimensions
 void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
