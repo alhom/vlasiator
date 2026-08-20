@@ -1214,10 +1214,10 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
                 vector<pair<int,CellID>> &seedIds,
                 int timeclass) {
 
-#ifdef DEBUG_PENCILS
+// #ifdef DEBUG_PENCILS
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
-#endif
+// #endif
 
    // These neighborhoods no longer include the AMR addition beyond the regular vlasov stencil
    const int neighborhood = getNeighborhood(dimension, getNeigborhoodStencilLength());
@@ -1260,6 +1260,11 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
             // Check that the neighbor is not across a periodic boundary by calculating
             // the distance in indices between this cell and its neighbor.
             auto nbrIndices = mpiGrid.mapping.get_indices(neighbor);
+            if(!mpiGrid[neighbor]){
+               std::stringstream ss;
+               ss << myRank << ": mpiGrid[neighbor] is NULL, neighbor " << neighbor << "; dir " << dir << "; my cellid is " << celli ;
+               throw std::invalid_argument(ss.str());
+            }
 
             // If a neighbor is non-local (or not ghost-translated), across a periodic boundary,
             // or in non-periodic boundary layer >1 (non-translated cell)
