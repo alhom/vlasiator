@@ -379,34 +379,34 @@ bool P::addParameters() {
    RP::add("gridbuilder.z_length", "Number of cells in z-direction in initial grid.", 0);
 
    RP::add("gridbuilder.dt", "Initial timestep in seconds.", 0.0);
-   RP::add("gridbuilder.initial_timeclass_max", "Maximum number of timeclasses.", 0);
-   RP::add("gridbuilder.tcRankwise", "Use timeclasses at MPI rank level insted of cell-wise timeclasses.", false);
-   //RP::add("gridbuilder.timeclass_buffer", "Number of buffer timeclasses.", 0);
-   RP::add("gridbuilder.dynamic_timeclasses", "True if timeclass changes should abort", 0);
-   RP::add("gridbuilder.dtSettingModifier", "modifier to setting dt lengths", 1.0);
-   RP::add("gridbuilder.dtUpdatingModifier", "modifier to updating dt lengths", 1.0);
-   RP::add("gridbuilder.timeclass_domain_modifier", "modifier to tc domain sizes", 1.0);
-   RP::add("gridbuilder.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for level 1, meters", 0.0);
-   RP::add("gridbuilder.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for level 2, meters", 0.0);
-   RP::add("gridbuilder.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for level 3, meters", 0.0);
+   RP::add("timeclasses.initial_timeclass_max", "Maximum number of timeclasses.", 0);
+   //RP::add("timeclasses.tcRankwise", "Use timeclasses at MPI rank level insted of cell-wise timeclasses.", false);
+   //RP::add("timeclasses.timeclass_buffer", "Number of buffer timeclasses.", 0);
+   RP::add("timeclasses.dynamic_timeclasses", "True if timeclass changes should abort", 0);
+   RP::add("timeclasses.dtSettingModifier", "modifier to setting dt lengths", 1.0);
+   RP::add("timeclasses.dtUpdatingModifier", "modifier to updating dt lengths", 1.0);
+   RP::add("timeclasses.timeclass_domain_modifier", "modifier to tc domain sizes", 1.0);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for level 1, meters", 0.0);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for level 2, meters", 0.0);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for level 3, meters", 0.0);
    RP::add("gridbuilder.forcedConvection", "Force a convection velocity of 200 km/s along +x [false]", false);
 
-   RP::add("gridbuilder.tc_test_type", "Enumerated tc test", 0);
+   RP::add("timeclasses.tc_test_type", "Enumerated tc test", 0);
    RP::add(
-      "gridbuilder.tcMomentInterpolationType",
+      "timeclasses.tcMomentInterpolationType",
       "What interpolation method is used in moment Interpolation. -1 is cubic C^1 Hermite spline, 1 is linear, 2 is lagrange 2nd order, 3 is lagrange 3rd order.", 
       1);
-   RP::add("gridbuilder.tcVMomentPropagation", "If Vx, Vy, Vz moments are propagated, instead of being interpolated", true);
-   RP::add("gridbuilder.timeclassExactHaloExtent", "Exact halo extent for timeclass halos", 3);
-   RP::add("gridbuilder.timeclassOuterHaloExtent", "Outer halo extent for timeclass halos", 3);
-   RP::add("gridbuilder.tcDebugBox", "Use a forced timeclass box.", false);
-   RP::add("gridbuilder.tcOverrideTimeclass", "Use a forced timeclass everywhere.", -1);
-   RP::add("gridbuilder.tcBoxHalfWidthX", "Forced timeclass box half-width, X, meters", 2e7);
-   RP::add("gridbuilder.tcBoxHalfWidthY", "Forced timeclass box half-width, Y, meters", 2e7);
-   RP::add("gridbuilder.tcBoxHalfWidthZ", "Forced timeclass box half-width, Z, meters", 2e7);
-   RP::add("gridbuilder.tcBoxCenterX", "Forced timeclass box center, X, meters", 0.0);
-   RP::add("gridbuilder.tcBoxCenterY", "Forced timeclass box center, Y, meters", 0.0);
-   RP::add("gridbuilder.tcBoxCenterZ", "Forced timeclass box center, Z, meters", 0.0);
+   RP::add("timeclasses.tcVMomentPropagation", "If Vx, Vy, Vz moments are propagated, instead of being interpolated", true);
+   RP::add("timeclasses.timeclassExactHaloExtent", "Exact halo extent for timeclass halos", 3);
+   RP::add("timeclasses.timeclassOuterHaloExtent", "Outer halo extent for timeclass halos", 3);
+   RP::add("timeclasses.tcDebugBox", "Use a forced timeclass box.", false);
+   RP::add("timeclasses.tcOverrideTimeclass", "Use a forced timeclass everywhere.", -1);
+   RP::add("timeclasses.tcBoxHalfWidthX", "Forced timeclass box half-width, X, meters", 2e7);
+   RP::add("timeclasses.tcBoxHalfWidthY", "Forced timeclass box half-width, Y, meters", 2e7);
+   RP::add("timeclasses.tcBoxHalfWidthZ", "Forced timeclass box half-width, Z, meters", 2e7);
+   RP::add("timeclasses.tcBoxCenterX", "Forced timeclass box center, X, meters", 0.0);
+   RP::add("timeclasses.tcBoxCenterY", "Forced timeclass box center, Y, meters", 0.0);
+   RP::add("timeclasses.tcBoxCenterZ", "Forced timeclass box center, Z, meters", 0.0);
 
    RP::add("gridbuilder.t_max",
            "Maximum simulation time, in seconds. If timestep_max limit is hit first this time will never be reached",
@@ -1059,23 +1059,23 @@ void Parameters::getParameters() {
    RP::get("gridbuilder.dt", P::dt);
    RP::get("gridbuilder.dt", P::dt0);
 
-   RP::get("gridbuilder.initial_timeclass_max", P::initialMaxTimeclass);
+   RP::get("timeclasses.initial_timeclass_max", P::initialMaxTimeclass);
    //set current max timeclass to initial timeclass max, do initializer functions know we are using timeclasses
    P::currentMaxTimeclass = P::initialMaxTimeclass;
-   //RP::get("gridbuilder.timeclass_buffer", P::timeclassBuffer);
-   RP::get("gridbuilder.dynamic_timeclasses", P::dynamicTimeclasses);
-   RP::get("gridbuilder.dtSettingModifier", P::dtSettingModifier);
-   RP::get("gridbuilder.dtUpdatingModifier", P::dtUpdateModifier);
-   RP::get("gridbuilder.timeclass_domain_modifier", P::timeclassDomainModifier);
-   //RP::get("gridbuilder.tcRankwise", P::tcRankwise);
+   //RP::get("timeclasses.timeclass_buffer", P::timeclassBuffer);
+   RP::get("timeclasses.dynamic_timeclasses", P::dynamicTimeclasses);
+   RP::get("timeclasses.dtSettingModifier", P::dtSettingModifier);
+   RP::get("timeclasses.dtUpdatingModifier", P::dtUpdateModifier);
+   RP::get("timeclasses.timeclass_domain_modifier", P::timeclassDomainModifier);
+   //RP::get("timeclasses.tcRankwise", P::tcRankwise);
    RP::get("gridbuilder.forcedConvection", P::forcedConvection);
 
-   RP::get("gridbuilder.tcStaticSphereRadiusLvl1", P::tcStaticSphereRadiusLvl1);
-   RP::get("gridbuilder.tcStaticSphereRadiusLvl2", P::tcStaticSphereRadiusLvl2);
-   RP::get("gridbuilder.tcStaticSphereRadiusLvl3", P::tcStaticSphereRadiusLvl3);
+   RP::get("timeclasses.tcStaticSphereRadiusLvl1", P::tcStaticSphereRadiusLvl1);
+   RP::get("timeclasses.tcStaticSphereRadiusLvl2", P::tcStaticSphereRadiusLvl2);
+   RP::get("timeclasses.tcStaticSphereRadiusLvl3", P::tcStaticSphereRadiusLvl3);
 
-   RP::get("gridbuilder.tcDebugBox", P::tcDebugBox);
-   RP::get("gridbuilder.tcOverrideTimeclass", P::tcOverrideTimeclass);
+   RP::get("timeclasses.tcDebugBox", P::tcDebugBox);
+   RP::get("timeclasses.tcOverrideTimeclass", P::tcOverrideTimeclass);
    if (P::tcOverrideTimeclass > -1 && P::initialMaxTimeclass < P::tcOverrideTimeclass) {
       std::cout << "Adjusting P::InitialMaxTimeclass ("<< P::initialMaxTimeclass << ") to include tcOverrideTimeclass (" << P::tcOverrideTimeclass << ")" << std::endl;
       P::initialMaxTimeclass = P::tcOverrideTimeclass;
@@ -1086,18 +1086,17 @@ void Parameters::getParameters() {
    //    P::initialMaxTimeclass += P::timeclassBuffer; // Add buffer to initialMaxTimeclass
    // }
 
-   RP::get("gridbuilder.tcBoxHalfWidthX", P::tcBoxHalfWidthX);
-   RP::get("gridbuilder.tcBoxHalfWidthY", P::tcBoxHalfWidthY);
-   RP::get("gridbuilder.tcBoxHalfWidthZ", P::tcBoxHalfWidthZ);
-   RP::get("gridbuilder.tcBoxCenterX", P::tcBoxCenterX);
-   RP::get("gridbuilder.tcBoxCenterY", P::tcBoxCenterY);
-   RP::get("gridbuilder.tcBoxCenterZ", P::tcBoxCenterZ);
-   RP::get("gridbuilder.tc_test_type", P::tc_test_type);
-   RP::get("gridbuilder.tcMomentInterpolationType", P::tcMomentInterpolationType);
-   RP::get("gridbuilder.tcVMomentPropagation", P::tcVMomentPropagation);
-   RP::get("gridbuilder.timeclassExactHaloExtent", P::timeclassExactHaloExtent);
-   RP::get("gridbuilder.timeclassOuterHaloExtent", P::timeclassOuterHaloExtent);
-
+   RP::get("timeclasses.tcBoxHalfWidthX", P::tcBoxHalfWidthX);
+   RP::get("timeclasses.tcBoxHalfWidthY", P::tcBoxHalfWidthY);
+   RP::get("timeclasses.tcBoxHalfWidthZ", P::tcBoxHalfWidthZ);
+   RP::get("timeclasses.tcBoxCenterX", P::tcBoxCenterX);
+   RP::get("timeclasses.tcBoxCenterY", P::tcBoxCenterY);
+   RP::get("timeclasses.tcBoxCenterZ", P::tcBoxCenterZ);
+   RP::get("timeclasses.tc_test_type", P::tc_test_type);
+   RP::get("timeclasses.tcMomentInterpolationType", P::tcMomentInterpolationType);
+   RP::get("timeclasses.tcVMomentPropagation", P::tcVMomentPropagation);
+   RP::get("timeclasses.timeclassExactHaloExtent", P::timeclassExactHaloExtent);
+   RP::get("timeclasses.timeclassOuterHaloExtent", P::timeclassOuterHaloExtent);
 
    P::timeclassDt = std::vector<Real>(P::initialMaxTimeclass+1);
    P::timeclassTime = std::vector<Real>(P::initialMaxTimeclass+1);
