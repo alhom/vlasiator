@@ -941,7 +941,7 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
 
 
          if (!accelerateSpecificCells) {
-            std::cout << "Accelerating all cells for popID " << popID << "\n";
+            //std::cout << "Accelerating all cells for popID " << popID << "\n";
             for (size_t c=0; c<cells.size(); ++c) {
                SpatialCell* SC = mpiGrid[cells[c]];
                Real dt_cell;
@@ -1004,7 +1004,7 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
             } // for loop over cells
          } // if !accelerateSpecificCells
          else {
-            std::cout << "Accelerating specific cells for popID " << popID << "\n";
+            //std::cout << "Accelerating specific cells for popID " << popID << "\n";
             for (size_t c=0; c<cellsToAccelerate.size(); ++c) {
                SpatialCell* SC = mpiGrid[cellsToAccelerate[c]];
                Real dt_cell;

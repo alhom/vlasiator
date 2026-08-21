@@ -468,6 +468,12 @@ namespace spatial_cell {
 
    void SpatialCell::assignCellTimeclass() {
 
+      if (P::currentMaxTimeclass == 0) {
+         this->parameters[CellParams::TIMECLASS] = 0;
+         this->parameters[CellParams::TIMECLASSDT] = this->get_tc_dt();
+         return;
+      }
+
       double baseTcDt = P::timeclassDt[P::currentMaxTimeclass];
       double cellMaxDt = 0.0;
 
@@ -477,9 +483,10 @@ namespace spatial_cell {
          cellMaxDt = this->parameters[CellParams::MAXRDT];
       }
 
-      assert(cellMaxDt > 0.0 && "cellMaxDt is zero, this should not happen");
-      assert(baseTcDt > 0.0 && "baseTcDt is zero, this should not happen");
-      assert(baseTcDt <= cellMaxDt && "baseTcDt is larger than cellMaxDt, this should not happen");
+      if (this->cellIsTimeclassRelevant()) {
+         assert(cellMaxDt > 0.0 && "cellMaxDt is zero, this should not happen");
+         assert(baseTcDt > 0.0 && "baseTcDt is zero, this should not happen");
+      }
 
       if (P::tcOverrideTimeclass > -1) {
          this->parameters[CellParams::TIMECLASS] = P::tcOverrideTimeclass;
