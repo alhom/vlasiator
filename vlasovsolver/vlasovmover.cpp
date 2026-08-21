@@ -359,7 +359,7 @@ void calculateSpatialTranslation(
    // result independent of particle species.
    // If performing ghost translation, this is used for LB.
    for (size_t c=0; c<localCells.size(); ++c) {
-      if (do_translate_cell(mpiGrid[localCells[c]],-1)) {
+      if (do_translate_cell(mpiGrid[localCells[c]])) {
          local_propagated_cells.push_back(localCells[c]);
       }
    }

@@ -1160,6 +1160,9 @@ void Parameters::getParameters() {
       }
       if (P::vlasovSolverGhostTranslateExtent == 0) {
          P::vlasovSolverGhostTranslateExtent = VLASOV_STENCIL_WIDTH+1;
+         if (myRank == MASTER_RANK) {
+            logFile<<"Ghost translating full stencil of size "<<P::vlasovSolverGhostTranslateExtent<<" around local domain."<<endl;
+         }
       } else {
          if (P::vlasovSolverGhostTranslateExtent == VLASOV_STENCIL_WIDTH+1) {
             if (myRank == MASTER_RANK) {
