@@ -921,12 +921,12 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
 
    // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank << ": getGhostNeighborsforTC\n";
    for (const CellID cell : tc_cells) {
-      auto neighbors = mpiGrid.get_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
+      auto neighbors = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
       auto& neighborsRef = *neighbors;
-      auto neighborsRemote = mpiGrid.get_remote_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
-      auto outerNeighbors = mpiGrid.get_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF);
+      //auto neighborsRemote = mpiGrid.get_remote_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
+      auto outerNeighbors = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF);
       auto& outerNeighborsRef = *outerNeighbors;
-      auto outerNeighborsRemote = mpiGrid.get_remote_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF);
+      //auto outerNeighborsRemote = mpiGrid.get_remote_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF);
 
 
       // get_neighbours_of returns a pointer to a vector of pairs, and each pairs' first element is the CellID
@@ -938,12 +938,12 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
          }
          // exactHaloCells.insert((neighborsRef)[i].first);
       }
-      for (size_t i=0; i<neighborsRemote.size(); ++i) {
-         if (mpiGrid[(neighborsRemote)[i]]->parameters[CellParams::TIMECLASS] != timeclass) {
-            mpiGrid[cell]->requested_timeclass_ghosts.insert(mpiGrid[(neighborsRemote)[i]]->parameters[CellParams::TIMECLASS]);
-         }
-         // exactHaloCells.insert((neighborsRemote)[i]);
-      }
+      //for (size_t i=0; i<neighborsRemote.size(); ++i) {
+      //   if (mpiGrid[(neighborsRemote)[i]]->parameters[CellParams::TIMECLASS] != timeclass) {
+      //      mpiGrid[cell]->requested_timeclass_ghosts.insert(mpiGrid[(neighborsRemote)[i]]->parameters[CellParams::TIMECLASS]);
+      //   }
+      //   // exactHaloCells.insert((neighborsRemote)[i]);
+      // }
 
       for (size_t i=0; i<outerNeighborsRef.size(); ++i) {
             // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< ": cid " << cell << " looking for " << (outerNeighborsRef)[i].first <<"\n";
@@ -956,15 +956,15 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
             // exactHaloCells.insert((outerNeighborsRef)[i].first);
          }
       }
-      for (size_t i=0; i<outerNeighborsRemote.size(); ++i) {
-         if (mpiGrid[(outerNeighborsRemote)[i]]->parameters[CellParams::TIMECLASS] != timeclass) {
-            // if (std::count(neighborsRemote.begin(), neighborsRemote.end(), (outerNeighborsRemote)[i]) > 0) { // should be unnecessary with the halodiff
-            //    continue;
-            // }
-            mpiGrid[cell]->requested_timeclass_copy_ghosts.insert(mpiGrid[(outerNeighborsRemote)[i]]->parameters[CellParams::TIMECLASS]);
-            // exactHaloCells.insert((outerNeighborsRemote)[i]);
-         }
-      }
+      //for (size_t i=0; i<outerNeighborsRemote.size(); ++i) {
+      //   if (mpiGrid[(outerNeighborsRemote)[i]]->parameters[CellParams::TIMECLASS] != timeclass) {
+      //      // if (std::count(neighborsRemote.begin(), neighborsRemote.end(), (outerNeighborsRemote)[i]) > 0) { // should be unnecessary with the halodiff
+      //      //    continue;
+      //      // }
+      //      mpiGrid[cell]->requested_timeclass_copy_ghosts.insert(mpiGrid[(outerNeighborsRemote)[i]]->parameters[CellParams::TIMECLASS]);
+      //      // exactHaloCells.insert((outerNeighborsRemote)[i]);
+      //   }
+      // }
    }
 
    active_cells = set(tc_cells.begin(),tc_cells.end());
