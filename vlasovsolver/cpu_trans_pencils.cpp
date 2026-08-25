@@ -875,7 +875,7 @@ void computeSpatialTargetCellsForPencilsWithFaces(const dccrg::Dccrg<SpatialCell
  * @return neighbor DCCRG cell id of the neighbor
  */
 CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry> &grid,
-                      const CellID id, const int dimension = 0, const uint path = 0, const int timeclass = 0) {
+                      const CellID id, const int dimension = 0, const uint path = 0, const int timeclass = -1) {
    // If face neighbours are at a higher refinement level, only returns the one which
    // which has a neighbor index matching the input path
 
@@ -905,7 +905,7 @@ CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
       neighborIndex = path;
    }
 
-   if (P::currentMaxTimeclass == 0) {
+   if (P::currentMaxTimeclass == 0 || timeclass == -1) {
       if (check_is_active(grid, myNeighbors[neighborIndex], dimension)) {
       neighbor = myNeighbors[neighborIndex];
       } else {
