@@ -1125,7 +1125,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
          #endif
          // Non-local, non-translated, and ids belonging to other pencils are not included
          if ( inseeds ||
-              !(do_translate_cell(grid[nextNeighbor]) & grid[nextNeighbor]->has_timeclass(timeclass))) {
+              !(do_translate_cell(grid[nextNeighbor]) && grid[nextNeighbor]->has_timeclass(timeclass))) {
             nextNeighbor = INVALID_CELLID;
          } else {
             // Yep, this goes in this pencil.
