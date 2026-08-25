@@ -188,7 +188,20 @@ int getNeighborhood(const uint dimension, const uint stencil) {
          abort();
       }
    }
-   cerr << __FILE__ << ":"<< __LINE__ << " Wrong stencil, abort"<<endl;
+   else if (stencil == max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent) { // timeclass stencil, relegate to GT stencil above
+      switch (dimension) {
+      case 0:
+         return Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS;
+      case 1:
+         return Neighborhoods::VLASOV_SOLVER_Y_GHOST_TIMECLASS;
+      case 2:
+         return Neighborhoods::VLASOV_SOLVER_Z_GHOST_TIMECLASS;
+      default:
+         cerr << __FILE__ << ":"<< __LINE__ << " Wrong dimension, abort"<<endl;
+         abort();
+      }
+   }
+   cerr << __FILE__ << ":"<< __LINE__ << " Wrong stencil of length " << stencil << " , abort"<<endl;
    abort();
 }
 

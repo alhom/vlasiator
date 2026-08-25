@@ -1709,8 +1709,54 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          std::cerr << "Failed to add neighborhood VLASOV_SOLVER_TIMEGHOST_OUTER_HALO_NEIGHBORHOOD_ID \n";
          abort();
       }
-
+      
       timeclassOuter.stop();
+      
+      phiprof::Timer timeclassghost {"Stencils init, timeclass, ghost"};
+
+      neighborhood.clear();
+      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+         if (d != 0) {
+            neighborhood.insert({{d, 0, 0}});
+         }
+      }
+      for (auto it : neighborhood){
+         all_neighborhoods.emplace(it);
+      }
+      if (!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS, std::vector<neigh_t>(neighborhood.begin(), neighborhood.end()))){
+         std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS \n";
+         abort();
+      }
+
+
+      neighborhood.clear();
+      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+         if (d != 0) {
+            neighborhood.insert({{0, d, 0}});
+         }
+      }
+      for (auto it : neighborhood){
+         all_neighborhoods.emplace(it);
+      }
+      if (!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_Y_GHOST_TIMECLASS, std::vector<neigh_t>(neighborhood.begin(), neighborhood.end()))){
+         std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_Y_GHOST_TIMECLASS \n";
+         abort();
+      }
+
+      neighborhood.clear();
+      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+         if (d != 0) {
+            neighborhood.insert({{0, 0, d}});
+         }
+      }
+      for (auto it : neighborhood){
+         all_neighborhoods.emplace(it);
+      }
+      if (!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_Z_GHOST_TIMECLASS, std::vector<neigh_t>(neighborhood.begin(), neighborhood.end()))){
+         std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_Z_GHOST_TIMECLASS \n";
+         abort();
+      }
+      
       phiprof::Timer timeclassDiff {"Stencils init, timeclass, diff"};
       // third one using the other two's difference
       std::set<neigh_t> neighborhood_diff;
