@@ -188,7 +188,7 @@ int getNeighborhood(const uint dimension, const uint stencil) {
          abort();
       }
    }
-   else if (stencil == max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent) { // timeclass stencil, relegate to GT stencil above
+   else if (stencil == max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent) { // timeclass stencil, relegate to GT stencil above if that is enough
       switch (dimension) {
       case 0:
          return Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS;
@@ -337,7 +337,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          activey.insert(c);
          // Update as sources only non-sysb cells
          // (note, source cells not part of these lists are still updated through MPI)
-         if (mpiGrid[c]->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) {
+         if (mpiGrid[c]->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY && mpiGrid[c]->sysBoundaryFlag != sysboundarytype::DO_NOT_COMPUTE ) {
             sourcey.insert(c);
          }
 
@@ -345,7 +345,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          findNeighborhoodCells(mpiGrid, c, dimension, searchLength, foundCells, tc);
          for (const CellID cid: foundCells) {
             // Update as sources only non-sysb cells
-            if (mpiGrid[cid]->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) {
+            if (mpiGrid[cid]->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY && mpiGrid[c]->sysBoundaryFlag != sysboundarytype::DO_NOT_COMPUTE ) {
                sourcey.insert(cid);
             }
          }
