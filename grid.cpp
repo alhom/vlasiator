@@ -1875,7 +1875,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          abort();
       }
 
-
       neighborhood.clear();
       for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
          if (d != 0) {
@@ -1903,6 +1902,10 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_Z_GHOST_TIMECLASS \n";
          abort();
       }
+<<<<<<< HEAD
+=======
+      
+>>>>>>> 90c3ee4b9 (De-derp stencil construction order)
    }
 
 
