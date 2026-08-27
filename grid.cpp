@@ -948,7 +948,8 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
       for (auto& nbrPair : *outerNeighbors) {
             // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< ": cid " << cell << " looking for " << nbrPair.first <<"\n";
 
-         if (mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS] != timeclass) {
+         // only add if found in outerneighbors and cell does not have any perus timeghosts
+         if ((mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS] != timeclass) && (mpiGrid[cell]->requested_timeclass_ghosts.count(mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS]) == 0)) {
             // if (std::count(neighborsRef.begin(), neighborsRef.end(), nbrPair) > 0) { // should be unnecessary with the halodiff
             //    continue;
             // }
@@ -965,6 +966,16 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
       //      // exactHaloCells.insert((outerNeighborsRemote)[i]);
       //   }
       // }
+      
+      //assert that if a cell has req_copy_ghosts of some timeclass it does not have req_ghosts of that timeclass and vice versa
+      for (const auto& req_ghost : mpiGrid[cell]->requested_timeclass_ghosts) {
+         assert(mpiGrid[cell]->requested_timeclass_copy_ghosts.count(req_ghost) == 0);
+      }
+
+      for (const auto& req_copy_ghost : mpiGrid[cell]->requested_timeclass_copy_ghosts) {
+         assert(mpiGrid[cell]->requested_timeclass_ghosts.count(req_copy_ghost) == 0);
+      }
+
    }
 
    active_cells = set(tc_cells.begin(),tc_cells.end());
