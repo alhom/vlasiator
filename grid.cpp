@@ -1711,6 +1711,16 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       }
       
       timeclassOuter.stop();
+
+      phiprof::Timer timeclassDiff {"Stencils init, timeclass, diff"};
+      // third one using the other two's difference
+      std::set<neigh_t> neighborhood_diff;
+      std::set_difference(neighborhood_outer.begin(), neighborhood_outer.end(), neighborhood.begin(), neighborhood.end(), std::inserter(neighborhood_diff, neighborhood_diff.begin()));
+
+      if (!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF, std::vector<neigh_t>(neighborhood_diff.begin(), neighborhood_diff.end()))){
+         std::cerr << "Failed to add neighborhood VLASOV_SOLVER_TIMEGHOST_HALODIFF_NEIGHBORHOOD_ID \n";
+         abort();
+      }
       
       phiprof::Timer timeclassghost {"Stencils init, timeclass, ghost"};
 
@@ -1727,7 +1737,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS \n";
          abort();
       }
-
 
       neighborhood.clear();
       for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
@@ -1757,15 +1766,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          abort();
       }
       
-      phiprof::Timer timeclassDiff {"Stencils init, timeclass, diff"};
-      // third one using the other two's difference
-      std::set<neigh_t> neighborhood_diff;
-      std::set_difference(neighborhood_outer.begin(), neighborhood_outer.end(), neighborhood.begin(), neighborhood.end(), std::inserter(neighborhood_diff, neighborhood_diff.begin()));
-
-      if (!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_HALODIFF, std::vector<neigh_t>(neighborhood_diff.begin(), neighborhood_diff.end()))){
-         std::cerr << "Failed to add neighborhood VLASOV_SOLVER_TIMEGHOST_HALODIFF_NEIGHBORHOOD_ID \n";
-         abort();
-      }
    }
 
 
