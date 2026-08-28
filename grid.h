@@ -66,6 +66,8 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
 void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
    const std::vector<CellID>& cellsToCheckNeighbors,std::set<CellID>& active_cells, int timeclass);
 
+bool areTimeghostsConsistent(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, const int timeclass);
+
 /*!
 
 Updates velocity block lists between remote neighbors and
