@@ -932,8 +932,8 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
 
       for (const CellID cell : tc_cells) {
 
-         const auto* neighbors = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
-         const auto* outerNeighbors = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
+         const auto* neighbors = mpiGrid.get_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
+         const auto* outerNeighbors = mpiGrid.get_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
 
          // get_neighbours_of returns a pointer to a vector of pairs, and each pairs' first element is the CellID
          // get_remote_neighbors_of returns a vector of CellIDs
