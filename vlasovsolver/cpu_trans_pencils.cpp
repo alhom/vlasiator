@@ -311,8 +311,8 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          searchLength = P::vlasovSolverGhostTranslateExtent;
          activeSearchLength = 1;
       }else{
-         searchLength = max(P::timeclassExactHaloExtent+P::timeclassOuterHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
-         activeSearchLength = max(P::timeclassExactHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
+         searchLength = max(max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
+         activeSearchLength = max(P::timeclassExactHaloExtent, (int)P::vlasovSolverGhostTranslateExtent); // TODO: 1 instead of vlasovSolverGhostTranslateExtent?
       }
 
       /** Translation order (dimensions) is 1: z 2: x 3: y
@@ -331,7 +331,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
             continue;
          }
          // Is the cell translated?
-         if (!do_translate_cell(ccell) || !ccell->has_timeclass(tc)) {
+         if (!do_translate_cell(ccell)) {
             continue;
          }
          activey.insert(c);
@@ -371,7 +371,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
             continue;
          }
          // Is the cell translated?
-         if (!do_translate_cell(ccell) || !ccell->has_timeclass(tc)) {
+         if (!do_translate_cell(ccell)){ // || (ccell->requested_timeclass_ghosts.count(tc) + ccell->requested_timeclass_copy_ghosts.count(tc) == 0) ) {
             continue;
          }
          activex.insert(c);
@@ -415,7 +415,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< " c"<<c <<"\n";
 
          // Is the cell translated?
-         if (!do_translate_cell(ccell) || !ccell->has_timeclass(tc)) {
+         if (!do_translate_cell(ccell)){// || (ccell->requested_timeclass_ghosts.count(tc) + ccell->requested_timeclass_copy_ghosts.count(tc) == 0)) {
             continue;
          }
                   // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< " c"<<c << " timeclass " << tc <<"\n";
@@ -1372,7 +1372,7 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
       #ifdef DEBUG_PENCILS
          std::cerr << myRank << " Checking for seed: " << celli << ", phase C\n";
       #endif
-      iSrc = P::vlasovSolverGhostTranslateExtent;
+      iSrc = P::vlasovSolverGhostTranslateExtent; // TODO Timeclass exact extent?
       for (auto it = distancesminus.begin(); it != distancesminus.end(); ++it) {
          if (iSrc < 0) {
             break; // found enough elements

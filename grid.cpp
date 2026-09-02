@@ -128,7 +128,7 @@ void initializeGrids(
    }
    std::cerr << "neighborhood_size after GT " << neighborhood_size << "\n";
    if (P::initialMaxTimeclass > 0) {
-       neighborhood_size = max(neighborhood_size, 2+P::timeclassOuterHaloExtent+P::timeclassExactHaloExtent);
+       neighborhood_size = max(neighborhood_size, max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent);
    }
    std::cerr << "neighborhood_size after timeclasses " << neighborhood_size << "\n";
 
@@ -880,18 +880,32 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
          mpiGrid[cell]->requested_timeclass_copy_ghosts.clear();
       }
 
+      for (const CellID cell : remote_cells) {
+         mpiGrid[cell]->requested_timeclass_ghosts.clear();
+         mpiGrid[cell]->requested_timeclass_copy_ghosts.clear();
+      }
+
       getGhostNeighborsforTC(mpiGrid, localCells);
 
       for(int i = 0; i <= P::currentMaxTimeclass; ++i){
          std::vector<CellID> tc_act_cells;
-         for (const CellID cell : localCells) {
-            if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i) {
+         for (const CellID cell : localCells) { // TODO do we get rid of these req_ghost checks after all?
+            if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i){
                tc_act_cells.push_back(cell);
             }
+            // if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i || mpiGrid[cell]->requested_timeclass_ghosts.count(i) == 1) {
+            //    tc_act_cells.push_back(cell);
+            // }
          }
+         // for (const CellID cell : mpiGrid.get_remote_cells_on_process_boundary(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO)) {
+         //    if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i || mpiGrid[cell]->requested_timeclass_ghosts.count(i) == 1) {
+         //       tc_act_cells.push_back(cell);
+         //    }
+         // }
          timeghost_source[i].clear();
          timeghost_active[i].clear();
 
+         // TODO get rid of tc-ghost-filtering?
          prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source[i], timeghost_active[i], i);
          MPI_Barrier(MPI_COMM_WORLD);
 
@@ -1024,7 +1038,7 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
 
    }
 
-   for (const CellID cell : getLocalCells()) {
+   for (const CellID cell : getLocalCells()) { // TODO: REMOTE NEIGHBORS FILTERING AS WELL
       for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass) {
          if (mpiGrid[cell]->requested_timeclass_ghosts.count(timeclass) > 0) {
             mpiGrid[cell]->requested_timeclass_copy_ghosts.erase(timeclass);
@@ -1032,59 +1046,6 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
          }
       }
    }
-
-   
-   // if(false){  // using halodiff above instead
-   //    for (const CellID cell : active_cells) {
-   //       // std::cout << "copy checking from " << cell << "\n";
-   //       auto neighbors = mpiGrid.get_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_GHOST);
-   //       if (neighbors == NULL){std::cerr << cell<< "/" << timeclass <<": Null neighbors\n";continue;}
-   //       auto& neighborsRef = *neighbors;
-   //       auto neighborsRemote = mpiGrid.get_remote_neighbors_of(cell, Neighborhoods::VLASOV_SOLVER_GHOST);
-
-   //       // get_neighbours_of returns a pointer to a vector of pairs, and each pairs' first element is the CellID
-   //       // get_remote_neighbors_of returns a vector of CellIDs
-
-   //       for (size_t i=0; i<neighborsRef.size(); ++i) {
-   //          const CellID ncid = (neighborsRef)[i].first;
-   //          if (std::find(getLocalCells().begin(),getLocalCells().end(),ncid) != getLocalCells().end()){
-   //             std::cerr << myRank << ": Skipping " << ncid << ": in active_cells " <<  active_cells.count(ncid) << " ghosty: " << (mpiGrid[ncid]->parameters[CellParams::TIMECLASS] != timeclass) << "\n";
-   //             continue;
-   //          }
-   //          std::cerr << myRank << ": Checking " << ncid << ": in active_cells " <<  active_cells.count(ncid) << "\n";
-   //          std::cerr << myRank << ": mpiGrid[ncid] " << mpiGrid[ncid]<<"\n";
-   //          // std::cerr << myRank << ": timeclass: " << (mpiGrid[ncid]->parameters[CellParams::TIMECLASS]) << "\n";
-   //          if (active_cells.count(ncid) == 0 && mpiGrid[ncid]->parameters[CellParams::TIMECLASS] != timeclass) {
-   //             mpiGrid[ncid]->requested_timeclass_copy_ghosts.insert(timeclass);
-   //             // std::cout << ncid << " copy_ghost reqs " << timeclass << "\n";
-   //          }
-   //       }
-   //       for (size_t i=0; i<neighborsRemote.size(); ++i) {
-   //          const CellID ncid = neighborsRemote[i];
-   //          std::cout << "Checking " << ncid << ": in active_cells " <<  active_cells.count(ncid) << " ghosty: " << (mpiGrid[ncid]->parameters[CellParams::TIMECLASS] != timeclass) << "\n";
-   //          if (active_cells.count(ncid) == 0 && mpiGrid[ncid]->parameters[CellParams::TIMECLASS] != timeclass) {
-   //             mpiGrid[ncid]->requested_timeclass_copy_ghosts.insert(timeclass);
-   //             // std::cout << ncid << " copy_ghost reqs " << timeclass << "\n";
-   //          }
-   //       }
-   //    }
-   // }
-
-   // if (timeclass == P::currentMaxTimeclass){
-   //    for(auto c : getLocalCells()){
-   //       if(mpiGrid[c]->get_all_ghosts().size()==0) continue;
-   //       // std::cerr << c << ": requests ghosts ";
-   //       // for(auto g :mpiGrid[c]->requested_timeclass_ghosts){
-   //       //    std::cerr << g << " ";
-   //       // }
-   //       // std::cerr << "; ";
-   //       // for(auto g :mpiGrid[c]->requested_timeclass_copy_ghosts){
-   //       //    std::cerr << g << " ";
-   //       // }
-   //       // std::cerr << "\n";
-   //    }
-   // }
-      // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<<"\n";   
 
 }
 

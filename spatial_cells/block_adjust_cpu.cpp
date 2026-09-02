@@ -76,6 +76,9 @@ namespace spatial_cell {
             CellID cell_id=cellsToAdjust[i];
             SpatialCell* cell = mpiGrid[cell_id];
             vector<SpatialCell*> neighbor_ptrs;
+
+            // mpiGrid.update_neighbors(cell_id);
+            // mpiGrid.update_user_neighbors(cell_id, Neighborhoods::NEAREST);
             // gather spatial neighbor list and gather vector with pointers to cells
             const auto* neighbors = mpiGrid.get_neighbors_of(cell_id, Neighborhoods::NEAREST);
             // Note: at AMR refinement boundaries this can cause blocks to propagate further
