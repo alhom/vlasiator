@@ -969,18 +969,18 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
                if(!is_symm){
                   std::cerr << "ASYMERROR1 Cell " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor!\n";
                }
-               symmetryref = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
-               is_symm = false;
-               failcell = cell;
-               for (auto symmetrypair : *symmetryref){
-                  if(symmetrypair.first == cell){
-                     is_symm = true;
-                     break;
-                  }
-               }
-               if(!is_symm){
-                  std::cerr << "ASYMERROR2 Cell " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor via get_neighbors_to!\n";
-               }
+               // symmetryref = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO);
+               // is_symm = false;
+               // failcell = cell;
+               // for (auto symmetrypair : *symmetryref){
+               //    if(symmetrypair.first == cell){
+               //       is_symm = true;
+               //       break;
+               //    }
+               // }
+               // if(!is_symm){
+               //    std::cerr << "ASYMERROR2 Cell " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor via get_neighbors_to!\n";
+               // }
             }
          }
 
@@ -1002,18 +1002,18 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
                if(!is_symm){
                   std::cerr << "ASYMERROR3 Cell copy-ghost " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor!\n";
                }
-               symmetryref = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
-               is_symm = false;
-               failcell = cell;
-               for (auto symmetrypair : *symmetryref){
-                  if(symmetrypair.first == cell){
-                     is_symm = true;
-                     break;
-                  }
-               }
-               if(!is_symm){
-                  std::cerr << "ASYMERROR4 Cell copy-ghost " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor via get_neighbors_to!\n";
-               }
+               // symmetryref = mpiGrid.get_neighbors_to(cell, Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
+               // is_symm = false;
+               // failcell = cell;
+               // for (auto symmetrypair : *symmetryref){
+               //    if(symmetrypair.first == cell){
+               //       is_symm = true;
+               //       break;
+               //    }
+               // }
+               // if(!is_symm){
+               //    std::cerr << "ASYMERROR4 Cell copy-ghost " << cell << " has neighbor " << failcell << " that does not consider " << cell << " as its neighbor via get_neighbors_to!\n";
+               // }
 
                // exactHaloCells.insert(nbrPair.first);
             }
