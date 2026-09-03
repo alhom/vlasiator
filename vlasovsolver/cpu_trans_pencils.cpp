@@ -188,7 +188,7 @@ int getNeighborhood(const uint dimension, const uint stencil) {
          abort();
       }
    }
-   else if (stencil == P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent) { // timeclass stencil, relegate to GT stencil above if that is enough
+   else if (stencil == P::timeclassFullHaloExtent) { // timeclass stencil, relegate to GT stencil above if that is enough
       switch (dimension) {
       case 0:
          return Neighborhoods::VLASOV_SOLVER_X_GHOST_TIMECLASS;
@@ -311,7 +311,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          searchLength = P::vlasovSolverGhostTranslateExtent;
          activeSearchLength = 1;
       }else{
-         searchLength = max(P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
+         searchLength = max(P::timeclassFullHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
          activeSearchLength = max(P::timeclassExactHaloExtent, (int)P::vlasovSolverGhostTranslateExtent); // TODO: 1 instead of vlasovSolverGhostTranslateExtent?
       }
 

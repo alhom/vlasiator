@@ -79,6 +79,7 @@ struct Parameters {
    static bool tcVMomentPropagation; // whether to propagate bulk velocities for timeclass field solver moment interpolation.
    static int timeclassExactHaloExtent;
    static int timeclassOuterHaloExtent;
+   static int timeclassFullHaloExtent; // The full halo extent for timeclasses, calculated from the Exact and Outer halo extents.
 
 
    static bool tcDebugBox;          // Force timeclass 1 with the box

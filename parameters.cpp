@@ -108,8 +108,9 @@ int P::tcOverrideTimeclass = -1;
 int P::tc_test_type = 0;
 int P::tcMomentInterpolationType = 1;
 bool P::tcVMomentPropagation = true;
-int P::timeclassExactHaloExtent = 3;
-int P::timeclassOuterHaloExtent = 3;
+int P::timeclassExactHaloExtent = 2;
+int P::timeclassOuterHaloExtent = 1;
+int P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
 
 Realf P::tcBoxHalfWidthX = 2e7;
 Realf P::tcBoxHalfWidthY = 2e7;
@@ -1062,6 +1063,7 @@ void Parameters::getParameters() {
    RP::get("timeclasses.initial_timeclass_max", P::initialMaxTimeclass);
    //set current max timeclass to initial timeclass max, do initializer functions know we are using timeclasses
    P::currentMaxTimeclass = P::initialMaxTimeclass;
+
    //RP::get("timeclasses.timeclass_buffer", P::timeclassBuffer);
    RP::get("timeclasses.dynamic_timeclasses", P::dynamicTimeclasses);
    RP::get("timeclasses.dtSettingModifier", P::dtSettingModifier);
