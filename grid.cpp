@@ -1774,7 +1774,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       std::set<neigh_t> neighborhood_outer;
       P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
 
-      std::cerr << "timeclassFullHaloExtent = " << timeclassFullHaloExtent << "\n";
+      std::cerr << "timeclassFullHaloExtent = " << P::timeclassFullHaloExtent << "\n";
          
       // neighborhood.clear();
       // stencils for timeghost haloes
@@ -1784,9 +1784,9 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
 
       // for(auto n : neighborhood){
 
-         for (int dy = -timeclassFullHaloExtent; dy <= timeclassFullHaloExtent; dy++){
-            for (int dx = -timeclassFullHaloExtent; dx <= timeclassFullHaloExtent; dx++){
-               for (int dz = -timeclassFullHaloExtent; dz <= timeclassFullHaloExtent; dz++){
+         for (int dy = -P::timeclassFullHaloExtent; dy <= P::timeclassFullHaloExtent; dy++){
+            for (int dx = -P::timeclassFullHaloExtent; dx <= P::timeclassFullHaloExtent; dx++){
+               for (int dz = -P::timeclassFullHaloExtent; dz <= P::timeclassFullHaloExtent; dz++){
                   neigh_t offsets = {{dx, dy, dz}};
                   if ((dz==0) && (dy==0) && (dx==0)) {
                      continue;
@@ -1823,7 +1823,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       phiprof::Timer timeclassghost {"Stencils init, timeclass, ghost"};
 
       neighborhood.clear();
-      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+      for (int d = -P::timeclassFullHaloExtent; d <= P::timeclassFullHaloExtent; d++) {
          if (d != 0) {
             neighborhood.insert({{d, 0, 0}});
          }
@@ -1837,7 +1837,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       }
 
       neighborhood.clear();
-      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+      for (int d = -P::timeclassFullHaloExtent; d <= P::timeclassFullHaloExtent; d++) {
          if (d != 0) {
             neighborhood.insert({{0, d, 0}});
          }
@@ -1851,7 +1851,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       }
 
       neighborhood.clear();
-      for (int d = -timeclassFullHaloExtent; d <= timeclassFullHaloExtent; d++) {
+      for (int d = -P::timeclassFullHaloExtent; d <= P::timeclassFullHaloExtent; d++) {
          if (d != 0) {
             neighborhood.insert({{0, 0, d}});
          }
