@@ -128,9 +128,11 @@ void initializeGrids(
    }
    std::cerr << "neighborhood_size after GT " << neighborhood_size << "\n";
    if (P::initialMaxTimeclass > 0) {
-       neighborhood_size = max(neighborhood_size, max(VLASOV_STENCIL_WIDTH+1,P::timeclassExactHaloExtent) + P::timeclassOuterHaloExtent);
+       P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
+       neighborhood_size = max(neighborhood_size, P::timeclassFullHaloExtent);
+      std::cerr << "neighborhood_size after timeclasses " << neighborhood_size << "\n";
    }
-   std::cerr << "neighborhood_size after timeclasses " << neighborhood_size << "\n";
+ 
 
    const std::array<uint64_t, 3> grid_length = {{P::xcells_ini, P::ycells_ini, P::zcells_ini}};
    dccrg::Cartesian_Geometry::Parameters geom_params;
@@ -1772,7 +1774,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       timeclassInner.stop();
       phiprof::Timer timeclassOuter {"Stencils init, timeclass, outer"};
       std::set<neigh_t> neighborhood_outer;
-      P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
 
       std::cerr << "timeclassFullHaloExtent = " << P::timeclassFullHaloExtent << "\n";
          
