@@ -363,6 +363,14 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
             continue;
          }
       }
+      if(P::systemWriteAllDROs || lowercase == "pencils" || lowercase == "vg_pencils") {
+         // Load balance metric for LB debugging
+         outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_pencils",CellParams::PENCIL_ID_X,3));
+         outputReducer->addMetadata(outputReducer->size()-1,"","","$\\mathrm{Pencil ID}$","");
+         if(!P::systemWriteAllDROs) {
+            continue;
+         }
+      }
       if(P::systemWriteAllDROs || lowercase == "maxvdt" || lowercase == "vg_maxdt_acceleration") {
          // Overall maximum timestep constraint as calculated by the velocity space vlasov update
          outputReducer->addOperator(new DRO::DataReductionOperatorCellParams("vg_maxdt_acceleration",CellParams::MAXVDT,1));

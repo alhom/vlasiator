@@ -1587,6 +1587,38 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    }
    buildPencilsTimer.stop();
 
+   // write into each cell the ID of their pencil in each dimension
+   // logic copied from printPencilsFunc
+
+   auto pencils = DimensionPencils[dimension];
+
+   uint ibeg = 0;
+   uint iend = 0;
+   
+   for (uint i = 0; i < pencils.N; i++) {
+      const uint L = pencils.lengthOfPencils[i];
+      iend = ibeg + L;
+      for (auto j = pencils.ids.begin() + ibeg; j != pencils.ids.begin() + iend; ++j) {
+         if (*j && mpiGrid[*j]) {
+            SpatialCell* c = mpiGrid[*j];
+            
+            switch(dimension) {
+               case 0:
+                  c->parameters[CellParams::PENCIL_ID_X] = i;
+                  break;
+               case 1:
+                  c->parameters[CellParams::PENCIL_ID_Y] = i;
+                  break;
+               case 2:
+                  c->parameters[CellParams::PENCIL_ID_Z] = i;
+                  break;                  
+            }
+         }
+      }
+      ibeg  = iend;
+   }
+
+
    //GPUTODO: move gpu buffers and their upload to separate gpu_trans_pencils .hpp and .cpp files
    #ifdef USE_GPU
    // Update GPU allocations
