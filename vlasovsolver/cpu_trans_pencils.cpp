@@ -206,7 +206,7 @@ int getNeighborhood(const uint dimension, const uint stencil) {
 }
 
 /**
-    Helper function for locating unique, valid, and translated cells in a given direction
+    Helper function for locating unique, valid, and translated (active and source!) cells in a given direction
 */
 void findNeighborhoodCells(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
                            const CellID startingCellID,
@@ -403,9 +403,9 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
           and evaluate z-direction
       */
       // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<<"\n";
-
       phiprof::Timer ghostZTimer {"prepare ghost translation Z lists"};
       dimension = 2;
+      
       for (const CellID c : sourcex) {
          // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< " c"<<c <<"\n";
          const SpatialCell *ccell = mpiGrid[c];
@@ -418,7 +418,7 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          if (!do_translate_cell(ccell)){// || (ccell->requested_timeclass_ghosts.count(tc) + ccell->requested_timeclass_copy_ghosts.count(tc) == 0)) {
             continue;
          }
-                  // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< " c"<<c << " timeclass " << tc <<"\n";
+
          activez.insert(c);
          // Update as sources only non-sysb cells
          if (mpiGrid[c]->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) {
@@ -984,7 +984,6 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
    #ifdef DEBUG_PENCILS
       std::cerr << __FILE__ << ":" << __LINE__ << " " << myRank << " starting buildPencils from " << seedId.second << ", tc " <<seedId.first << std::endl;
    #endif
-
    // Find the "pre-existing" path for new pencils starting at higher reflevels
    if ( startingRefLvl > startingPathSize ) {
       CellID myId = seedId.second;
@@ -1039,7 +1038,6 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
       periodic = false;
       bool neighborExists = false;
       int refLvl = 0;
-
       // Find the refinement level in the neighboring (local) cell. Check all possible neighbors
       // in case some of them are remote.
       for (int tmpPath = 0; tmpPath < 4; ++tmpPath) {
@@ -1070,7 +1068,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
 
       if (!neighborExists) {
          #ifdef DEBUG_PENCILS
-            std::cerr << __FILE__ <<":"<<__LINE__ << " " << myRank << ": break;"<<std::endl;
+         std::cerr << __FILE__ <<":"<<__LINE__ << " " << myRank << ": break;"<<std::endl;
          #endif
          break;
       }
@@ -1083,11 +1081,11 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
          if ( static_cast<int>(path.size()) >= refLvl ) {
 
             #ifdef DEBUG_PENCILS
-               std::cerr << __FILE__<<":"<<__LINE__<< " " << myRank << ": I am cell " << id << ". ";
-               std::cerr << "I have seen refinement level " << refLvl << " before. Path is ";
-               for (auto k = path.begin(); k != path.end(); ++k)
-                  std::cerr << *k << " ";
-               std::cerr << std::endl;
+            std::cerr << __FILE__<<":"<<__LINE__<< " " << myRank << ": I am cell " << id << ". ";
+            std::cerr << "I have seen refinement level " << refLvl << " before. Path is ";
+            for (auto k = path.begin(); k != path.end(); ++k)
+               std::cerr << *k << " ";
+            std::cerr << std::endl;
             #endif
 
             nextNeighbor = selectPositiveNeighbor(grid,id,dimension,path[refLvl - 1],timeclass);
@@ -1103,7 +1101,6 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
                   std::cerr << *k << ' ';
                std::cerr << std::endl;
             #endif
-
             // Create a path through each neighbor cell
             for ( uint newPath : {0,1,2,3} ) {
                vector < uint > myPath = path;
@@ -1179,7 +1176,15 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
    x = coordinates[ix];
    y = coordinates[iy];
 
-   // std::cerr << __FILE__ <<":"<<__LINE__<<" calling addPencil\n";
+   #ifdef DEBUG_PENCILS
+   std::cerr << __FILE__ << ":"<< __LINE__ << " adding a pencil with ids: ";
+   for (auto i : ids){
+      std::cerr << i << " ";
+   }
+   std::cerr << std::endl;
+   std::cerr << "pencils.N == " << pencils.N << std::endl;
+   #endif
+   
    pencils.addPencil(ids, x, y, periodic, path, timeclass);
    return;
 }
@@ -1627,7 +1632,7 @@ void printPencilsFunc(const setOfPencils& pencils, const uint dimension, const i
       for (auto step : pencils.path[i]) {
          ss << step << ", ";
       }
-      ss << "}";
+      ss << "} ";
 
       ss << "source DZs: ";
       for (auto j = pencils.sourceDZ.begin() + ibeg; j != pencils.sourceDZ.begin() + iend; ++j) {
@@ -1726,8 +1731,14 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
                               const uint dimension) {
 
    // Optional heavy printouts for debugging
+   #ifdef DEBUG_PENCILS
+   const bool printPencils = true;
+   const bool printSeeds = true;
+   #else
    const bool printPencils = false;
    const bool printSeeds = false;
+   #endif
+   
    int myRank, mpi_size;
    if (printPencils || printSeeds) {
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
@@ -1762,39 +1773,13 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    // result independent of particle species.
    if (P::vlasovSolverGhostTranslate) {
       // Sets already include check for do_translate_cell
-      switch (dimension) {
-         case 0:
-            propagatedCells.assign(ghostTranslate_active[0].begin(),ghostTranslate_active[0].end());
-            break;
-         case 1:
-            propagatedCells.assign(ghostTranslate_active[1].begin(),ghostTranslate_active[1].end());
-            break;
-         case 2:
-            propagatedCells.assign(ghostTranslate_active[2].begin(),ghostTranslate_active[2].end());
-            break;
-         default:
-            std::cerr<<"Error in dimension: __FILE__:__LINE__"<<std::endl;
-            abort();
-      }
+      propagatedCells.assign(ghostTranslate_active[dimension].begin(),ghostTranslate_active[dimension].end());
       // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
       if (P::currentMaxTimeclass >= 0) {
          // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
          for (int i = 0; i <= P::currentMaxTimeclass; ++i){
             tc_propagatedCells.push_back(vector<CellID>());
-            switch (dimension) {
-               case 0:
-                  tc_propagatedCells[i].assign(timeghost_active[i][0].begin(),timeghost_active[i][0].end());
-                  break;
-               case 1:
-                  tc_propagatedCells[i].assign(timeghost_active[i][1].begin(),timeghost_active[i][1].end());
-                  break;
-               case 2:
-                  tc_propagatedCells[i].assign(timeghost_active[i][2].begin(),timeghost_active[i][2].end());
-                  break;
-               default:
-                  std::cerr<<"Error in dimension: __FILE__:__LINE__"<<std::endl;
-                  abort();
-            }
+            tc_propagatedCells[i].assign(timeghost_active[i][dimension].begin(),timeghost_active[i][dimension].end());
          }
       }
    } else {
@@ -1897,7 +1882,9 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
             ibeg = thread_pencils.ids.begin() + thread_pencils.idsStart[i];
             iend = ibeg + thread_pencils.lengthOfPencils[i];
             std::vector<CellID> pencilIds(ibeg, iend);
-            // std::cerr << __FILE__ <<":"<<__LINE__<<" calling addPencil\n";
+            #ifdef DEBUG_PENCILS
+            std::cerr << __FILE__ <<":"<<__LINE__<<" calling addPencil in threads for " << i << " thread_pencils.lengthOfPencils[i] " << thread_pencils.lengthOfPencils[i] << std::endl;
+            #endif
             DimensionPencils[dimension].addPencil(pencilIds,thread_pencils.x[i],thread_pencils.y[i],thread_pencils.periodic[i],thread_pencils.path[i], thread_pencils.timeclasses[i]);
          }
       }
