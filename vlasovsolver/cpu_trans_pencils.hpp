@@ -108,6 +108,15 @@ struct setOfPencils {
             idsIn.push_back(0);
          }
       }
+      #ifdef DEBUG_PENCILS
+      std::cerr << __FILE__ << ":"<< __LINE__ << " adding pencilid = " << N-1 << " with " << idsIn.size() << " ids: " ;
+      for (auto i : idsIn){
+         std::cerr << i << " ";
+      }
+      std::cerr << std::endl;
+   
+      #endif
+      
       sumOfLengths += idsIn.size();
       lengthOfPencils.push_back(idsIn.size());
       idsStart.push_back(ids.size());

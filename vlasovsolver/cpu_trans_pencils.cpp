@@ -748,6 +748,9 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
 
    // Loop over all cells and store widths in translation direction
    for (int i = 0; i < (int)L; ++i) {
+      #ifdef DEBUG_PENCILS
+      std::cerr << __FILE__<<":"<<__LINE__<<" sourceDz for " << ids[i] << " for i " << i << std::endl;
+      #endif
       sourceDZ[i] = mpiGrid[ids[i]]->parameters[CellParams::DX+dimension];
    }
 
