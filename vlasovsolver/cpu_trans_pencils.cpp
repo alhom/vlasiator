@@ -1804,9 +1804,9 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    }
 
    phiprof::Timer getSeedIdsTimer {"getSeedIds"};
-   vector<std::pair<int,CellID>> seedIds;
+   vector<std::pair<int,CellID>> seedIds; // <timeclass, CellID> pairs
    if(P::vlasovSolverGhostTranslate){
-      if (P::currentMaxTimeclass >= 0) {
+      if (P::currentMaxTimeclass > 0) {
          int maxt = 0;
          for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass){
             // std::cout << "getting seedids for timeclass " << timeclass <<", cells prop:\n";
