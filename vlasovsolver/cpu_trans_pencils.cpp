@@ -1229,7 +1229,7 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
 // #endif
 
    // These neighborhoods no longer include the AMR addition beyond the regular vlasov stencil
-   const int neighborhood = getNeighborhood(dimension, getNeigborhoodStencilLength());
+   const int neighborhood = getNeighborhood(dimension, VLASOV_STENCIL_WIDTH);
 
  #pragma omp parallel for
    for (uint i=0; i<propagatedCells.size(); i++) {
@@ -1366,13 +1366,22 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
          seedIds.push_back({timeclass, celli});
          continue;
       }
+
       /* Proceed with C, checking if the next two negative neighbours have the same refinement level as ccell, but the
          third neighbour a higher one. Iterate through negative distances for VLASOV_STENCIL_WIDTH+1 elements
          starting from the smallest distance. */
-      #ifdef DEBUG_PENCILS
-         std::cerr << myRank << " Checking for seed: " << celli << ", phase C\n";
-      #endif
-      iSrc = P::vlasovSolverGhostTranslateExtent; // TODO Timeclass exact extent?
+      // Create list of unique neighbour distances in negative direction, with large-enough stencil (using ordered sets)
+      nbrPairs  = mpiGrid.get_neighbors_of(celli, getNeighborhood(dimension, VLASOV_STENCIL_WIDTH+1));
+      
+      distancesminus.clear();
+      for (const auto& nbrPair : *nbrPairs) {
+         if (nbrPair.second[dimension] < 0) {
+            // gather absolute distance values for correct order
+            distancesminus.insert(-nbrPair.second[dimension]);
+         }
+      }
+
+      iSrc = VLASOV_STENCIL_WIDTH;
       for (auto it = distancesminus.begin(); it != distancesminus.end(); ++it) {
          if (iSrc < 0) {
             break; // found enough elements
