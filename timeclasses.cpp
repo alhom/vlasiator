@@ -340,6 +340,7 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       std::cerr << "not supported tc test, aborting...\n";
       abort();
    }
+   P::timeclassesInitialized = true;
 }
 
 //check that timeclass settings are sensible

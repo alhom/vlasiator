@@ -79,6 +79,7 @@ bool P::forcedConvection = false;
 Real P::tcStaticSphereRadiusLvl1 = 0.0;
 Real P::tcStaticSphereRadiusLvl2 = 0.0;
 Real P::tcStaticSphereRadiusLvl3 = 0.0;
+bool P::timeclassesInitialized = false;
 
 vector<Real> P::timeclassDt;
 vector<Real> P::timeclassTime;
