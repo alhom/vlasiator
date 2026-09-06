@@ -411,6 +411,9 @@ namespace spatial_cell {
       */
    }
 
+   /* Check if the cell has native timeclass or any sort of timeclass ghost request
+    * pinned to it.
+    */
    bool SpatialCell::has_timeclass(int timeclass) const{
       if (timeclass < 0 || 
          (int)this->parameters[CellParams::TIMECLASS] == timeclass ||
@@ -424,6 +427,21 @@ namespace spatial_cell {
          }
    }
 
+   /* Check if the cell has native timeclass or translation timeclass ghost request
+    * pinned to it.
+    */
+   bool SpatialCell::has_active_timeclass(int timeclass) const{
+      if (timeclass < 0 || 
+         (int)this->parameters[CellParams::TIMECLASS] == timeclass ||
+               this->requested_timeclass_ghosts.count(timeclass) > 0
+         ){
+            return true;
+         } 
+         else{
+            return false;
+         }
+   }
+   
    bool SpatialCell::cellTimeclassIsCorrect() {
 
       Real cellDt;
