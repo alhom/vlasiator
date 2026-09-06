@@ -909,6 +909,16 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
 
          // TODO get rid of tc-ghost-filtering?
          prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source[i], timeghost_active[i], i);
+         #ifdef DEBUG_TIMECLASSES
+         for (int dim = 0; dim < 3; ++dim) {
+            std::cerr << "timeghost_active[" << i << "][" << dim << "]: " << timeghost_active[i][dim].size() << "\n";
+            for (const CellID cell : timeghost_active[i][dim]) {
+               std::cerr << " " << cell << " ";
+            }
+              
+         }
+         std::cerr << "\n";
+         #endif
          MPI_Barrier(MPI_COMM_WORLD);
 
       }
