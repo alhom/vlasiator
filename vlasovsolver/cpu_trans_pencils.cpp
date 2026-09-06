@@ -253,7 +253,7 @@ void findNeighborhoodCells(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geome
          if (!do_translate_cell(ncell)) {
             continue;
          }
-         if (ncell->has_timeclass(timeclass) || ncell->requested_timeclass_copy_ghosts.count(timeclass)==1) {
+         if (ncell->has_timeclass(timeclass)) {
             foundCells.push_back(nbrPair.first);
          }
       }
@@ -352,7 +352,9 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          // Cells to be translated so local end result is good (find neighborhood contains do_translate check)
          findNeighborhoodCells(mpiGrid, c, dimension, activeSearchLength, foundCells, tc);
          for (const CellID cid: foundCells) {
-            activey.insert(cid);
+            if(tc == -1 || mpiGrid[cid]->has_active_timeclass(tc)){
+               activey.insert(cid);
+            }
          }
          
       } // end loop over local propagated cells
@@ -393,7 +395,9 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          // Cells to be translated so local end result is good
          findNeighborhoodCells(mpiGrid, c, dimension, activeSearchLength, foundCells, tc);
          for (const CellID cid: foundCells) {
-            activex.insert(cid);
+            if(tc == -1 || mpiGrid[cid]->has_active_timeclass(tc)){
+               activex.insert(cid);
+            }
             // std::cout << "timeclass " << tc << " has sourcex " << " " << c <<"\n";
          }
       } // end loop over y-translation sources
@@ -438,7 +442,9 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
          // Cells to be translated so local end result is good
          findNeighborhoodCells(mpiGrid, c, dimension, activeSearchLength, foundCells, tc);
          for (const CellID cid: foundCells) {
-            activez.insert(cid);
+            if(tc == -1 || mpiGrid[cid]->has_active_timeclass(tc)){
+               activez.insert(cid);
+            }
          }
                   // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank<< " c"<<c <<"\n";
       } // end loop over y-translation sources
@@ -1048,16 +1054,6 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
          #endif
          if(nextNeighbor != INVALID_CELLID) {
             // std::cout << "building from " << id << " to " << nextNeighbor << " ntc: " << grid[nextNeighbor]->parameters[CellParams::TIMECLASS] << ", querytc " << timeclass << " ghosthits: "<< (grid[nextNeighbor]->requested_timeclass_ghosts.count(timeclass)) <<"\n";
-               if(!(
-                  grid[nextNeighbor]->parameters[CellParams::TIMECLASS] == timeclass ||
-                  grid[nextNeighbor]->requested_timeclass_ghosts.count(timeclass) > 0)
-               ){
-                  neighborExists = false;
-                  #ifdef DEBUG_PENCILS
-                     std::cerr << __FILE__ <<":"<<__LINE__ << " " << myRank << ": break for " << nextNeighbor <<std::endl;
-                  #endif
-                  break;
-               }
             refLvl = max(refLvl,grid.get_refinement_level(nextNeighbor));
             neighborExists = true;
          }
@@ -1135,13 +1131,17 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
          #endif
          // Non-local, non-translated, and ids belonging to other pencils are not included
          if ( inseeds ||
-              !(do_translate_cell(grid[nextNeighbor]) && grid[nextNeighbor]->has_timeclass(timeclass))) {
+              !do_translate_cell(grid[nextNeighbor])){
+                 #ifdef DEBUG_PENCILS
+                 std::cerr << __FILE__<<":"<<__LINE__ << std::endl;
+                 #endif
             nextNeighbor = INVALID_CELLID;
-         } else {
+         }
+         if (nextNeighbor != INVALID_CELLID) {
             // Yep, this goes in this pencil.
             ids.push_back(nextNeighbor);
             #ifdef DEBUG_PENCILS
-               std::cerr << nextNeighbor << " pushed to pencil\n";
+            std::cerr << nextNeighbor << " pushed to pencil\n";
             #endif
          }
       }
@@ -1788,11 +1788,11 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
             propagatedCells.push_back(localCells[c]);
          }
       }
-      if(P::currentMaxTimeclass >= 0){
+      if(P::currentMaxTimeclass >= 0){ // Not possible with current forced GT setup
          for (int i = 0; i <= P::currentMaxTimeclass; ++i){
             tc_propagatedCells.push_back(vector<CellID>());
             for (size_t c=0; c<localCells.size(); ++c) {
-               if (do_translate_cell(mpiGrid[localCells[c]]) && mpiGrid[localCells[c]]->parameters[CellParams::TIMECLASS]==i) {
+               if (do_translate_cell(mpiGrid[localCells[c]]) && mpiGrid[localCells[c]]->has_active_timeclass(i)) {
                   tc_propagatedCells[i].push_back(localCells[c]);
                }
             }
