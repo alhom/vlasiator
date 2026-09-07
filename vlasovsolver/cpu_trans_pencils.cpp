@@ -319,6 +319,11 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
    } // end loop over y-translation sources
    ghostZTimer.stop();
 
+   for (auto c : localPropagatedCells){
+      mpiGrid[c]->parameters[CellParams::ACTIVE_X] = std::count(ghostTranslate_active_x.begin(), ghostTranslate_active_x.end(), c);
+      mpiGrid[c]->parameters[CellParams::ACTIVE_Y] = std::count(ghostTranslate_active_y.begin(), ghostTranslate_active_y.end(), c);      
+      mpiGrid[c]->parameters[CellParams::ACTIVE_Z] = std::count(ghostTranslate_active_z.begin(), ghostTranslate_active_z.end(), c);
+   }
 
    // Gather and report statistics
    std::vector<int64_t> localCounts;
@@ -1491,6 +1496,40 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    vector<CellID> seedIds;
    getSeedIds(mpiGrid, propagatedCells, dimension, seedIds);
    getSeedIdsTimer.stop();
+
+
+   for (auto c : localCells){
+      switch(dimension){
+         case 0:
+            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_X] = 0;
+            break;
+         case 1:
+            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_Y] = 0;
+            break;
+         case 2:
+            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_Z] = 0;
+            break;
+      }
+   }
+
+   for (const CellID seedid : seedIds){
+
+      if(std::count(localCells.begin(),localCells.end(),seedid) > 0){
+         switch(dimension){
+            case 0:
+               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_X] = 1;
+               break;
+            case 1:
+               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_Y] = 1;
+               break;
+            case 2:
+               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_Z] = 1;
+               break;
+         }
+      }
+   }
+   
+
    if (printSeeds) {
       for (int rank=0; rank<mpi_size; ++rank) {
          MPI_Barrier(MPI_COMM_WORLD);
@@ -1591,6 +1630,20 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    // logic copied from printPencilsFunc
 
    auto pencils = DimensionPencils[dimension];
+
+   for (auto c : localCells){
+      switch(dimension) {
+         case 0:
+            mpiGrid[c]->parameters[CellParams::PENCIL_ID_X] = 0;
+            break;
+         case 1:
+            mpiGrid[c]->parameters[CellParams::PENCIL_ID_Y] = 0;
+            break;
+         case 2:
+            mpiGrid[c]->parameters[CellParams::PENCIL_ID_Z] = 0;
+            break;
+      }
+   }
 
    uint ibeg = 0;
    uint iend = 0;
