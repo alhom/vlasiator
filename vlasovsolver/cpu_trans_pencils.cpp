@@ -319,10 +319,14 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
    } // end loop over y-translation sources
    ghostZTimer.stop();
 
-   for (auto c : localPropagatedCells){
-      mpiGrid[c]->parameters[CellParams::ACTIVE_X] = std::count(ghostTranslate_active_x.begin(), ghostTranslate_active_x.end(), c);
-      mpiGrid[c]->parameters[CellParams::ACTIVE_Y] = std::count(ghostTranslate_active_y.begin(), ghostTranslate_active_y.end(), c);      
-      mpiGrid[c]->parameters[CellParams::ACTIVE_Z] = std::count(ghostTranslate_active_z.begin(), ghostTranslate_active_z.end(), c);
+   if ((std::find(P::outputVariableList.begin(), P::outputVariableList.end(), "vg_pencils") != P::outputVariableList.end())
+      || (std::find(P::outputVariableList.begin(), P::outputVariableList.end(), "pencils") != P::outputVariableList.end())
+   ) {
+      for (auto c : localPropagatedCells) {
+         mpiGrid[c]->parameters[CellParams::ACTIVE_X] = std::count(ghostTranslate_active_x.begin(), ghostTranslate_active_x.end(), c);
+         mpiGrid[c]->parameters[CellParams::ACTIVE_Y] = std::count(ghostTranslate_active_y.begin(), ghostTranslate_active_y.end(), c);      
+         mpiGrid[c]->parameters[CellParams::ACTIVE_Z] = std::count(ghostTranslate_active_z.begin(), ghostTranslate_active_z.end(), c);
+      }
    }
 
    // Gather and report statistics
@@ -1497,39 +1501,6 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    getSeedIds(mpiGrid, propagatedCells, dimension, seedIds);
    getSeedIdsTimer.stop();
 
-
-   for (auto c : localCells){
-      switch(dimension){
-         case 0:
-            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_X] = 0;
-            break;
-         case 1:
-            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_Y] = 0;
-            break;
-         case 2:
-            mpiGrid[c]->parameters[CellParams::PENCIL_SEED_Z] = 0;
-            break;
-      }
-   }
-
-   for (const CellID seedid : seedIds){
-
-      if(std::count(localCells.begin(),localCells.end(),seedid) > 0){
-         switch(dimension){
-            case 0:
-               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_X] = 1;
-               break;
-            case 1:
-               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_Y] = 1;
-               break;
-            case 2:
-               mpiGrid[seedid]->parameters[CellParams::PENCIL_SEED_Z] = 1;
-               break;
-         }
-      }
-   }
-   
-
    if (printSeeds) {
       for (int rank=0; rank<mpi_size; ++rank) {
          MPI_Barrier(MPI_COMM_WORLD);
@@ -1628,47 +1599,72 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
 
    // write into each cell the ID of their pencil in each dimension
    // logic copied from printPencilsFunc
+   // we only do this if the pencil data reducer is active
 
-   auto pencils = DimensionPencils[dimension];
+   if ((std::find(P::outputVariableList.begin(), P::outputVariableList.end(), "vg_pencils") != P::outputVariableList.end())
+      || (std::find(P::outputVariableList.begin(), P::outputVariableList.end(), "pencils") != P::outputVariableList.end())
+   ) {
 
-   for (auto c : localCells){
-      switch(dimension) {
+      phiprof::Timer pencilDRODataTimer {"pencil_DRO_data"};
+
+      uint cellParamsIdx;
+
+      switch (dimension) {
          case 0:
-            mpiGrid[c]->parameters[CellParams::PENCIL_ID_X] = 0;
+            cellParamsIdx = CellParams::PENCIL_SEED_X;
             break;
          case 1:
-            mpiGrid[c]->parameters[CellParams::PENCIL_ID_Y] = 0;
+            cellParamsIdx = CellParams::PENCIL_SEED_Y;
             break;
          case 2:
-            mpiGrid[c]->parameters[CellParams::PENCIL_ID_Z] = 0;
+            cellParamsIdx = CellParams::PENCIL_SEED_Z;
             break;
       }
-   }
 
-   uint ibeg = 0;
-   uint iend = 0;
-   
-   for (uint i = 0; i < pencils.N; i++) {
-      const uint L = pencils.lengthOfPencils[i];
-      iend = ibeg + L;
-      for (auto j = pencils.ids.begin() + ibeg; j != pencils.ids.begin() + iend; ++j) {
-         if (*j && mpiGrid[*j]) {
-            SpatialCell* c = mpiGrid[*j];
-            
-            switch(dimension) {
-               case 0:
-                  c->parameters[CellParams::PENCIL_ID_X] = i;
-                  break;
-               case 1:
-                  c->parameters[CellParams::PENCIL_ID_Y] = i;
-                  break;
-               case 2:
-                  c->parameters[CellParams::PENCIL_ID_Z] = i;
-                  break;                  
-            }
+      #pragma omp parallel for
+      for (const CellID c : localCells){
+         mpiGrid[c]->parameters[cellParamsIdx] = 0;
+      }
+
+      for (const CellID seedid : seedIds){
+         if(std::count(localCells.begin(),localCells.end(),seedid) > 0){
+            mpiGrid[seedid]->parameters[cellParamsIdx] = 1;
          }
       }
-      ibeg  = iend;
+
+      switch (dimension) {
+         case 0:
+            cellParamsIdx = CellParams::PENCIL_ID_X;
+            break;
+         case 1:
+            cellParamsIdx = CellParams::PENCIL_ID_Y;
+            break;
+         case 2:
+            cellParamsIdx = CellParams::PENCIL_ID_Z;
+            break;
+      }
+
+      #pragma omp parallel for
+      for (const CellID c : localCells) { 
+         mpiGrid[c]->parameters[cellParamsIdx] = 0; 
+      }
+
+      auto pencils = DimensionPencils[dimension];
+
+      uint ibeg = 0;
+      uint iend = 0;
+      
+      for (uint i = 0; i < pencils.N; i++) {
+         const uint L = pencils.lengthOfPencils[i];
+         iend = ibeg + L;
+         for (auto j = pencils.ids.begin() + ibeg; j != pencils.ids.begin() + iend; ++j) {
+            if (*j && mpiGrid[*j]) {
+               SpatialCell* c = mpiGrid[*j];
+               c->parameters[cellParamsIdx] = i;
+            }
+         }
+         ibeg  = iend;
+      }
    }
 
 
