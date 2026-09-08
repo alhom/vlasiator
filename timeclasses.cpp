@@ -284,7 +284,13 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
 
       assert(P::tcStaticSphereRadiusLvl1 > 0.0 && P::tcStaticSphereRadiusLvl2 > 0.0 && P::tcStaticSphereRadiusLvl3 > 0.0);
       assert(P::tcStaticSphereRadiusLvl1 < P::tcStaticSphereRadiusLvl2 && P::tcStaticSphereRadiusLvl2 < P::tcStaticSphereRadiusLvl3);
-      std::cout << "Using static pre-programmed TC sphere areas, three level values: " << P::tcStaticSphereRadiusLvl1 << ", " << P::tcStaticSphereRadiusLvl2 << ", " << P::tcStaticSphereRadiusLvl3 << std::endl;
+
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
+
+      if (myRank == 0) {
+         std::cout << "Using static pre-programmed TC sphere areas, three level values: " << P::tcStaticSphereRadiusLvl1 << ", " << P::tcStaticSphereRadiusLvl2 << ", " << P::tcStaticSphereRadiusLvl3 << std::endl;
+      }
 
       auto cells = getLocalCells();
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {

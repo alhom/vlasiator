@@ -121,16 +121,16 @@ void initializeGrids(
 
    MPI_Comm comm = MPI_COMM_WORLD;
    int neighborhood_size = VLASOV_STENCIL_WIDTH;
-   std::cerr << "neighborhood_size initially " << neighborhood_size << "\n";
+   if (myRank == 0) {std::cerr << "neighborhood_size initially " << neighborhood_size << "\n";}
    if (P::vlasovSolverGhostTranslate) {
       // One extra layer for translation of ghost cells
       neighborhood_size++;
    }
-   std::cerr << "neighborhood_size after GT " << neighborhood_size << "\n";
+   if (myRank == 0) {std::cerr << "neighborhood_size after GT " << neighborhood_size << "\n";}
    if (P::initialMaxTimeclass > 0) {
-       P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
-       neighborhood_size = max(neighborhood_size, P::timeclassFullHaloExtent+1);
-      std::cerr << "neighborhood_size after timeclasses " << neighborhood_size << "\n";
+      P::timeclassFullHaloExtent = P::timeclassExactHaloExtent + P::timeclassOuterHaloExtent;
+      neighborhood_size = max(neighborhood_size, P::timeclassFullHaloExtent+1);
+      if (myRank == 0) {std::cerr << "neighborhood_size after timeclasses " << neighborhood_size << "\n";}
    }
  
 
@@ -922,9 +922,11 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
          MPI_Barrier(MPI_COMM_WORLD);
 
       }
+      #ifdef DEBUG_TIMECLASSES
       for(int i = 0; i <= P::currentMaxTimeclass; ++i){
          areTimeghostsConsistent(mpiGrid, i);
       }
+      #endif
    }
 // std::cerr << __FILE__<<":"<<__LINE__<<" "<< myRank << "\n";
    // Prepare cellIDs and pencils for AMR translation
@@ -1054,7 +1056,9 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
       for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass) {
          if (mpiGrid[cell]->requested_timeclass_ghosts.count(timeclass) > 0) {
             mpiGrid[cell]->requested_timeclass_copy_ghosts.erase(timeclass);
+            #ifdef DEBUG_TIMECLASSES
             std::cerr << myRank << ": Cell " << cell << " has req_ghost of timeclass " << timeclass << ", removing req_copy_ghost of timeclass " << timeclass << "\n";
+            #endif
          }
       }
    }
@@ -1383,6 +1387,9 @@ SHIFT_P_X   xo
 void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid){
    // set reduced neighborhoods
    typedef dccrg::Types<3>::neighborhood_item_t neigh_t;
+
+   int myRank;
+   MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
    // set a reduced neighborhood for nearest neighbours
    std::set<neigh_t> neighborhood;
@@ -1777,7 +1784,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          abort();
       }
       
-      std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_EXACT_HALO_NEIGHBORHOOD_ID = " << neighborhood.size() << "\n";
+      if (myRank == 0) {std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_EXACT_HALO_NEIGHBORHOOD_ID = " << neighborhood.size() << "\n";}
 
       // second one using timeclassouterhaloextent
       // neighborhood.clear();
@@ -1785,7 +1792,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
       phiprof::Timer timeclassOuter {"Stencils init, timeclass, outer"};
       std::set<neigh_t> neighborhood_outer;
 
-      std::cerr << "timeclassFullHaloExtent = " << P::timeclassFullHaloExtent << "\n";
+      if (myRank == 0) {std::cerr << "timeclassFullHaloExtent = " << P::timeclassFullHaloExtent << "\n";}
          
       // neighborhood.clear();
       // stencils for timeghost haloes
@@ -1815,12 +1822,9 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
          abort();
       }
 
-      std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_OUTER_HALO_NEIGHBORHOOD_ID = " << neighborhood_outer.size() << "\n";
-
+      if (myRank == 0) {std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_OUTER_HALO_NEIGHBORHOOD_ID = " << neighborhood_outer.size() << "\n";}
 
       neighborhood_outer.clear();
-
-      std::cerr << "timeclassFullHaloExtent = " << P::timeclassFullHaloExtent << "\n";
 
       // neighborhood.clear();
       // stencils for timeghost haloes
@@ -2038,7 +2042,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpi
    //    abort();
    // }
 
-      int full_neighborhood_size = max(2, VLASOV_STENCIL_WIDTH);
+   int full_neighborhood_size = max(2, VLASOV_STENCIL_WIDTH);
    if (P::vlasovSolverGhostTranslate) {
       // One extra layer for translation of ghost cells
       full_neighborhood_size++;
