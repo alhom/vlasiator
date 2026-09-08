@@ -1019,19 +1019,6 @@ int simulate(int argn,char* args[]) {
          P::t-P::dt <= P::t_max+DT_EPSILON &&
          wallTimeRestartCounter <= P::exitAfterRestarts) {
 
-      logFile << "some parameters: \n";
-      logFile << P::currentMaxTimeclass << " " << P::initialMaxTimeclass << " " << P::timeclassDt.at(0) << " " << P::dt << "\n";  
-
-      timeclassDebugAssertions(mpiGrid);
-      
-      //std::cout << "start of main simulation loop, below dt, timeclassDts, currentmaxtimeclass" << std::endl;
-      //std::cout << P::dt << std::endl;
-      for (auto i: P::timeclassDt) {
-         //std::cout << i << " ";
-      }
-      //std::cout << endl;
-      //std::cout << P::currentMaxTimeclass << std::endl;
-      
       addTimedBarrier("barrier-loop-start");
 
       phiprof::Timer ioTimer {"IO"};
@@ -1046,9 +1033,9 @@ int simulate(int argn,char* args[]) {
       //write out phiprof profiles and logs with a lower interval than normal
       //diagnostic (every 10 diagnostic intervals).
       phiprof::Timer loggingTimer {"logfile-io"};
-      logFile << "---------- tstep = " << P::tstep << " (" <<P::fractionalTimestep<<"/"<<(2 << (P::currentMaxTimeclass-1)) <<") t = " << P::t <<" dt = " << P::dt << " FS cycles = " << P::fieldSolverSubcycles << " ----------" << endl;
-      if (P::diagnosticInterval != 0 &&
-          P::tstep % (P::diagnosticInterval*10) == 0 &&
+      logFile << "---------- tstep = " << P::tstep << " (" <<P::fractionalTimestep+1<<"/"<<(2 << (P::currentMaxTimeclass-1)) <<") t = " << P::t <<" dt = " << P::dt << " FS cycles = " << P::fieldSolverSubcycles << " ----------" << endl;
+      if (/*P::diagnosticInterval != 0 &&
+          P::tstep % (P::diagnosticInterval*10) == 0 &&*/
           P::tstep-P::tstep_min >0) {
 
          phiprof::print(MPI_COMM_WORLD,"phiprof");
@@ -1092,6 +1079,18 @@ int simulate(int argn,char* args[]) {
 
          }
       }
+
+      logFile << "(TIMECLASS) P::currentMaxTimeclass: " << P::currentMaxTimeclass << ", P::initialMaxTimeclass: " << P::initialMaxTimeclass << ", P::timeclassDt.at(0): " << P::timeclassDt.at(0) << ", P::dt: " << P::dt << "\n";
+
+      timeclassDebugAssertions(mpiGrid);
+
+      //std::cout << "start of main simulation loop, below dt, timeclassDts, currentmaxtimeclass" << std::endl;
+      //std::cout << P::dt << std::endl;
+      // for (auto i: P::timeclassDt) {
+         //std::cout << i << " ";
+      // }
+      //std::cout << endl;
+      //std::cout << P::currentMaxTimeclass << std::endl;
 
       // write system, loop through write classes
       for (uint i = 0; i < P::systemWriteTimeInterval.size(); i++) {
