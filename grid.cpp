@@ -1518,131 +1518,12 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
    neighborhood.clear();
 
    stencil2.stop();
-   phiprof::Timer stencil3 {"Stencils init 3"};
-
-   // neighborhood.clear();
-   // for (int d = -VLASOV_STENCIL_WIDTH-3; d <= VLASOV_STENCIL_WIDTH+3; d++) {
-   //    if (d != 0) {
-   //       neighborhood.insert({{d, 0, 0}});
-   //    }
-   // }
-   // for (auto it : neighborhood){
-   //    all_neighborhoods.emplace(it);
-   // }
-   // if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_X_GHOST_NEIGHBORHOOD_ID, neighborhood)) {
-   //    std::cerr << "Failed to add neighborhood VLASOV_SOLVER_X_GHOST_NEIGHBORHOOD_ID \n";
-   //    abort();
-   // }
-
-   // neighborhood.clear();
-   // for (int d = -VLASOV_STENCIL_WIDTH-3; d <= VLASOV_STENCIL_WIDTH+3; d++) {
-   //    if (d != 0) {
-   //       neighborhood.push_back({{0, d, 0}});
-   //    }
-   // }
-   // if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_Y_GHOST_NEIGHBORHOOD_ID, neighborhood)) {
-   //    std::cerr << "Failed to add neighborhood VLASOV_SOLVER_Y_GHOST_NEIGHBORHOOD_ID \n";
-   //    abort();
-   // }
-
-   // neighborhood.clear();
-   // for (int d = -VLASOV_STENCIL_WIDTH-3; d <= VLASOV_STENCIL_WIDTH+3; d++) {
-   //    if (d != 0) {
-   //       neighborhood.push_back({{0, 0, d}});
-   //    }
-   // }
-   // if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_Z_GHOST_NEIGHBORHOOD_ID, neighborhood)) {
-   //    std::cerr << "Failed to add neighborhood VLASOV_SOLVER_Z_GHOST_NEIGHBORHOOD_ID \n";
-   //    abort();
-   // }
-
-
-   // if (P::vlasovSolverGhostTranslate) {
-   //    neighborhood.clear();
-   //    for (int d = -VLASOV_STENCIL_WIDTH-1; d <= VLASOV_STENCIL_WIDTH+1; d++) {
-   //       if (d != 0) {
-   //          neighborhood.push_back({{d, 0, 0}});
-   //       }
-   //    }
-   //    if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_X_GHOST_NEIGHBORHOOD_ID, neighborhood)){
-   //       std::cerr << "Failed to add neighborhood VLASOV_SOLVER_X_GHOST_NEIGHBORHOOD_ID \n";
-   //       abort();
-   //    }
-
-   //    neighborhood.clear();
-   //    for (int d = -VLASOV_STENCIL_WIDTH-1; d <= VLASOV_STENCIL_WIDTH+1; d++) {
-   //       if (d != 0) {
-   //          neighborhood.push_back({{0, d, 0}});
-   //       }
-   //    }
-   //    if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_Y_GHOST_NEIGHBORHOOD_ID, neighborhood)){
-   //       std::cerr << "Failed to add neighborhood VLASOV_SOLVER_Y_GHOST_NEIGHBORHOOD_ID \n";
-   //       abort();
-   //    }
-
-   //    neighborhood.clear();
-   //    for (int d = -VLASOV_STENCIL_WIDTH-1; d <= VLASOV_STENCIL_WIDTH+1; d++) {
-   //       if (d != 0) {
-   //          neighborhood.push_back({{0, 0, d}});
-   //       }
-   //    }
-   //    if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_Z_GHOST_NEIGHBORHOOD_ID, neighborhood)){
-   //       std::cerr << "Failed to add neighborhood VLASOV_SOLVER_Z_GHOST_NEIGHBORHOOD_ID \n";
-   //       abort();
-   //    }
-
-   //    // Ghost translation required stencils
-   //    neighborhood.clear();
-   //    // First: full +GT stencil in Y (last direction to be translated)
-   //    for (int dy = -VLASOV_STENCIL_WIDTH-1; dy <= VLASOV_STENCIL_WIDTH+1; dy++){
-   //       if (dy != 0) {
-   //          neighborhood.push_back({{0, dy, 0}});
-   //       }
-   //    }
-   //    // Then: full + GT extensions in X from Y-translated cells
-   //    for (int dy = -P::vlasovSolverGhostTranslateExtent; dy <= (int)P::vlasovSolverGhostTranslateExtent; dy++){
-   //       for (int dx = -VLASOV_STENCIL_WIDTH-1; dx <= VLASOV_STENCIL_WIDTH+1; dx++){
-   //          if (dx != 0) {
-   //             neighborhood.push_back({{dx, dy, 0}});
-   //          }
-   //       }
-   //    }
-   //    // Then: full + GT extensions in Z from Y->X translated cells
-   //    for (int dy = -P::vlasovSolverGhostTranslateExtent; dy <= (int)P::vlasovSolverGhostTranslateExtent; dy++){
-   //       for (int dx = -P::vlasovSolverGhostTranslateExtent; dx <= (int)P::vlasovSolverGhostTranslateExtent; dx++){
-   //          for (int dz = -VLASOV_STENCIL_WIDTH-1; dz <= VLASOV_STENCIL_WIDTH+1; dz++){
-   //             if (dz != 0) {
-   //                neighborhood.push_back({{dx, dy, dz}});
-   //             }
-   //          }
-   //       }
-   //    }
-   //    if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_GHOST_NEIGHBORHOOD_ID, neighborhood)){
-   //       std::cerr << "Failed to add neighborhood VLASOV_SOLVER_GHOST_NEIGHBORHOOD_ID \n";
-   //       abort();
-   //    }
-
-   //    // Ghost translation neighbourhood where we need to have neighbour information
-   //    neighborhood.clear();
-   //    for (int dy = -(int)P::vlasovSolverGhostTranslateExtent; dy <= (int)P::vlasovSolverGhostTranslateExtent; dy++){
-   //       for (int dx = -(int)P::vlasovSolverGhostTranslateExtent; dx <= (int)P::vlasovSolverGhostTranslateExtent; dx++){
-   //          for (int dz = -(int)P::vlasovSolverGhostTranslateExtent; dz <= (int)P::vlasovSolverGhostTranslateExtent; dz++){
-   //             if ((dz==0) && (dy==0) && (dx==0)) {
-   //                continue;
-   //             }
-   //             neighborhood.push_back({{dx, dy, dz}});
-   //          }
-   //       }
-   //    }
-   //    if (!mpiGrid.add_neighborhood(VLASOV_SOLVER_GHOST_REQNEIGH_NEIGHBORHOOD_ID, neighborhood)){
-   //       std::cerr << "Failed to add neighborhood VLASOV_SOLVER_GHOST_REQNEIGH_NEIGHBORHOOD_ID \n";
-   //       abort();
-   //    }
-   // }
 
    std::stringstream ss;
 
    if (P::vlasovSolverGhostTranslate) {
+      phiprof::Timer stencil3 {"Stencils init GT"};
+
       neighborhood.clear();
       for (int d = -VLASOV_STENCIL_WIDTH-1; d <= VLASOV_STENCIL_WIDTH+1; d++) {
          if (d != 0) {
@@ -1737,11 +1618,14 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
          std::cerr << "Failed to add neighborhood Neighborhoods::VLASOV_SOLVER_GHOST_REQNEIGH \n";
          abort();
       }
+      stencil3.stop();
    }
-   stencil3.stop();
+   
 
 
    if (P::initialMaxTimeclass > 0) {
+      phiprof::Timer timeclassStencils {"Stencils init, timeclasses"};
+
       phiprof::Timer timeclassInner {"Stencils init, timeclass, inner"};
       neighborhood.clear();
       // stencils for timeghost haloes
@@ -1819,6 +1703,9 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
       if (myRank == 0) {std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_OUTER_HALO_NEIGHBORHOOD_ID = " << neighborhood_outer.size() << "\n";}
 
       neighborhood_outer.clear();
+      timeclassOuter.stop();
+
+      phiprof::Timer timeclassOuterg {"Stencils init, timeclass, outerghost"};
 
       // neighborhood.clear();
       // stencils for timeghost haloes
@@ -1848,7 +1735,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
          abort();
       }
          
-      timeclassOuter.stop();
+      timeclassOuterg.stop();
       // phiprof::Timer timeclassDiff {"Stencils init, timeclass, diff"};
       // // third one using the other two's difference
       // std::set<neigh_t> neighborhood_diff;
@@ -1861,7 +1748,7 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
 
       // std::cerr << "size of VLASOV_SOLVER_TIMEGHOST_HALODIFF_NEIGHBORHOOD_ID = " << neighborhood_diff.size() << "\n";
       
-      phiprof::Timer timeclassghost {"Stencils init, timeclass, ghost"};
+      phiprof::Timer timeclassghost {"Stencils init, timeclass, 1dghost"};
 
       neighborhood.clear();
       for (int d = -P::timeclassFullHaloExtent; d <= P::timeclassFullHaloExtent; d++) {
@@ -2005,36 +1892,6 @@ void initializeStencils(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mp
       std::cerr << "Failed to add neighborhood Neighborhoods::SHIFT_P_Z \n";
       abort();
    }
-
-   // // Extra-large neighbourhood for use in local translation. Note: if the AMR translation flag is not used, memory
-   // // usage can grow in an uncontrolled fashion due to extra-large ghost regions.
-   // // This is also asymmetric due to translation direction order. For now assumes VLASOV_STENCIL_WIDTH=2.
-   // neighborhood.clear();
-   // for (int y = 1; y <= VLASOV_STENCIL_WIDTH+3; y++) {
-   //    neighborhood.push_back({{ 0, y, 0}});
-   //    neighborhood.push_back({{ 0,-y, 0}});
-   // }
-   // for (int y = -1; y <= 1; y++) {
-   //    for (int x = 1; x <= VLASOV_STENCIL_WIDTH+4; x++) {
-   //       neighborhood.push_back({{ x, y, 0}});
-   //       neighborhood.push_back({{-x, y, 0}});
-   //    }
-   // }
-   // for (int y = -1; y <= 1; y++) {
-   //    for (int x = -2; x <= 2; x++) {
-   //       for (int z = 1; z <= VLASOV_STENCIL_WIDTH+4; z++) {
-   //          neighborhood.push_back({{ x, y, z}});
-   //          neighborhood.push_back({{ x, y,-z}});
-   //       }
-   //    }
-   // }
-   // for (auto it : neighborhood){
-   //       all_neighborhoods.emplace(it);
-   //    }
-   // if(!mpiGrid.add_neighborhood(Neighborhoods::VLASOV_SOLVER_GHOST, neighborhood)){
-   //    std::cerr << "Failed to add neighborhood VLASOV_SOLVER_GHOST_NEIGHBORHOOD_ID \n";
-   //    abort();
-   // }
 
    int full_neighborhood_size = max(2, VLASOV_STENCIL_WIDTH);
    if (P::vlasovSolverGhostTranslate) {
