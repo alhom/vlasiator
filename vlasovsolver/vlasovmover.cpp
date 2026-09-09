@@ -222,6 +222,7 @@ void calculateSpatialGhostTranslation(
    const creal dt,
    const uint popID,
    Real &time,
+   const uint tictoc,
    int tc
    ) {
 
@@ -229,17 +230,15 @@ void calculateSpatialGhostTranslation(
    // No need for remote target cells; pass a dummy list.
    const vector<CellID> dummy_cells;
    uint neighborhood;
-   std::array<setOfPencils,3>* pencilSet = &DimensionPencils;
    if (P::currentMaxTimeclass == 0) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
-      // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
-   }
-   else {
+   } else if (tictoc == Timeclasses::TIC) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
-      // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+   } else {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
    }
-   
-   updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST, tc);
+
+   updateRemoteVelocityBlockLists(mpiGrid,popID,neighborhood, tc);
    // Need to re-do in case block lists of boundary cells change after
    // the block adjustment just after ACC.
 
@@ -249,7 +248,7 @@ void calculateSpatialGhostTranslation(
 
    phiprof::Timer transferTimer {"transfer-stencil-data-all",{"MPI"}};
    SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false);
-   mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_GHOST);
+   mpiGrid.update_copies_of_remote_neighbors(neighborhood);
    transferTimer.stop();
 
    phiprof::Timer preBarrierTimer {"MPI barrier-pre-trans"};
@@ -278,7 +277,6 @@ void calculateSpatialGhostTranslation(
 
    for(CellID c : local_propagated_cells)
    {
-      // if (c == 16) std::cout << c << " at TIME_R " << mpiGrid[c]->parameters[CellParams::TIME_R] << " + " << dt <<"\n";
       if (mpiGrid[c]->get_timeclass_turn_r())
          mpiGrid[c]->parameters[CellParams::TIME_R] += dt;
    }
@@ -458,6 +456,7 @@ void calculateSpatialTranslation(
             // std::cout << "rank " << myRank << ": " << tc_propagated_cells[tc].size() << " cells: calculateSpatialTranslation tc " << tc << " by dt " << P::timeclassDt[tc] <<"\n";
             if (P::vlasovSolverGhostTranslate) {
                // Local translation without interim communication
+               const uint tictoc = Timeclasses::TIC;
                calculateSpatialGhostTranslation(
                   mpiGrid,
                   tc_propagated_cells[tc], // Used for LB
@@ -465,6 +464,7 @@ void calculateSpatialTranslation(
                   P::timeclassDt[tc],
                   popID,
                   time,
+                  tictoc,
                   tc
                   );
             } else {
