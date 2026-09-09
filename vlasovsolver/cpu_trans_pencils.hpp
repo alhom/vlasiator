@@ -386,6 +386,7 @@ int getNeigborhoodStencilLength();
 
 // pencils used for AMR translation
 extern std::array<setOfPencils,3> DimensionPencils;
+extern std::array<setOfPencils,3> DimensionPencils_toc; // for the second round of TC propagation/small halo
 
 // Ghost translation cell lists (no interim comms)
 void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
