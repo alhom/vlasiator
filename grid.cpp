@@ -851,7 +851,7 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
    // AMR translation lists are used also for non-AMR simulations in GPU mode
-   if (P::vlasovSolverGhostTranslate) {
+   if (P::vlasovSolverGhostTranslate && P::currentMaxTimeclass == 0) {
       // std::cerr << __FILE__<<":" << __LINE__ <<"\n";
       phiprof::Timer ghostTimer {"prepare_ghost_translation_lists"};
 
@@ -865,7 +865,7 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
       phiprof::Timer ghostListsTimer {"update active cell lists for ghost translation"};
       const vector<CellID>& localCells = getLocalCells();
 
-      prepareGhostTranslationCellLists(mpiGrid, localCells, ghostTranslate_source, ghostTranslate_active);
+      prepareGhostTranslationCellLists(mpiGrid, localCells, ghostTranslate_source, ghostTranslate_active, P::vlasovSolverGhostTranslateExtent,1);
       ghostListsTimer.stop();
 
       phiprof::Timer barrierTimer {"MPI barrier"};
@@ -912,15 +912,26 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
          //       tc_act_cells.push_back(cell);
          //    }
          // }
-         timeghost_source[i].clear();
-         timeghost_active[i].clear();
-
+         timeghost_source_tic[i].clear();
+         timeghost_active_tic[i].clear();
+         timeghost_source_toc[i].clear();
+         timeghost_active_toc[i].clear();
+         int searchLength = P::timeclassFullHaloExtent;
+         int activeSearchLength = P::timeclassExactHaloExtent;
          // TODO get rid of tc-ghost-filtering?
-         prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source[i], timeghost_active[i], i);
+         // if (i>0){ // base timeclass does not do the tic update // try first to replicate previous
+            
+            prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source_tic[i], timeghost_active_tic[i], searchLength, activeSearchLength, i);
+         // }
+         searchLength = P::timeclassExactHaloExtent;
+         activeSearchLength = 1;
+         prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source_toc[i], timeghost_active_toc[i], searchLength, activeSearchLength, i);
+         
+         
          #ifdef DEBUG_TIMECLASSES
          for (int dim = 0; dim < 3; ++dim) {
-            std::cerr << "timeghost_active[" << i << "][" << dim << "]: " << timeghost_active[i][dim].size() << "\n";
-            for (const CellID cell : timeghost_active[i][dim]) {
+            std::cerr << "timeghost_active_tic[" << i << "][" << dim << "]: " << timeghost_active_tic[i][dim].size() << "\n";
+            for (const CellID cell : timeghost_active_tic[i][dim]) {
                std::cerr << " " << cell << " ";
             }
               
