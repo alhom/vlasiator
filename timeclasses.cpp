@@ -279,6 +279,9 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
+      const int nSpheres = (int)(P::tcStaticSphereRadiusLvl1!=0.0) + (int)(P::tcStaticSphereRadiusLvl2!=0.0) + (int)(P::tcStaticSphereRadiusLvl3!=0.0);
+      assert(nSpheres >= P::currentMaxTimeclass && "The amount of initialized timeclass spheres should be equal or greater than the max timeclass, to avoid the situation where there exists no cells on the maximum timeclass");
+
       auto cells = getLocalCells();
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
          SpatialCell* cell = mpiGrid[*cell_id];
@@ -286,50 +289,22 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
          // calculate position of cell center
          const Real cellRadius = sqrt(pow(cell->parameters[CellParams::XCRD]+0.5*cell->parameters[CellParams::DX],2) + pow(cell->parameters[CellParams::YCRD]+0.5*cell->parameters[CellParams::DY],2) + pow(cell->parameters[CellParams::ZCRD]+0.5*cell->parameters[CellParams::DZ],2));
 
-         if (P::currentMaxTimeclass==0) {
-            cell->parameters[CellParams::TIMECLASS] = 0;
-            cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
-         } else if (P::currentMaxTimeclass==1) {
-
-            if (cellRadius < P::tcStaticSphereRadiusLvl1) {
-               cell->parameters[CellParams::TIMECLASS] = 1;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
-            } else {
-               cell->parameters[CellParams::TIMECLASS] = 0;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
-            }
-         } else if (P::currentMaxTimeclass==2) {
-
-            if (cellRadius < P::tcStaticSphereRadiusLvl2) {
-               cell->parameters[CellParams::TIMECLASS] = 2;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[2];
-            } else if (cellRadius < P::tcStaticSphereRadiusLvl1) {
-               cell->parameters[CellParams::TIMECLASS] = 1;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
-            } else {
-               cell->parameters[CellParams::TIMECLASS] = 0;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
-            }
-         } else if (P::currentMaxTimeclass==3) {
-
-            if (cellRadius < P::tcStaticSphereRadiusLvl3) {
-               cell->parameters[CellParams::TIMECLASS] = 3;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[3];
-            } else if (cellRadius < P::tcStaticSphereRadiusLvl2) {
-               cell->parameters[CellParams::TIMECLASS] = 2;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[2];
-            } else if (cellRadius < P::tcStaticSphereRadiusLvl1) {
-               cell->parameters[CellParams::TIMECLASS] = 1;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
-            } else {
-               cell->parameters[CellParams::TIMECLASS] = 0;
-               cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
-            }
-         } else {
-            std::cerr << "not supported, aborting...\n";
-            abort();
+         cell->parameters[CellParams::TIMECLASS] = 0;
+         cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
+         if (cellRadius < P::tcStaticSphereRadiusLvl1) {
+            cell->parameters[CellParams::TIMECLASS]++;
          }
+         if (cellRadius < P::tcStaticSphereRadiusLvl2) {
+            cell->parameters[CellParams::TIMECLASS]++;
+         }
+         if (cellRadius < P::tcStaticSphereRadiusLvl3) {
+            cell->parameters[CellParams::TIMECLASS]++;
+         }
+
+         cell->parameters[CellParams::TIMECLASS] = min(P::currentMaxTimeclass, (int)cell->parameters[CellParams::TIMECLASS]);
+         cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[cell->parameters[CellParams::TIMECLASS]];
       }
+
    } else {
       
       std::cerr << "not supported tc test, aborting...\n";
