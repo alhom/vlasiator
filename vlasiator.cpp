@@ -211,7 +211,7 @@ std::vector<Real> computeNewTimeStep(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_G
    fsdt = meanVlasovCFL * dtMaxGlobal[0];
    fsdt = min(fsdt,meanVlasovCFL * dtMaxGlobal[1] * P::maxSlAccelerationSubcycles);
    fsdt = min(fsdt,meanFieldsCFL * dtMaxGlobal[2] * P::maxFieldSolverSubcycles);
-   if (myRank == MASTER_RANK) cout << "fsdt " << fsdt <<"\n";
+   if (myRank == MASTER_RANK && P::currentMaxTimeclass > 0) cout << "fsdt " << fsdt <<"\n";
    // baseDt: longest max dt of any rank
    baseDt = meanVlasovCFL * dtMinMaxGlobal[0];
    baseDt = min(baseDt,meanVlasovCFL * dtMinMaxGlobal[1] * P::maxSlAccelerationSubcycles);
@@ -1346,7 +1346,7 @@ int simulate(int argn,char* args[]) {
       }
 
       // we only really want to deal with this with magnetospheric sims, atleast for now
-      if ((P::tstep > P::tstep_min && (P::dynamicTimestep || P::currentMaxTimeclass > 0)) && (P::projectName == "Magnetosphere")) {
+      if ((P::tstep > P::tstep_min && (P::dynamicTimestep || P::currentMaxTimeclass > 0))) {
 
          //check if global base dt is fine, and update cell dt limits
          auto timestepvector = computeNewTimeStep(mpiGrid, technical.view(), fsgrid, dtMaxLocal, dtMaxGlobal, dtMinMaxLocal, dtMinMaxGlobal);
