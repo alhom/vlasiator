@@ -226,6 +226,7 @@ void communicatePreSpatialGhostTranslation(
    // No need for remote target cells; pass a dummy list.
    const vector<CellID> dummy_cells;
    uint neighborhood;
+<<<<<<< HEAD
 
    // Select the pencil set and the required neighborhood based on the tictoc value
    std::array<setOfPencils,3>* pencilSet;
@@ -242,6 +243,15 @@ void communicatePreSpatialGhostTranslation(
       std::cerr << __FILE__<<":"<<__LINE__<< " Unknown state: Current maxtimeclass=" << P::currentMaxTimeclass << ", tictoc = " << tictoc << std::endl;
       abort();
    }
+=======
+   if (P::currentMaxTimeclass == 0) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
+   } else if (tictoc == Timeclasses::TIC) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
+   } else {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
+   }
+>>>>>>> fac377b39 (Groundwork for two-phase timeclass translation (tic/toc))
 
    updateRemoteVelocityBlockLists(mpiGrid,popID,neighborhood, tc);
    // Need to re-do in case block lists of boundary cells change after
@@ -656,6 +666,7 @@ void calculateSpatialTranslation(
             // std::cout << "rank " << myRank << ": " << tc_propagated_cells[tc].size() << " cells: calculateSpatialTranslation tc " << tc << " by dt " << P::timeclassDt[tc] <<"\n";
             if (P::vlasovSolverGhostTranslate) {
                // Local translation without interim communication
+<<<<<<< HEAD
                uint tictoc = Timeclasses::TIC;
                if (tc == 0) { // we are the coarsest timeclass, so we always have fine timeclass data to fetch and sync
                   tictoc = Timeclasses::TOC;   
@@ -675,6 +686,9 @@ void calculateSpatialTranslation(
             string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
             string profNamet = profName + tictocstr;
             phiprof::Timer timer {profNamet}; 
+=======
+               const uint tictoc = Timeclasses::TIC;
+>>>>>>> fac377b39 (Groundwork for two-phase timeclass translation (tic/toc))
                calculateSpatialGhostTranslation(
                   mpiGrid,
                   tc_propagated_cells[tc], // Used for LB
