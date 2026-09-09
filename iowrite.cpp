@@ -165,176 +165,182 @@ bool writeVelocityDistributionData(const uint popID, Writer& vlsvWriter,
    // Write velocity blocks and related data.
    // In restart we just write velocity grids for all cells.
    // First write global Ids of those cells which write velocity blocks (here: all cells):
-   map<string, string> attribs;
-   const string popName = getObjectWrapper().particleSpecies[popID].name;
-   const string spatMeshName = "SpatialGrid";
-   attribs["name"] = popName;
    bool success = true;
 
-   // Compute totalBlocks
-   uint64_t totalBlocks = 0;
-   vector<vmesh::LocalID> blocksPerCell;
-   for (size_t i = 0; i < cells.size(); ++i) {
-      totalBlocks += mpiGrid[cells[i]]->get_number_of_velocity_blocks(popID);
-      blocksPerCell.push_back(mpiGrid[cells[i]]->get_number_of_velocity_blocks(popID));
-   }
+   for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; timeclass++) {
 
-   // The name of the mesh is "SpatialGrid"
-   attribs["mesh"] = spatMeshName;
+      std::cerr << "i am writing here\n";
 
-   const unsigned int vectorSize = 1;
-   // Write the array:
-   if (vlsvWriter.writeArray("CELLSWITHBLOCKS", attribs, cells.size(), vectorSize, cells.data()) == false) success = false;
-   if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write CELLSWITHBLOCKS to file!" << endl << writeVerbose;
-   // Write blocks per cell, this has to be in the same order as cellswitblocks so that extracting works
-   if (vlsvWriter.writeArray("BLOCKSPERCELL", attribs, blocksPerCell.size(), vectorSize, blocksPerCell.data()) == false) success = false;
-   if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write CELLSWITHBLOCKS to file!" << endl << writeVerbose;
+      map<string, string> attribs;
+      const string popName = getObjectWrapper().particleSpecies[popID].name;
+      const string spatMeshName = "SpatialGrid";
+      attribs["name"] = popName + "_tc_" + std::to_string(timeclass);
 
-   // Write (partial) velocity mesh data
-   // The mesh bounding box gives the outer extent of the available velocity space
-   // in blocks and cells. Note that this is not the physical extent of that
-   // space, but a purely numerical bounding box.
-   uint64_t bbox[6];
-   const size_t meshID = getObjectWrapper().particleSpecies[popID].velocityMesh;
-   bbox[0] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[0];
-   bbox[1] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[1];
-   bbox[2] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[2];
-   bbox[3] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[0];
-   bbox[4] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[1];
-   bbox[5] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[2];
-
-   attribs.clear();
-   attribs["mesh"] = getObjectWrapper().particleSpecies[popID].name;
-   attribs["type"] = vlsv::mesh::STRING_UCD_AMR;
-
-   // stringstream is necessary here to correctly convert refLevelMaxAllowed (hardcoded to zero now) into a string
-   stringstream ss;
-   // ss << static_cast<unsigned int>(vmesh::getMeshWrapper()->velocityMeshes->at(meshID).refLevelMaxAllowed);
-   ss << static_cast<unsigned int>(0);
-   attribs["max_velocity_ref_level"] = ss.str();
-
-   if (mpiGrid.get_rank() == MASTER_RANK) {
-      if (vlsvWriter.writeArray("MESH_BBOX", attribs, 6, 1, bbox) == false) success = false;
-
-      for (int crd = 0; crd < 3; ++crd) {
-         const size_t N_nodes = bbox[crd] * bbox[crd + 3] + 1;
-         Real* crds = new Real[N_nodes];
-         const Real dV = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).cellSize[crd];
-
-         for (size_t i = 0; i < N_nodes; ++i) {
-            crds[i] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).meshMinLimits[crd] + i * dV;
-         }
-
-         if (crd == 0) {
-            if (vlsvWriter.writeArray("MESH_NODE_CRDS_X", attribs, N_nodes, 1, crds) == false) success = false;
-         }
-         if (crd == 1) {
-            if (vlsvWriter.writeArray("MESH_NODE_CRDS_Y", attribs, N_nodes, 1, crds) == false) success = false;
-         }
-         if (crd == 2) {
-            if (vlsvWriter.writeArray("MESH_NODE_CRDS_Z", attribs, N_nodes, 1, crds) == false) success = false;
-         }
-         delete[] crds;
-         crds = NULL;
-      }
-   } else {
-      if (vlsvWriter.writeArray("MESH_BBOX", attribs, 0, 1, bbox) == false) success = false;
-      Real* crds = NULL;
-      if (vlsvWriter.writeArray("MESH_NODE_CRDS_X", attribs, 0, 1, crds) == false) success = false;
-      if (vlsvWriter.writeArray("MESH_NODE_CRDS_Y", attribs, 0, 1, crds) == false) success = false;
-      if (vlsvWriter.writeArray("MESH_NODE_CRDS_Z", attribs, 0, 1, crds) == false) success = false;
-   }
-
-   // Write velocity block IDs
-   vector<vmesh::GlobalID> velocityBlockIds(totalBlocks);
-   uint blockIndex = 0;
-   try {
-      // gather data for writing
+      // Compute totalBlocks
+      uint64_t totalBlocks = 0;
+      vector<vmesh::LocalID> blocksPerCell;
       for (size_t i = 0; i < cells.size(); ++i) {
-         SpatialCell* SC = mpiGrid[cells[i]];
-         const vmesh::LocalID nBlocks = SC->get_number_of_velocity_blocks(popID);
-#ifdef USE_GPU
-         const vmesh::GlobalID* GIDlist = SC->get_velocity_grid(popID);
-         CHK_ERR(gpuMemcpy(&velocityBlockIds[blockIndex], GIDlist, nBlocks * sizeof(vmesh::GlobalID), gpuMemcpyDeviceToHost));
-#else
-         for (vmesh::LocalID block_i = 0; block_i < nBlocks; ++block_i) {
-            const vmesh::GlobalID block = SC->get_velocity_block_global_id(block_i, popID);
-            velocityBlockIds[blockIndex + block_i] = block;
+         totalBlocks += mpiGrid[cells[i]]->get_number_of_velocity_blocks(popID, timeclass);
+         blocksPerCell.push_back(mpiGrid[cells[i]]->get_number_of_velocity_blocks(popID, timeclass));
+      }
+
+      // The name of the mesh is "SpatialGrid"
+      attribs["mesh"] = spatMeshName;
+
+      const unsigned int vectorSize = 1;
+      // Write the array:
+      if (vlsvWriter.writeArray("CELLSWITHBLOCKS", attribs, cells.size(), vectorSize, cells.data()) == false) success = false;
+      if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write CELLSWITHBLOCKS to file!" << endl << writeVerbose;
+      // Write blocks per cell, this has to be in the same order as cellswitblocks so that extracting works
+      if (vlsvWriter.writeArray("BLOCKSPERCELL", attribs, blocksPerCell.size(), vectorSize, blocksPerCell.data()) == false) success = false;
+      if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write CELLSWITHBLOCKS to file!" << endl << writeVerbose;
+
+      // Write (partial) velocity mesh data
+      // The mesh bounding box gives the outer extent of the available velocity space
+      // in blocks and cells. Note that this is not the physical extent of that
+      // space, but a purely numerical bounding box.
+      uint64_t bbox[6];
+      const size_t meshID = getObjectWrapper().particleSpecies[popID].velocityMesh;
+      bbox[0] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[0];
+      bbox[1] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[1];
+      bbox[2] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).gridLength[2];
+      bbox[3] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[0];
+      bbox[4] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[1];
+      bbox[5] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).blockLength[2];
+
+      attribs.clear();
+      attribs["mesh"] = getObjectWrapper().particleSpecies[popID].name + "_tc_" + std::to_string(timeclass);
+      attribs["type"] = vlsv::mesh::STRING_UCD_AMR;
+
+      // stringstream is necessary here to correctly convert refLevelMaxAllowed (hardcoded to zero now) into a string
+      stringstream ss;
+      // ss << static_cast<unsigned int>(vmesh::getMeshWrapper()->velocityMeshes->at(meshID).refLevelMaxAllowed);
+      ss << static_cast<unsigned int>(0);
+      attribs["max_velocity_ref_level"] = ss.str();
+
+      if (mpiGrid.get_rank() == MASTER_RANK) {
+         if (vlsvWriter.writeArray("MESH_BBOX", attribs, 6, 1, bbox) == false) success = false;
+
+         for (int crd = 0; crd < 3; ++crd) {
+            const size_t N_nodes = bbox[crd] * bbox[crd + 3] + 1;
+            Real* crds = new Real[N_nodes];
+            const Real dV = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).cellSize[crd];
+
+            for (size_t i = 0; i < N_nodes; ++i) {
+               crds[i] = vmesh::getMeshWrapper()->velocityMeshes->at(meshID).meshMinLimits[crd] + i * dV;
+            }
+
+            if (crd == 0) {
+               if (vlsvWriter.writeArray("MESH_NODE_CRDS_X", attribs, N_nodes, 1, crds) == false) success = false;
+            }
+            if (crd == 1) {
+               if (vlsvWriter.writeArray("MESH_NODE_CRDS_Y", attribs, N_nodes, 1, crds) == false) success = false;
+            }
+            if (crd == 2) {
+               if (vlsvWriter.writeArray("MESH_NODE_CRDS_Z", attribs, N_nodes, 1, crds) == false) success = false;
+            }
+            delete[] crds;
+            crds = NULL;
          }
-#endif
-         blockIndex += nBlocks;
+      } else {
+         if (vlsvWriter.writeArray("MESH_BBOX", attribs, 0, 1, bbox) == false) success = false;
+         Real* crds = NULL;
+         if (vlsvWriter.writeArray("MESH_NODE_CRDS_X", attribs, 0, 1, crds) == false) success = false;
+         if (vlsvWriter.writeArray("MESH_NODE_CRDS_Y", attribs, 0, 1, crds) == false) success = false;
+         if (vlsvWriter.writeArray("MESH_NODE_CRDS_Z", attribs, 0, 1, crds) == false) success = false;
       }
-   } catch (...) {
-      cerr << "FAILED TO WRITE VELOCITY BLOCK IDS AT: " << __FILE__ << " " << __LINE__ << endl;
-      success = false;
-   }
 
-   if (globalSuccess(success, "(MAIN) writeGrid: ERROR: Failed to fill temporary array velocityBlockIds", MPI_COMM_WORLD) == false) {
-      vlsvWriter.close();
-      return false;
-   }
-
-   attribs.clear();
-   attribs["mesh"] = spatMeshName;
-   attribs["name"] = popName;
-   if (vlsvWriter.writeArray("BLOCKIDS", attribs, totalBlocks, vectorSize, velocityBlockIds.data()) == false) success = false;
-   if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write BLOCKIDS to file!" << endl << writeVerbose;
-
-   vector<vmesh::GlobalID>().swap(velocityBlockIds);
-
-   // Write the velocity space data
-   // set everything that is needed for writing in data such as the array name, size, datatype, etc..
-   attribs.clear();
-   attribs["mesh"] = spatMeshName; // Name of the spatial mesh
-   attribs["name"] = popName;      // Name of the velocity space distribution is written avgs
-   const string datatype_avgs = "float";
-   const uint64_t arraySize_avgs = totalBlocks;
-   const uint64_t vectorSize_avgs = WID3; // There are 64 (WID=4) or 512 (WID=8) elements in every velocity block
-
-   // Get the data size needed for writing in data
-   uint64_t dataSize_avgs = sizeof(Realf);
-
-   // Start multi write
-   vlsvWriter.startMultiwrite(datatype_avgs, arraySize_avgs, vectorSize_avgs, dataSize_avgs);
-
-#ifdef USE_GPU
-   // single pinned host buffer for facilitating IO from GPU memory
-   uint64_t bufferOffset = 0;
-   CHK_ERR(gpuMallocHost((void**)&IObuffer, totalBlocks * WID3 * sizeof(Realf)));
-#endif
-   // Loop over cells
-   for (size_t i = 0; i < cells.size(); ++i) {
-      // Get the spatial cell
-      SpatialCell* SC = mpiGrid[cells[i]];
-
-      // Get the number of blocks in this cell
-      const uint64_t arrayElements = SC->get_number_of_velocity_blocks(popID);
-      // Add a subarray to write. Note: We told beforehands that the vectorsize = WID3
-#ifdef USE_GPU
-      char* arrayToWrite = IObuffer + bufferOffset;
-      if (arrayElements > 0) {
-         CHK_ERR(gpuMemcpy(arrayToWrite, SC->get_data(popID), arrayElements * WID3 * sizeof(Realf), gpuMemcpyDeviceToHost));
-         bufferOffset += arrayElements * WID3 * sizeof(Realf);
+      // Write velocity block IDs
+      vector<vmesh::GlobalID> velocityBlockIds(totalBlocks);
+      uint blockIndex = 0;
+      try {
+         // gather data for writing
+         for (size_t i = 0; i < cells.size(); ++i) {
+            SpatialCell* SC = mpiGrid[cells[i]];
+            const vmesh::LocalID nBlocks = SC->get_number_of_velocity_blocks(popID, timeclass);
+   #ifdef USE_GPU
+            const vmesh::GlobalID* GIDlist = SC->get_velocity_grid(popID);
+            CHK_ERR(gpuMemcpy(&velocityBlockIds[blockIndex], GIDlist, nBlocks * sizeof(vmesh::GlobalID), gpuMemcpyDeviceToHost));
+   #else
+            for (vmesh::LocalID block_i = 0; block_i < nBlocks; ++block_i) {
+               const vmesh::GlobalID block = SC->get_velocity_block_global_id(block_i, popID, timeclass);
+               velocityBlockIds[blockIndex + block_i] = block;
+            }
+   #endif
+            blockIndex += nBlocks;
+         }
+      } catch (...) {
+         cerr << "FAILED TO WRITE VELOCITY BLOCK IDS AT: " << __FILE__ << " " << __LINE__ << endl;
+         success = false;
       }
-#else
-      char* arrayToWrite = reinterpret_cast<char*>(SC->get_data(popID));
-#endif
-      vlsvWriter.addMultiwriteUnit(arrayToWrite, arrayElements);
-   }
-   if (cells.size() == 0) {
-      vlsvWriter.addMultiwriteUnit(NULL, 0); // Dummy write to avoid hang in end multiwrite
-   }
 
-   // Write the subarrays
-   vlsvWriter.endMultiwrite("BLOCKVARIABLE", attribs);
+      if (globalSuccess(success, "(MAIN) writeGrid: ERROR: Failed to fill temporary array velocityBlockIds", MPI_COMM_WORLD) == false) {
+         vlsvWriter.close();
+         return false;
+      }
 
-   if (globalSuccess(success, "(MAIN) writeGrid: ERROR: Failed to fill temporary velocityBlockData array", MPI_COMM_WORLD) == false) {
-      vlsvWriter.close();
-      return false;
-   }
+      attribs.clear();
+      attribs["mesh"] = spatMeshName;
+      attribs["name"] = popName + "_tc_" + std::to_string(timeclass);
+      if (vlsvWriter.writeArray("BLOCKIDS", attribs, totalBlocks, vectorSize, velocityBlockIds.data()) == false) success = false;
+      if (success == false) logFile << "(MAIN) writeGrid: ERROR failed to write BLOCKIDS to file!" << endl << writeVerbose;
 
-   if (success == false) {
-      logFile << "(MAIN) writeGrid: ERROR occurred when writing BLOCKVARIABLE f" << endl << writeVerbose;
+      vector<vmesh::GlobalID>().swap(velocityBlockIds);
+
+      // Write the velocity space data
+      // set everything that is needed for writing in data such as the array name, size, datatype, etc..
+      attribs.clear();
+      attribs["mesh"] = spatMeshName; // Name of the spatial mesh
+      attribs["name"] = popName;      // Name of the velocity space distribution is written avgs
+      const string datatype_avgs = "float";
+      const uint64_t arraySize_avgs = totalBlocks;
+      const uint64_t vectorSize_avgs = WID3; // There are 64 (WID=4) or 512 (WID=8) elements in every velocity block
+
+      // Get the data size needed for writing in data
+      uint64_t dataSize_avgs = sizeof(Realf);
+
+      // Start multi write
+      vlsvWriter.startMultiwrite(datatype_avgs, arraySize_avgs, vectorSize_avgs, dataSize_avgs);
+
+   #ifdef USE_GPU
+      // single pinned host buffer for facilitating IO from GPU memory
+      uint64_t bufferOffset = 0;
+      CHK_ERR(gpuMallocHost((void**)&IObuffer, totalBlocks * WID3 * sizeof(Realf)));
+   #endif
+      // Loop over cells
+      for (size_t i = 0; i < cells.size(); ++i) {
+         // Get the spatial cell
+         SpatialCell* SC = mpiGrid[cells[i]];
+
+         // Get the number of blocks in this cell
+         const uint64_t arrayElements = SC->get_number_of_velocity_blocks(popID, timeclass);
+         // Add a subarray to write. Note: We told beforehands that the vectorsize = WID3
+   #ifdef USE_GPU
+         char* arrayToWrite = IObuffer + bufferOffset;
+         if (arrayElements > 0) {
+            CHK_ERR(gpuMemcpy(arrayToWrite, SC->get_data(popID), arrayElements * WID3 * sizeof(Realf), gpuMemcpyDeviceToHost));
+            bufferOffset += arrayElements * WID3 * sizeof(Realf);
+         }
+   #else
+         char* arrayToWrite = reinterpret_cast<char*>(SC->get_data(popID, timeclass));
+   #endif
+         vlsvWriter.addMultiwriteUnit(arrayToWrite, arrayElements);
+      }
+      if (cells.size() == 0) {
+         vlsvWriter.addMultiwriteUnit(NULL, 0); // Dummy write to avoid hang in end multiwrite
+      }
+
+      // Write the subarrays
+      vlsvWriter.endMultiwrite("BLOCKVARIABLE", attribs);
+
+      if (globalSuccess(success, "(MAIN) writeGrid: ERROR: Failed to fill temporary velocityBlockData array", MPI_COMM_WORLD) == false) {
+         vlsvWriter.close();
+         return false;
+      }
+
+      if (success == false) {
+         logFile << "(MAIN) writeGrid: ERROR occurred when writing BLOCKVARIABLE f" << endl << writeVerbose;
+      }
    }
 
    return success;
@@ -2580,11 +2586,11 @@ bool writeRestart(
    //prepare to receive block data
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID){
       for(int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass){
-         std::cerr<<__FILE__<<":"<<__LINE__<<"\n";
+         //std::cerr<<__FILE__<<":"<<__LINE__<<"\n";
         updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::DIST_FUNC,timeclass);
       }
    }
-   std::cerr<<__FILE__<<":"<<__LINE__<<"\n";
+   //std::cerr<<__FILE__<<":"<<__LINE__<<"\n";
    updateRemoteTimer.stop();
 
    const uint64_t bytesWritten = vlsvWriter.getBytesWritten();
