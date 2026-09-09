@@ -276,28 +276,21 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       // static TC sphere areas up to some R_E
       // hardcoded up to 4 different levels
 
-      assert(P::tcStaticSphereRadiusLvl1 > 0.0 && P::tcStaticSphereRadiusLvl2 > 0.0 && P::tcStaticSphereRadiusLvl3 > 0.0);
-      assert(P::tcStaticSphereRadiusLvl1 < P::tcStaticSphereRadiusLvl2 && P::tcStaticSphereRadiusLvl2 < P::tcStaticSphereRadiusLvl3);
-
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
-      if (myRank == 0) {
-         std::cout << "Using static pre-programmed TC sphere areas, three level values: " << P::tcStaticSphereRadiusLvl1 << ", " << P::tcStaticSphereRadiusLvl2 << ", " << P::tcStaticSphereRadiusLvl3 << std::endl;
-      }
-      
       auto cells = getLocalCells();
       for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
          SpatialCell* cell = mpiGrid[*cell_id];
 
          // calculate position of cell center
          const Real cellRadius = sqrt(pow(cell->parameters[CellParams::XCRD]+0.5*cell->parameters[CellParams::DX],2) + pow(cell->parameters[CellParams::YCRD]+0.5*cell->parameters[CellParams::DY],2) + pow(cell->parameters[CellParams::ZCRD]+0.5*cell->parameters[CellParams::DZ],2));
-         
 
          if (P::currentMaxTimeclass==0) {
             cell->parameters[CellParams::TIMECLASS] = 0;
             cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
          } else if (P::currentMaxTimeclass==1) {
+
             if (cellRadius < P::tcStaticSphereRadiusLvl1) {
                cell->parameters[CellParams::TIMECLASS] = 1;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
@@ -306,10 +299,11 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
             }
          } else if (P::currentMaxTimeclass==2) {
-            if (cellRadius < P::tcStaticSphereRadiusLvl1) {
+
+            if (cellRadius < P::tcStaticSphereRadiusLvl2) {
                cell->parameters[CellParams::TIMECLASS] = 2;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[2];
-            } else if (cellRadius < P::tcStaticSphereRadiusLvl2) {
+            } else if (cellRadius < P::tcStaticSphereRadiusLvl1) {
                cell->parameters[CellParams::TIMECLASS] = 1;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
             } else {
@@ -317,13 +311,14 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[0];
             }
          } else if (P::currentMaxTimeclass==3) {
-            if (cellRadius < P::tcStaticSphereRadiusLvl1) {
+
+            if (cellRadius < P::tcStaticSphereRadiusLvl3) {
                cell->parameters[CellParams::TIMECLASS] = 3;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[3];
             } else if (cellRadius < P::tcStaticSphereRadiusLvl2) {
                cell->parameters[CellParams::TIMECLASS] = 2;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[2];
-            } else if (cellRadius < P::tcStaticSphereRadiusLvl3) {
+            } else if (cellRadius < P::tcStaticSphereRadiusLvl1) {
                cell->parameters[CellParams::TIMECLASS] = 1;
                cell->parameters[CellParams::TIMECLASSDT] = P::timeclassDt[1];
             } else {

@@ -423,9 +423,9 @@ bool P::addParameters() {
    RP::add("timeclasses.dtSettingModifier", "modifier to setting dt lengths", P::dtSettingModifier);
    RP::add("timeclasses.dtUpdatingModifier", "modifier to updating dt lengths", P::dtUpdateModifier);
    RP::add("timeclasses.timeclass_domain_modifier", "modifier to tc domain sizes", P::timeclassDomainModifier);
-   RP::add("timeclasses.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for level 1, meters", P::tcStaticSphereRadiusLvl1);
-   RP::add("timeclasses.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for level 2, meters", P::tcStaticSphereRadiusLvl2);
-   RP::add("timeclasses.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for level 3, meters", P::tcStaticSphereRadiusLvl3);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for timeclass level 1, meters", P::tcStaticSphereRadiusLvl1);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for timeclass level 2, meters", P::tcStaticSphereRadiusLvl2);
+   RP::add("timeclasses.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for timeclass level 3, meters", P::tcStaticSphereRadiusLvl3);
    RP::add("gridbuilder.forcedConvection", "Force a convection velocity of 200 km/s along +x [false]", P::forcedConvection);
    RP::add("timeclasses.timeclassTictoc", "Use tic-toc translation for timeclasses [false]", P::timeclassTictoc);
 
