@@ -1378,14 +1378,17 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
       /* Proceed with C, checking if the next two negative neighbours have the same refinement level as ccell, but the
          third neighbour a higher one. Iterate through negative distances for VLASOV_STENCIL_WIDTH+1 elements
          starting from the smallest distance. */
-      // Create list of unique neighbour distances in negative direction, with large-enough stencil (using ordered sets)
-      nbrPairs  = mpiGrid.get_neighbors_of(celli, getNeighborhood(dimension, VLASOV_STENCIL_WIDTH+1));
       
-      distancesminus.clear();
-      for (const auto& nbrPair : *nbrPairs) {
-         if (nbrPair.second[dimension] < 0) {
-            // gather absolute distance values for correct order
-            distancesminus.insert(-nbrPair.second[dimension]);
+      // Create list of unique neighbour distances in negative direction, with large-enough stencil (using ordered sets)
+      // This form requires a larger stencil than is provided with non-GT setups
+      if(P::vlasovSolverGhostTranslate || P::currentMaxTimeclass > 0){
+         nbrPairs  = mpiGrid.get_neighbors_of(celli, getNeighborhood(dimension, VLASOV_STENCIL_WIDTH+1));
+         distancesminus.clear();
+         for (const auto& nbrPair : *nbrPairs) {
+            if (nbrPair.second[dimension] < 0) {
+               // gather absolute distance values for correct order
+               distancesminus.insert(-nbrPair.second[dimension]);
+            }
          }
       }
 
