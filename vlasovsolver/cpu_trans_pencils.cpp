@@ -32,6 +32,7 @@ std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_tic, 
 std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_toc, timeghost_active_toc;
 
 std::array<setOfPencils,3> DimensionPencils;
+std::array<setOfPencils,3> DimensionPencils_toc;
 
 // Cell lists for local translation
 std::unordered_set<CellID> LocalSet_x;
@@ -311,14 +312,14 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
       // Done only at LB so not threaded for now
 
       // Ghost translation stencil size set by parameter, defaults to VLASOV_STENCIL_WIDTH+1;
-      int searchLength, activeSearchLength;
-      if (tc == -1){
-         searchLength = P::vlasovSolverGhostTranslateExtent;
-         activeSearchLength = 1;
-      }else{
-         searchLength = max(P::timeclassFullHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
-         activeSearchLength = max(P::timeclassExactHaloExtent, (int)P::vlasovSolverGhostTranslateExtent); // TODO: 1 instead of vlasovSolverGhostTranslateExtent?
-      }
+      // int searchLength, activeSearchLength;
+      // if (tc == -1){
+      //    searchLength = P::vlasovSolverGhostTranslateExtent;
+      //    activeSearchLength = 1;
+      // }else{
+      //    searchLength = max(P::timeclassFullHaloExtent, (int)P::vlasovSolverGhostTranslateExtent);
+      //    activeSearchLength = max(P::timeclassExactHaloExtent, (int)P::vlasovSolverGhostTranslateExtent); // TODO: 1 instead of vlasovSolverGhostTranslateExtent?
+      // }
 
       /** Translation order (dimensions) is 1: z 2: x 3: y
           Prepare in reverse order
@@ -1736,6 +1737,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
       // Remove all old pencils now - above needed the source ids from pencils
       for (int dimension=0; dimension<3; dimension++) {
          DimensionPencils[dimension].removeAllPencils();
+         DimensionPencils_toc[dimension].removeAllPencils();
       }
       for (int dimension=0; dimension<3; dimension++) {
          prepareSeedIdsAndPencils(mpiGrid, dimension);
@@ -1788,172 +1790,196 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    }
 // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
    const vector<CellID>& localCells = getLocalCells();
-   vector<CellID> propagatedCells;
-   vector<vector<CellID>> tc_propagatedCells;
-   // Figure out which spatial cells are translated,
-   // result independent of particle species.
-   if (P::vlasovSolverGhostTranslate) {
-      // Sets already include check for do_translate_cell
-      propagatedCells.assign(ghostTranslate_active[dimension].begin(),ghostTranslate_active[dimension].end());
-      // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
-      if (P::currentMaxTimeclass > 0) {
+   // If we have timeclasses, we can make use of two sets of pencils. Loop over the pencil construction.
+   // NB the pencil sets are originally timeclassed internally, as those *could* be parallelized over,
+   // if the propagatepencil calls would be rewritten to do pencil-wise dts. Guessing that is a second-order
+   // optimization.
+   uint use_tictoc = P::currentMaxTimeclass > 0 ? 1 : 0;
+   // use_tictoc = 0; // test with this
+   
+   for (uint tictoc = 0; tictoc <= use_tictoc ; ++tictoc) {
+      std::array<setOfPencils,3>* pencilSet;
+      std::cerr << __FILE__<<":"<<__LINE__<< " tictoc=" << tictoc << std::endl;
+
+      if (tictoc == Timeclasses::TIC) {
+         pencilSet = &DimensionPencils;
+      } else {
+         pencilSet = &DimensionPencils_toc;
+      }
+      // pencilSet to be passed further, way down in the code after finding
+      // the seedIds for different colors of pencils.
+      
+      vector<CellID> propagatedCells;
+      vector<vector<CellID>> tc_propagatedCells;
+      // Figure out which spatial cells are translated,
+      // result independent of particle species.
+      if (P::vlasovSolverGhostTranslate) {
+         // Sets already include check for do_translate_cell
+         propagatedCells.assign(ghostTranslate_active[dimension].begin(),ghostTranslate_active[dimension].end());
          // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
-         for (int i = 0; i <= P::currentMaxTimeclass; ++i){
-            tc_propagatedCells.push_back(vector<CellID>());
-            tc_propagatedCells[i].assign(timeghost_active_tic[i][dimension].begin(),timeghost_active_tic[i][dimension].end());
+         if (P::currentMaxTimeclass >= 0) {
+            // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
+            for (int i = 0; i <= P::currentMaxTimeclass; ++i){
+               tc_propagatedCells.push_back(vector<CellID>());
+               if (tictoc == Timeclasses::TIC) {
+                  tc_propagatedCells[i].assign(timeghost_active_tic[i][dimension].begin(),timeghost_active_tic[i][dimension].end());
+               } else if (tictoc == Timeclasses::TOC) {
+                  tc_propagatedCells[i].assign(timeghost_active_toc[i][dimension].begin(),timeghost_active_toc[i][dimension].end());
+               }
+            }
          }
-      }
-   } else {
-      for (size_t c=0; c<localCells.size(); ++c) {
-         if (do_translate_cell(mpiGrid[localCells[c]])) {
-            propagatedCells.push_back(localCells[c]);
+      } else {
+         for (size_t c=0; c<localCells.size(); ++c) {
+            if (do_translate_cell(mpiGrid[localCells[c]])) {
+               propagatedCells.push_back(localCells[c]);
+            }
          }
-      }
-      if(P::currentMaxTimeclass > 0){ // Not possible with current forced GT setup
-         std::cerr << "Implementation pending, you tried to use timeclasses without Ghost Translation!" << std::endl;
-         abort();
-         for (int i = 0; i <= P::currentMaxTimeclass; ++i){
-            tc_propagatedCells.push_back(vector<CellID>());
-            for (size_t c=0; c<localCells.size(); ++c) {
-               if (do_translate_cell(mpiGrid[localCells[c]]) && mpiGrid[localCells[c]]->has_active_timeclass(i)) {
-                  tc_propagatedCells[i].push_back(localCells[c]);
+         if(P::currentMaxTimeclass > 0){ // Not possible with current forced GT setup
+            std::cerr << "Implementation pending, you tried to use timeclasses without Ghost Translation!" << std::endl;
+            abort();
+            for (int i = 0; i <= P::currentMaxTimeclass; ++i){
+               tc_propagatedCells.push_back(vector<CellID>());
+               for (size_t c=0; c<localCells.size(); ++c) {
+                  if (do_translate_cell(mpiGrid[localCells[c]]) && mpiGrid[localCells[c]]->has_active_timeclass(i)) {
+                     tc_propagatedCells[i].push_back(localCells[c]);
+                  }
                }
             }
          }
       }
-   }
-
-   phiprof::Timer getSeedIdsTimer {"getSeedIds"};
-   vector<std::pair<int,CellID>> seedIds; // <timeclass, CellID> pairs
-   if(P::vlasovSolverGhostTranslate){
-      if (P::currentMaxTimeclass > 0) {
-         int maxt = 0;
-         for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass){
-            // std::cout << "getting seedids for timeclass " << timeclass <<", cells prop:\n";
-            // for(auto c : tc_propagatedCells[timeclass]) std::cout << c << " ";
-            // std::cout << "\n";
-            getSeedIds(mpiGrid, tc_propagatedCells[timeclass], dimension, seedIds, timeclass);
-
-            maxt = timeclass;
+   
+      phiprof::Timer getSeedIdsTimer {"getSeedIds"};
+      vector<std::pair<int,CellID>> seedIds; // <timeclass, CellID> pairs
+      if(P::vlasovSolverGhostTranslate){
+         if (P::currentMaxTimeclass > 0) {
+            int maxt = 0;
+            for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass){
+               // std::cout << "getting seedids for timeclass " << timeclass <<", cells prop:\n";
+               // for(auto c : tc_propagatedCells[timeclass]) std::cout << c << " ";
+               // std::cout << "\n";
+               getSeedIds(mpiGrid, tc_propagatedCells[timeclass], dimension, seedIds, timeclass);
+   
+               maxt = timeclass;
+            }
+         }
+         else{
+            getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0);
          }
       }
       else{
          getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0);
       }
-   }
-   else{
-      getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0);
-   }
-   getSeedIdsTimer.stop();
-   if (printSeeds) {
-      for (int rank=0; rank<mpi_size; ++rank) {
-         MPI_Barrier(MPI_COMM_WORLD);     /// one is here
-         if (rank!=myRank) {
-            continue;
-         }
-         stringstream ss;
-         ss<<"Task "<<myRank<<" Dimension "<<dimension <<" Seed Ids (D=DO_NOT_COMPUTE, S=Sysboundary L2, L=Sysboundary L1, N=Non-sysboundary L2, G=Ghost cell)"<<std::endl<<std::endl;
-         for (uint i = 0; i < seedIds.size(); i++) {
-            ss << seedIds.at(i).first << ": " << seedIds.at(i).second << "; ";
-            if (seedIds.at(i).second && mpiGrid[seedIds.at(i).second]) {
-               SpatialCell* c = mpiGrid[seedIds.at(i).second];
-               if (c->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) ss<<"D";
-               if (c->sysBoundaryLayer != 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"S";
-               if (c->sysBoundaryLayer == 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"L";
-               if (c->sysBoundaryLayer == 2 && c->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) ss<<"N";
-               if (!mpiGrid.is_local(seedIds.at(i).second)) ss<<"G";
+      getSeedIdsTimer.stop();
+      if (printSeeds) {
+         for (int rank=0; rank<mpi_size; ++rank) {
+            MPI_Barrier(MPI_COMM_WORLD);     /// one is here
+            if (rank!=myRank) {
+               continue;
             }
-            ss<<" ";
+            stringstream ss;
+            ss<<"Task "<<myRank<<" Dimension "<<dimension << " Tic/toc: " << tictoc << " Seed Ids (D=DO_NOT_COMPUTE, S=Sysboundary L2, L=Sysboundary L1, N=Non-sysboundary L2, G=Ghost cell)"<<std::endl<<std::endl;
+            for (uint i = 0; i < seedIds.size(); i++) {
+               ss << seedIds.at(i).first << ": " << seedIds.at(i).second << "; ";
+               if (seedIds.at(i).second && mpiGrid[seedIds.at(i).second]) {
+                  SpatialCell* c = mpiGrid[seedIds.at(i).second];
+                  if (c->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) ss<<"D";
+                  if (c->sysBoundaryLayer != 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"S";
+                  if (c->sysBoundaryLayer == 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"L";
+                  if (c->sysBoundaryLayer == 2 && c->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) ss<<"N";
+                  if (!mpiGrid.is_local(seedIds.at(i).second)) ss<<"G";
+               }
+               ss<<" ";
+            }
+            ss<<std::endl<<std::endl;
+            std::cerr<<ss.str();
          }
-         ss<<std::endl<<std::endl;
-         std::cerr<<ss.str();
       }
-   }
-   // if(maxt > 0 ) throw 123;
-
-
-   phiprof::Timer buildPencilsTimer {"buildPencils"};
-
-#pragma omp parallel
-   {
-      // Empty vectors for internal use of buildPencilsWithNeighbors. Could be default values but
-      // default vectors are complicated. Should overload buildPencilsWithNeighbors like suggested here
-      // https://stackoverflow.com/questions/3147274/c-default-argument-for-vectorint
-      std::vector<CellID> ids;
-      vector<uint> path;
-      // thread-internal pencil set to be accumulated at the end
-      setOfPencils thread_pencils;
-      // iterators used in the accumulation
-      std::vector<CellID>::iterator ibeg, iend;
-      bool exit = false;
-
-      #pragma omp for schedule(guided,8)
-      for (uint i=0; i<seedIds.size(); i++) {
-         cuint seedId = seedIds[i].second;
-         // if (seedIds[i].first == 1) exit = true;
-         // Construct pencils from the seedIds into a set of pencils.
-         buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedIds[i], ids, dimension, path, seedIds);
-      }
-      // if(exit) throw 123;
-
-
-      // accumulate thread results in global set of pencils
-      #pragma omp critical
+      // if(maxt > 0 ) throw 123;
+   
+   
+      phiprof::Timer buildPencilsTimer {"buildPencils"};
+   
+   #pragma omp parallel
       {
-         for (uint i=0; i<thread_pencils.N; i++) {
-            // Use vector range constructor
-            ibeg = thread_pencils.ids.begin() + thread_pencils.idsStart[i];
-            iend = ibeg + thread_pencils.lengthOfPencils[i];
-            std::vector<CellID> pencilIds(ibeg, iend);
-            #ifdef DEBUG_PENCILS
-            std::cerr << __FILE__ <<":"<<__LINE__<<" calling addPencil in threads for " << i << " thread_pencils.lengthOfPencils[i] " << thread_pencils.lengthOfPencils[i] << std::endl;
-            #endif
-            DimensionPencils[dimension].addPencil(pencilIds,thread_pencils.x[i],thread_pencils.y[i],thread_pencils.periodic[i],thread_pencils.path[i], thread_pencils.timeclasses[i]);
+         // Empty vectors for internal use of buildPencilsWithNeighbors. Could be default values but
+         // default vectors are complicated. Should overload buildPencilsWithNeighbors like suggested here
+         // https://stackoverflow.com/questions/3147274/c-default-argument-for-vectorint
+         std::vector<CellID> ids;
+         vector<uint> path;
+         // thread-internal pencil set to be accumulated at the end
+         setOfPencils thread_pencils;
+         // iterators used in the accumulation
+         std::vector<CellID>::iterator ibeg, iend;
+         bool exit = false;
+   
+         #pragma omp for schedule(guided,8)
+         for (uint i=0; i<seedIds.size(); i++) {
+            cuint seedId = seedIds[i].second;
+            // if (seedIds[i].first == 1) exit = true;
+            // Construct pencils from the seedIds into a set of pencils.
+            buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedIds[i], ids, dimension, path, seedIds);
+         }
+         // if(exit) throw 123;
+   
+   
+         // accumulate thread results in global set of pencils
+         #pragma omp critical
+         {
+            for (uint i=0; i<thread_pencils.N; i++) {
+               // Use vector range constructor
+               ibeg = thread_pencils.ids.begin() + thread_pencils.idsStart[i];
+               iend = ibeg + thread_pencils.lengthOfPencils[i];
+               std::vector<CellID> pencilIds(ibeg, iend);
+               #ifdef DEBUG_PENCILS
+               std::cerr << __FILE__ <<":"<<__LINE__<<" calling addPencil in threads for " << i << " thread_pencils.lengthOfPencils[i] " << thread_pencils.lengthOfPencils[i] << std::endl;
+               #endif
+               (*pencilSet)[dimension].addPencil(pencilIds,thread_pencils.x[i],thread_pencils.y[i],thread_pencils.periodic[i],thread_pencils.path[i], thread_pencils.timeclasses[i]);
+            }
          }
       }
-   }
-   // std::cerr << __FILE__ <<":"<<__LINE__<<" calling printPencilsFunc for dim "<<dimension <<"\n";
-   // printPencilsFunc(DimensionPencils[dimension],dimension,myRank,mpiGrid);
-   // std::cerr << __FILE__ <<":"<<__LINE__<<" returned from printPencilsFunc for dim "<<dimension <<"\n";
-
-   phiprof::Timer checkGhostCellsTimer {"check_ghost_cells"};
-   // Check refinement of two ghost cells on each end of each pencil
-   // in case pencil needs to be split.
-   // This function contains threading.
-   check_ghost_cells(mpiGrid,DimensionPencils[dimension],dimension);
-   checkGhostCellsTimer.stop();
-   // std::cerr << __FILE__ <<":"<<__LINE__<<" returned from check_ghost_cells for dim "<<dimension <<"\n";
-
-
-   phiprof::Timer findSourceRatiosTimer {"Find_source_cells_ratios_dz"};
-   // Compute also the stencil around the pencil (source cells), and
-   // Store source cell widths and target cell contribution ratios.
-   #pragma omp parallel for schedule(guided)
-   for (uint i=0; i<DimensionPencils[dimension].N; ++i) {
-      const uint L = DimensionPencils[dimension].lengthOfPencils[i];
-      CellID *pencilIds = DimensionPencils[dimension].ids.data() + DimensionPencils[dimension].idsStart[i];
-      Realf* pencilDZ = DimensionPencils[dimension].sourceDZ.data() + DimensionPencils[dimension].idsStart[i];
-      Realf* pencilAreaRatio = DimensionPencils[dimension].targetRatios.data() + DimensionPencils[dimension].idsStart[i];
-      computeSpatialSourceCellsForPencil(mpiGrid,pencilIds,L,dimension,DimensionPencils[dimension].path[i],pencilDZ,pencilAreaRatio,DimensionPencils[dimension].timeclasses[i]);
-   }
-   findSourceRatiosTimer.stop();
-
-   // ****************************************************************************
-
-   phiprof::Timer binPencilsTimer {"bin_pencils"};
-   DimensionPencils[dimension].binPencils();
-   binPencilsTimer.stop();
-
-   if (printPencils) {
-      for (int rank=0; rank<mpi_size; ++rank) {
-         MPI_Barrier(MPI_COMM_WORLD);
-         if (rank!=myRank) {
-            continue;
-         }
-         printPencilsFunc(DimensionPencils[dimension],dimension,myRank,mpiGrid);
+      // std::cerr << __FILE__ <<":"<<__LINE__<<" calling printPencilsFunc for dim "<<dimension <<"\n";
+      // printPencilsFunc(DimensionPencils[dimension],dimension,myRank,mpiGrid);
+      // std::cerr << __FILE__ <<":"<<__LINE__<<" returned from printPencilsFunc for dim "<<dimension <<"\n";
+   
+      phiprof::Timer checkGhostCellsTimer {"check_ghost_cells"};
+      // Check refinement of two ghost cells on each end of each pencil
+      // in case pencil needs to be split.
+      // This function contains threading.
+      check_ghost_cells(mpiGrid,(*pencilSet)[dimension],dimension);
+      checkGhostCellsTimer.stop();
+      // std::cerr << __FILE__ <<":"<<__LINE__<<" returned from check_ghost_cells for dim "<<dimension <<"\n";
+   
+   
+      phiprof::Timer findSourceRatiosTimer {"Find_source_cells_ratios_dz"};
+      // Compute also the stencil around the pencil (source cells), and
+      // Store source cell widths and target cell contribution ratios.
+      #pragma omp parallel for schedule(guided)
+      for (uint i=0; i<(*pencilSet)[dimension].N; ++i) {
+         const uint L = (*pencilSet)[dimension].lengthOfPencils[i];
+         CellID *pencilIds = (*pencilSet)[dimension].ids.data() + (*pencilSet)[dimension].idsStart[i];
+         Realf* pencilDZ = (*pencilSet)[dimension].sourceDZ.data() + (*pencilSet)[dimension].idsStart[i];
+         Realf* pencilAreaRatio = (*pencilSet)[dimension].targetRatios.data() + (*pencilSet)[dimension].idsStart[i];
+         computeSpatialSourceCellsForPencil(mpiGrid,pencilIds,L,dimension,(*pencilSet)[dimension].path[i],pencilDZ,pencilAreaRatio,(*pencilSet)[dimension].timeclasses[i]);
       }
-   }
-   buildPencilsTimer.stop();
+      findSourceRatiosTimer.stop();
+   
+      // ****************************************************************************
+   
+      phiprof::Timer binPencilsTimer {"bin_pencils"};
+      (*pencilSet)[dimension].binPencils();
+      binPencilsTimer.stop();
+   
+      if (printPencils) {
+         for (int rank=0; rank<mpi_size; ++rank) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (rank!=myRank) {
+               continue;
+            }
+            printPencilsFunc((*pencilSet)[dimension],dimension,myRank,mpiGrid);
+         }
+      }
+      buildPencilsTimer.stop();
+   } // END TICTOC
 
    //GPUTODO: move gpu buffers and their upload to separate gpu_trans_pencils .hpp and .cpp files
    #ifdef USE_GPU
