@@ -871,10 +871,15 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
    }
 
    if (P::currentMaxTimeclass > 0) {
+
+      phiprof::Timer timeclassGetRemoteCellsTimer {"update_remote_tc_cells"};
+
       const vector<CellID>& localCells = getLocalCells();
       const vector<CellID> remote_cells = mpiGrid.get_remote_cells_on_process_boundary(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_REQ);
       
       mpiGrid.force_update_cell_neighborhoods(remote_cells);
+
+      timeclassGetRemoteCellsTimer.stop();
 
       for (const CellID cell : getLocalCells()) {
          mpiGrid[cell]->requested_timeclass_ghosts.clear();
@@ -956,6 +961,8 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
    every timestep, check if computeNewTimestep changes any cells' timeclass. Then go through v1 functionality.
    */
 
+   phiprof::Timer tcGhostNeighborTimer {"get_timeclass_ghost_neighbors"};
+
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
@@ -976,6 +983,7 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
          // get_neighbours_of returns a pointer to a vector of pairs, and each pairs' first element is the CellID
          // get_remote_neighbors_of returns a vector of CellIDs
 
+         phiprof::Timer exactNeighborLoopTimer {"exact_neighbors"};
          for (auto& nbrPair : *neighbors) {
             if (mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS] != timeclass) {
                mpiGrid[cell]->requested_timeclass_ghosts.insert(mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS]);
@@ -1007,7 +1015,9 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
                // }
             }
          }
+         exactNeighborLoopTimer.stop();
 
+         phiprof::Timer outerNeighborLoop {"outer_neighbors"};
          for (auto& nbrPair : *outerNeighbors) {
             if (mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS] != timeclass) {
                mpiGrid[cell]->requested_timeclass_copy_ghosts.insert(mpiGrid[nbrPair.first]->parameters[CellParams::TIMECLASS]);
@@ -1042,6 +1052,7 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
                // exactHaloCells.insert(nbrPair.first);
             }
          }
+         outerNeighborLoop.stop();
 
       }
 
@@ -1077,6 +1088,8 @@ void getGhostNeighborsforTC(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>&
 
 // assert that all ranks agree on timeghosts for some timeclass
 bool areTimeghostsConsistent(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, const int timeclass) {
+
+   phiprof::Timer timeGhostConsistencyCheckTimer {"check_timeghost_consistency"};
 
    int myRank, numRanks;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);

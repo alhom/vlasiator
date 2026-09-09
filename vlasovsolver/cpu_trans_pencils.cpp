@@ -271,6 +271,8 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
                                       const int tc
                                       ) {
 
+   phiprof::Timer prepareGhostTranslationCellListsTimer {"prepare_ghost_translation_cell_lists"};
+
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
