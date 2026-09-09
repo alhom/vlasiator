@@ -392,6 +392,8 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
                                       const std::vector<CellID>& localPropagatedCells, 
                                        std::map<uint,std::unordered_set<CellID>>& ghostTranslate_source,
                                       std::map<uint,std::unordered_set<CellID>>& ghostTranslate_active,
+                                      const int searchLength,
+                                      const int activeSearchLength,
                                       const int tc = -1
                                       );
 
@@ -404,7 +406,8 @@ extern std::unordered_set<CellID> ghostTranslate_active_y;
 extern std::unordered_set<CellID> ghostTranslate_active_z;
 
 typedef std::map<uint,std::unordered_set<CellID>> ghostmaptype;
-extern std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source, timeghost_active;
+extern std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_tic, timeghost_active_tic; // first stage of translation
+extern std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_toc, timeghost_active_toc; // second stage of translation
 
 extern ghostmaptype ghostTranslate_source;
 extern ghostmaptype ghostTranslate_active;
