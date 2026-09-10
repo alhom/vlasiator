@@ -901,7 +901,7 @@ void computeSpatialTargetCellsForPencilsWithFaces(const dccrg::Dccrg<SpatialCell
  * @return neighbor DCCRG cell id of the neighbor
  */
 CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry> &grid,
-                      const CellID id, const int dimension = 0, const uint path = 0, const int timeclass = -1) {
+                      const CellID id, const int dimension = 0, const uint path = 0, const int timeclass = -1, const uint tictoc = 0) {
    // If face neighbours are at a higher refinement level, only returns the one which
    // which has a neighbor index matching the input path
 
@@ -940,7 +940,14 @@ CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
          #endif
       }
    } else {
-      if (check_is_active(grid, myNeighbors[neighborIndex], dimension, timeghost_active_tic[timeclass])) {
+      std::map<uint,std::map<uint,std::unordered_set<CellID>>>* active_list;
+      if (tictoc == Timeclasses::TIC) {
+         active_list = &timeghost_active_tic;
+      }
+      else if (tictoc == Timeclasses::TOC) {
+         active_list = &timeghost_active_toc;
+      }
+      if (check_is_active(grid, myNeighbors[neighborIndex], dimension, (*active_list)[timeclass])) {
       neighbor = myNeighbors[neighborIndex];
       } else {
          #ifdef DEBUG_PENCILS
@@ -973,7 +980,7 @@ CellID selectPositiveNeighbor(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
 void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry> &grid,
 					setOfPencils &pencils, const pair<int,CellID> seedId,
 					vector<CellID> ids, const uint dimension,
-					vector<uint> path, const vector<pair<int,CellID>> &endIds) {
+					vector<uint> path, const vector<pair<int,CellID>> &endIds, const uint tictoc = 0) {
 
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
@@ -1055,7 +1062,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
       // in case some of them are remote.
       for (int tmpPath = 0; tmpPath < 4; ++tmpPath) {
 
-         nextNeighbor = selectPositiveNeighbor(grid,id,dimension,tmpPath,timeclass);
+         nextNeighbor = selectPositiveNeighbor(grid,id,dimension,tmpPath,timeclass, tictoc);
          #ifdef DEBUG_PENCILS
             std::cerr << __FILE__ <<":"<<__LINE__ << " " << myRank << ": try " << nextNeighbor <<std::endl;
          #endif
@@ -1091,7 +1098,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
             std::cerr << std::endl;
             #endif
 
-            nextNeighbor = selectPositiveNeighbor(grid,id,dimension,path[refLvl - 1],timeclass);
+            nextNeighbor = selectPositiveNeighbor(grid,id,dimension,path[refLvl - 1],timeclass, tictoc);
             if (nextNeighbor != INVALID_CELLID) {
                coordinates = grid.get_center(nextNeighbor);
             }
@@ -1109,7 +1116,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
                vector < uint > myPath = path;
                // Extend the path to cover the new reflevel
                myPath.push_back(newPath);
-               nextNeighbor = selectPositiveNeighbor(grid,id,dimension,newPath,timeclass);
+               nextNeighbor = selectPositiveNeighbor(grid,id,dimension,newPath,timeclass, tictoc);
 
                if ( newPath == 3 ) {
                   // This builder continues with neighbor 3 with an extended path
@@ -1119,7 +1126,7 @@ void buildPencilsWithNeighbors( const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_
                   }
                } else {
                   // Spawn recursive new builders for neighbors 0,1,2
-                  buildPencilsWithNeighbors(grid,pencils,{timeclass,id},ids,dimension,myPath,endIds);
+                  buildPencilsWithNeighbors(grid,pencils,{timeclass,id},ids,dimension,myPath,endIds, tictoc);
                }
             }
          }
@@ -1233,12 +1240,20 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
                 const vector<CellID> &propagatedCells,
                 const uint dimension,
                 vector<pair<int,CellID>> &seedIds,
-                int timeclass) {
+                int timeclass,
+                uint tictoc) {
 
 // #ifdef DEBUG_PENCILS
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 // #endif
+   std::map<uint,std::map<uint,std::unordered_set<CellID>>>* active_list;
+   if (tictoc == Timeclasses::TIC) {
+      active_list = &timeghost_active_tic;
+   }
+   else if (tictoc == Timeclasses::TOC) {
+      active_list = &timeghost_active_toc;
+   }
 
    // These neighborhoods no longer include the AMR addition beyond the regular vlasov stencil
    const int neighborhood = getNeighborhood(dimension, VLASOV_STENCIL_WIDTH);
@@ -1311,7 +1326,7 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
                   std::cerr << __FILE__<<":"<<__LINE__<<" Rank "<< myRank << " Checking for seed: " << celli << ", neighbor cell ptr: " << mpiGrid[neighbor]  << ", phase A\n";
                #endif
                if ( (myIndices[dimension] < nbrIndices[dimension]) ||
-                  !check_is_active(mpiGrid, neighbor, dimension, timeghost_active_tic[timeclass]) ||
+                  !check_is_active(mpiGrid, neighbor, dimension, active_list->at(timeclass)) ||
                   !do_translate_cell(mpiGrid[neighbor]))
                {
                   addToSeedIds = true;
@@ -1443,7 +1458,8 @@ void getSeedIds(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGr
  */
 void check_ghost_cells(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
                        setOfPencils& pencils,
-                       const uint dimension) {
+                       const uint dimension,
+                       const uint tictoc = 0) {
 
    const int neighborhood = getNeighborhood(dimension, getNeigborhoodStencilLength());
 
@@ -1537,9 +1553,17 @@ void check_ghost_cells(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>
             }
          }
          if (P::initialMaxTimeclass > 0){
-            if (foundcells >= P::timeclassExactHaloExtent+P::timeclassOuterHaloExtent) {
-               break; // checked enough distances
+            if (tictoc == Timeclasses::TIC) {
+               if (foundcells >= P::timeclassOuterHaloExtent) {
+                  break; // checked enough distances
+               }   
             }
+            else{ // Timeclasses::TOC
+               if (foundcells >= P::timeclassExactHaloExtent) {
+                  break; // checked enough distances
+               }
+            }
+            
          }else{
             if (foundcells >= P::vlasovSolverGhostTranslateExtent) {
                break; // checked enough distances
@@ -1783,7 +1807,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    // if the propagatepencil calls would be rewritten to do pencil-wise dts. Guessing that is a second-order
    // optimization.
    uint use_tictoc = P::currentMaxTimeclass > 0 ? 1 : 0;
-   // use_tictoc = 0; // test with this
+   use_tictoc = 0; // test with this
    
    for (uint tictoc = 0; tictoc <= use_tictoc ; ++tictoc) {
       std::array<setOfPencils,3>* pencilSet;
@@ -1845,18 +1869,19 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
                // std::cout << "getting seedids for timeclass " << timeclass <<", cells prop:\n";
                // for(auto c : tc_propagatedCells[timeclass]) std::cout << c << " ";
                // std::cout << "\n";
-               getSeedIds(mpiGrid, tc_propagatedCells[timeclass], dimension, seedIds, timeclass);
+               getSeedIds(mpiGrid, tc_propagatedCells[timeclass], dimension, seedIds, timeclass, tictoc);
    
                maxt = timeclass;
             }
          }
          else{
-            getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0);
+            getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0, 0);
          }
       }
       else{
-         getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0);
+         getSeedIds(mpiGrid, propagatedCells, dimension, seedIds, 0, 0);
       }
+
       getSeedIdsTimer.stop();
       if (printSeeds) {
          for (int rank=0; rank<mpi_size; ++rank) {
@@ -1864,25 +1889,26 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
             if (rank!=myRank) {
                continue;
             }
-            stringstream ss;
-            ss<<"Task "<<myRank<<" Dimension "<<dimension << " Tic/toc: " << tictoc << " Seed Ids (D=DO_NOT_COMPUTE, S=Sysboundary L2, L=Sysboundary L1, N=Non-sysboundary L2, G=Ghost cell)"<<std::endl<<std::endl;
-            for (uint i = 0; i < seedIds.size(); i++) {
-               ss << seedIds.at(i).first << ": " << seedIds.at(i).second << "; ";
-               if (seedIds.at(i).second && mpiGrid[seedIds.at(i).second]) {
-                  SpatialCell* c = mpiGrid[seedIds.at(i).second];
-                  if (c->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) ss<<"D";
-                  if (c->sysBoundaryLayer != 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"S";
-                  if (c->sysBoundaryLayer == 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"L";
-                  if (c->sysBoundaryLayer == 2 && c->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) ss<<"N";
-                  if (!mpiGrid.is_local(seedIds.at(i).second)) ss<<"G";
-               }
-               ss<<" ";
-            }
-            ss<<std::endl<<std::endl;
-            std::cerr<<ss.str();
          }
+         stringstream ss;
+         ss<<"Task "<<myRank<<" Dimension "<<dimension << " Tic/toc: " << tictoc << " Seed Ids (D=DO_NOT_COMPUTE, S=Sysboundary L2, L=Sysboundary L1, N=Non-sysboundary L2, G=Ghost cell)"<<std::endl<<std::endl;
+         for (uint i = 0; i < seedIds.size(); i++) {
+            ss << seedIds.at(i).first << ": " << seedIds.at(i).second << "; ";
+            if (seedIds.at(i).second && mpiGrid[seedIds.at(i).second]) {
+               SpatialCell* c = mpiGrid[seedIds.at(i).second];
+               if (c->sysBoundaryFlag == sysboundarytype::DO_NOT_COMPUTE) ss<<"D";
+               if (c->sysBoundaryLayer != 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"S";
+               if (c->sysBoundaryLayer == 1 && c->sysBoundaryFlag != sysboundarytype::NOT_SYSBOUNDARY) ss<<"L";
+               if (c->sysBoundaryLayer == 2 && c->sysBoundaryFlag == sysboundarytype::NOT_SYSBOUNDARY) ss<<"N";
+               if (!mpiGrid.is_local(seedIds.at(i).second)) ss<<"G";
+            }
+            ss<<" ";
+         }
+         ss<<std::endl<<std::endl;
+         std::cerr<<ss.str();
       }
-      // if(maxt > 0 ) throw 123;
+   
+   // if(maxt > 0 ) throw 123;
    
    
       phiprof::Timer buildPencilsTimer {"buildPencils"};
@@ -1905,7 +1931,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
             cuint seedId = seedIds[i].second;
             // if (seedIds[i].first == 1) exit = true;
             // Construct pencils from the seedIds into a set of pencils.
-            buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedIds[i], ids, dimension, path, seedIds);
+            buildPencilsWithNeighbors(mpiGrid, thread_pencils, seedIds[i], ids, dimension, path, seedIds, tictoc);
          }
          // if(exit) throw 123;
    
@@ -1933,7 +1959,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
       // Check refinement of two ghost cells on each end of each pencil
       // in case pencil needs to be split.
       // This function contains threading.
-      check_ghost_cells(mpiGrid,(*pencilSet)[dimension],dimension);
+      check_ghost_cells(mpiGrid,(*pencilSet)[dimension],dimension, tictoc);
       checkGhostCellsTimer.stop();
       // std::cerr << __FILE__ <<":"<<__LINE__<<" returned from check_ghost_cells for dim "<<dimension <<"\n";
    
