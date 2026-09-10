@@ -83,6 +83,7 @@ Real P::tcStaticSphereRadiusLvl1 = 0.0;
 Real P::tcStaticSphereRadiusLvl2 = 0.0;
 Real P::tcStaticSphereRadiusLvl3 = 0.0;
 bool P::timeclassesInitialized = false;
+bool P::timeclassTictoc = false;
 
 vector<Real> P::timeclassDt;
 vector<Real> P::timeclassTime;
@@ -421,6 +422,7 @@ bool P::addParameters() {
    RP::add("timeclasses.tcStaticSphereRadiusLvl2", "Static timeclass sphere radius for timeclass level 2, meters", P::tcStaticSphereRadiusLvl2);
    RP::add("timeclasses.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for timeclass level 3, meters", P::tcStaticSphereRadiusLvl3);
    RP::add("gridbuilder.forcedConvection", "Force a convection velocity of 200 km/s along +x [false]", P::forcedConvection);
+   RP::add("timeclasses.timeclassTictoc", "Use tic-toc translation for timeclasses [false]", P::timeclassTictoc);
 
    RP::add("timeclasses.tc_test_type", "Enumerated tc test", P::tc_test_type);
    RP::add(

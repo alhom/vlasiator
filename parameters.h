@@ -78,7 +78,7 @@ struct Parameters {
    static int timeclassExactHaloExtent;
    static int timeclassOuterHaloExtent;
    static int timeclassFullHaloExtent; // The full halo extent for timeclasses, calculated from the Exact and Outer halo extents.
-
+   static bool timeclassTictoc; //use tic-toc translation for timeclasses
    static bool timeclassesInitialized;
    static bool tcDebugBox;          // Force timeclass 1 with the box
    static int tcOverrideTimeclass;  // Set fixed timeclass everywhere [debugging, default -1 i.e. off]
