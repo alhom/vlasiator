@@ -2107,11 +2107,16 @@ bool adaptRefinement(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGr
    // This needs to be done before LB
    sysBoundaries.classifyCells(mpiGrid, technical, fsgrid);
 
-   if (P::vlasovSolverGhostTranslate) {
+   if (P::vlasovSolverGhostTranslate && P::currentMaxTimeclass==0) {
       SpatialCell::set_mpi_transfer_type(Transfer::CELL_PARAMETERS);
       mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_GHOST);
       SpatialCell::set_mpi_transfer_type(Transfer::CELL_SYSBOUNDARYFLAG);
       mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_GHOST);
+   } else if (P::vlasovSolverGhostTranslate && P::currentMaxTimeclass>0) {
+      SpatialCell::set_mpi_transfer_type(Transfer::CELL_PARAMETERS);
+      mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
+      SpatialCell::set_mpi_transfer_type(Transfer::CELL_SYSBOUNDARYFLAG);
+      mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO);
    } else {
       SpatialCell::set_mpi_transfer_type(Transfer::CELL_PARAMETERS);
       mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::NEAREST);
