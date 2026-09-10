@@ -228,7 +228,17 @@ void calculateSpatialGhostTranslation(
    // Ghost translation, need all cell information, not just for a single direction.
    // No need for remote target cells; pass a dummy list.
    const vector<CellID> dummy_cells;
-
+   uint neighborhood;
+   std::array<setOfPencils,3>* pencilSet = &DimensionPencils;
+   if (P::currentMaxTimeclass == 0) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
+      // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+   }
+   else {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
+      // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+   }
+   
    updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST, tc);
    // Need to re-do in case block lists of boundary cells change after
    // the block adjustment just after ACC.
