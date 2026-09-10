@@ -235,9 +235,19 @@ void communicatePreSpatialGhostTranslation(
    }
    else if (tictoc == Timeclasses::TIC) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
+<<<<<<< HEAD
    }
    else if (tictoc == Timeclasses::TOC) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
+=======
+      pencilSet = &DimensionPencils;
+      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc << (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+   }
+   else if (tictoc == Timeclasses::TOC) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
+      pencilSet = &DimensionPencils_toc;
+      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc<< (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+>>>>>>> 83fed2f13 (Config and P:: parameter for enabling tic-toc)
    }
    else {
       std::cerr << __FILE__<<":"<<__LINE__<< " Unknown state: Current maxtimeclass=" << P::currentMaxTimeclass << ", tictoc = " << tictoc << std::endl;
@@ -666,7 +676,6 @@ void calculateSpatialTranslation(
             // std::cout << "rank " << myRank << ": " << tc_propagated_cells[tc].size() << " cells: calculateSpatialTranslation tc " << tc << " by dt " << P::timeclassDt[tc] <<"\n";
             if (P::vlasovSolverGhostTranslate) {
                // Local translation without interim communication
-<<<<<<< HEAD
                uint tictoc = Timeclasses::TIC;
                if (tc == 0) { // we are the coarsest timeclass, so we always have fine timeclass data to fetch and sync
                   tictoc = Timeclasses::TOC;   
@@ -686,9 +695,6 @@ void calculateSpatialTranslation(
             string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
             string profNamet = profName + tictocstr;
             phiprof::Timer timer {profNamet}; 
-=======
-               const uint tictoc = Timeclasses::TIC;
->>>>>>> fac377b39 (Groundwork for two-phase timeclass translation (tic/toc))
                calculateSpatialGhostTranslation(
                   mpiGrid,
                   tc_propagated_cells[tc], // Used for LB
