@@ -276,9 +276,6 @@ void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geomet
       // static TC sphere areas up to some R_E
       // hardcoded up to 4 different levels
 
-      int myRank;
-      MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
-
       const int nSpheres = (int)(P::tcStaticSphereRadiusLvl1!=0.0) + (int)(P::tcStaticSphereRadiusLvl2!=0.0) + (int)(P::tcStaticSphereRadiusLvl3!=0.0);
       assert(nSpheres >= P::currentMaxTimeclass && "The amount of initialized timeclass spheres should be equal or greater than the max timeclass, to avoid the situation where there exists no cells on the maximum timeclass");
 
