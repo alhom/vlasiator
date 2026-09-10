@@ -1806,12 +1806,12 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
    // NB the pencil sets are originally timeclassed internally, as those *could* be parallelized over,
    // if the propagatepencil calls would be rewritten to do pencil-wise dts. Guessing that is a second-order
    // optimization.
-   uint use_tictoc = P::currentMaxTimeclass > 0 ? 1 : 0;
-   use_tictoc = 0; // test with this
+   uint use_tictoc = P::currentMaxTimeclass > 0 ? 1 : 0; // maybe in production?
+   use_tictoc = P::timeclassTictoc; // test with this
    
    for (uint tictoc = 0; tictoc <= use_tictoc ; ++tictoc) {
       std::array<setOfPencils,3>* pencilSet;
-      std::cerr << __FILE__<<":"<<__LINE__<< " tictoc=" << tictoc << std::endl;
+      // std::cerr << __FILE__<<":"<<__LINE__<< " tictoc=" << tictoc << std::endl;
 
       if (tictoc == Timeclasses::TIC) {
          pencilSet = &DimensionPencils;
