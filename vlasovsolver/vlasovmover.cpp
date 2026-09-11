@@ -779,6 +779,9 @@ void setAccelerationTimeGhosts(vector<AccelerationPayload>& outvec, SpatialCell*
    if(spatial_cell->get_timeclass_turn_v()){
       outvec.push_back(AccelerationPayload(spatial_cell->get_tc(),spatial_cell,dt));
    }
+   if (dt == 0.0){
+      return;
+   }
 
    // std::cout << "outvec size: " << outvec.size() << "\n";
 
