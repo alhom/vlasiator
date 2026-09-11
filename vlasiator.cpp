@@ -838,7 +838,6 @@ int simulate(int argn,char* args[]) {
 
       auto timeStepVector = computeNewTimeStep(mpiGrid, technical.view(), fsgrid, dtMaxLocal, dtMaxGlobal, dtMinMaxLocal, dtMinMaxGlobal);
 
-
       calculateGlobalTcVariables(timeStepVector.at(1), timeStepVector.at(2));
 
       // this is called, because the next function checks against the smallest tcdt
@@ -861,39 +860,36 @@ int simulate(int argn,char* args[]) {
 
       initiateAllCellTimeclasses(mpiGrid);
 
-      if(myRank == MASTER_RANK){
-         //std::cout << "timeclass dts = ";
-         for(int i = 0; i <= P::currentMaxTimeclass; ++i){
-            //std::cout << i <<": "<<P::timeclassDt[i] << "s, ";
+      std::vector<CellID> badTcCells = checkCellTimeclasses(mpiGrid);
+      MPI_Barrier(MPI_COMM_WORLD);
+      uint64_t localBadCells = badTcCells.size();
+      uint64_t globalBadCells = 0;
+      MPI_Allreduce(&localBadCells, &globalBadCells, 1, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
+
+      if (globalBadCells != 0) {
+         // find out the smallest possible value to modify the base dt with, to make all timeclasses happy
+         Real globalSmallestDt = getNewSmallestDtToKeepTimeclassesHappy(mpiGrid, badTcCells);
+         dtWasMinimizedToKeepTimeclassesHappy = true;
+
+         updateTimeclassDts(globalSmallestDt * 0.5 * (P::vlasovSolverMaxCFL + P::vlasovSolverMinCFL));
+         P::dt = P::timeclassDt[P::currentMaxTimeclass];
+
+         if (isDtTooSmall(P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2])) {
+            dtWasMinimizedToKeepTimeclassesHappy = true;
+            logFile << "(TIMECLASSES) The base timestep is now so small, that it fails the check isDtTooSmall. However, from now on we ignore it. The simulation will continue, but maybe consider different timeclass domains?\n";
          }
-         //std::cout << endl;
+
+         // the dt should not change here by this function; it is only called to calculate the correct subcycling number for FS
+         handleChangingofDt(dtMaxGlobal, dtIsChanged, newDt, dtWasMinimizedToKeepTimeclassesHappy);
+
+         logFile <<"(TIMECLASSES) Dt changed to "<<P::dt <<"s to keep timeclass domains correct"<<endl<<writeVerbose;
+
       }
 
-      for (vector<CellID>::const_iterator cell_id=cells.begin(); cell_id!=cells.end(); ++cell_id) {
-
-         SpatialCell* cell = mpiGrid[*cell_id];
-         // std::cerr << "timeclass and tcdt of cell " << cell->get_cellid() << ": " << cell->parameters[CellParams::TIMECLASS] << ", " << cell->parameters[CellParams::TIMECLASSDT] << std::endl;
-      }
-      //std::cerr << __FILE__ << " " << __LINE__ << std::endl;
       computeDtimer.stop();
 
       balanceLoad(mpiGrid, sysBoundaryContainer, technical.view(), fsgrid);
       
-      //std::cerr << __FILE__ << " " << __LINE__ << std::endl;
-
-      auto lCells = getLocalCells();
-      //std::cerr << "checking cell ghost distributions:\n";
-      for (size_t c=0; c<lCells.size(); ++c) {
-         const CellID cell = lCells[c];
-         SpatialCell* spatialCell = mpiGrid[cell];
-         //std::cerr << "cell " << cell << " has timeclass " << spatialCell->parameters[CellParams::TIMECLASS] << " and ghost distribution: ";
-         for (auto& ghost : spatialCell->requested_timeclass_ghosts) {
-            //std::cerr << ghost << " ";
-         }
-         //std::cerr << "\n";
-
-      }
-
       //go forward by dt/2 in V, initializes leapfrog split. In restarts the
       //the distribution function is already propagated forward in time by dt/2
       phiprof::Timer propagateHalfTimer {"propagate-velocity-space-dt/2"};
@@ -905,12 +901,10 @@ int simulate(int argn,char* args[]) {
       }
       P::tc_leapfrog_init = true;
 
-      //std::cerr << __FILE__ << " " << __LINE__ << std::endl;
 
       propagateHalfTimer.stop();
 
       updatePreviousVMoments(mpiGrid, true);
-      // std::cerr <<__FILE__<<":"<<__LINE__<<" ("<<myRank <<") Calling balanceLoad\n";
 
       // Apply boundary conditions
       if (P::propagateVlasovTranslation || P::propagateVlasovAcceleration ) {
@@ -919,7 +913,6 @@ int simulate(int argn,char* args[]) {
          updateBoundariesTimer.stop();
          addTimedBarrier("barrier-boundary-conditions");
       }
-      // std::cerr <<__FILE__<<":"<<__LINE__<<" ("<<myRank <<")\n";
       // Also update all moments. They won't be transmitted to FSgrid until the field solver is called, though.
       phiprof::Timer computeMomentsTimer {"Compute interp moments"};
       //std::cout << "for initial interpolated moments\n";
@@ -946,7 +939,6 @@ int simulate(int argn,char* args[]) {
       updateTimeclassDts(P::dt);
 
    }
-// std::cerr <<__FILE__<<":"<<__LINE__<<" ("<<myRank <<")\n";
    initTimer.stop();
 
    // ***********************************
@@ -1015,7 +1007,7 @@ int simulate(int argn,char* args[]) {
          wallTimeRestartCounter <= P::exitAfterRestarts) {
 
       timeclassDebugAssertions(mpiGrid);
-
+      
       addTimedBarrier("barrier-loop-start");
 
       phiprof::Timer ioTimer {"IO"};
@@ -1283,8 +1275,6 @@ int simulate(int argn,char* args[]) {
          break;
       }
 
-      // std::cout << "main loop at" << __FILE__ << " " << __LINE__ << " " << P::tstep << " " << P::fractionalTimestep << std::endl;
-
       //Re-loadbalance if needed
       //TODO - add LB measure and do LB if it exceeds threshold
       if(((P::tstep % P::rebalanceInterval == 0 && P::tstep > P::tstep_min && P::fractionalTimestep == 0) || overrideRebalanceNow)) {
@@ -1425,17 +1415,20 @@ int simulate(int argn,char* args[]) {
                   // find out the smallest possible value to modify the base dt with, to make all timeclasses happy
 
                   Real globalSmallestDt = getNewSmallestDtToKeepTimeclassesHappy(mpiGrid, badTcCells);
-                  dtWasMinimizedToKeepTimeclassesHappy = true;
+
 
                   updateTimeclassDts(globalSmallestDt * 0.5 * (P::vlasovSolverMaxCFL + P::vlasovSolverMinCFL));
                   P::dt = P::timeclassDt[P::currentMaxTimeclass];
 
+                  if (isDtTooSmall(P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2])) {
+                     dtWasMinimizedToKeepTimeclassesHappy = true;
+                     logFile << "(TIMECLASSES) The base timestep is now so small, that it fails the check isDtTooSmall. However, from now on we ignore it. The simulation will continue, but maybe consider different timeclass domains?\n";
+                  }
+
                   // the dt should not change here by this function; it is only called to calculate the correct subcycling number for FS
                   handleChangingofDt(dtMaxGlobal, dtIsChanged, newDt, dtWasMinimizedToKeepTimeclassesHappy);
 
-                  if (isDtTooSmall(P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2])) {
-                     logFile << "(TIMECLASSES) The base timestep is now so small, that it fails the check isDtTooSmall. However, from now on we ignore it. The simulation will continue, but maybe consider different timeclass domains?\n";
-                  }
+                  logFile <<"(TIMECLASSES) Dt changed to "<<P::dt <<"s to keep timeclass domains correct, distribution function was half-stepped to real-time and back"<<endl<<writeVerbose;
 
                   if( P::propagateVlasovAcceleration ) {
                      // Back half dt to real time, forward by new half dt
@@ -1443,9 +1436,6 @@ int simulate(int argn,char* args[]) {
                   } else {
                      calculateAcceleration(mpiGrid,0.0);
                   }
-
-                  logFile <<"(TIMECLASSES) Dt changed to "<<P::dt <<"s to keep timeclass domains correct, distribution function was half-stepped to real-time and back"<<endl<<writeVerbose;
-                  continue;
 
                }
 
