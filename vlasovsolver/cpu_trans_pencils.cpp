@@ -517,12 +517,22 @@ void prepareGhostTranslationCellLists(const dccrg::Dccrg<SpatialCell,dccrg::Cart
    logFile << globalCounts.at(3*nc-1);
 
    std::vector<float> localCountsF;
-   localCountsF.push_back((float)localCounts.at(0) / (float)localCounts.at(6));
-   localCountsF.push_back((float)localCounts.at(1) / (float)localCounts.at(6));
-   localCountsF.push_back((float)localCounts.at(2) / (float)localCounts.at(6));
-   localCountsF.push_back((float)localCounts.at(3) / (float)localCounts.at(6));
-   localCountsF.push_back((float)localCounts.at(4) / (float)localCounts.at(6));
-   localCountsF.push_back((float)localCounts.at(5) / (float)localCounts.at(6));
+
+   if ((float)localCounts.at(6) != 0) {
+      localCountsF.push_back((float)localCounts.at(0) / (float)localCounts.at(6));
+      localCountsF.push_back((float)localCounts.at(1) / (float)localCounts.at(6));
+      localCountsF.push_back((float)localCounts.at(2) / (float)localCounts.at(6));
+      localCountsF.push_back((float)localCounts.at(3) / (float)localCounts.at(6));
+      localCountsF.push_back((float)localCounts.at(4) / (float)localCounts.at(6));
+      localCountsF.push_back((float)localCounts.at(5) / (float)localCounts.at(6));
+   } else {
+      localCountsF.push_back(0.0);
+      localCountsF.push_back(0.0);
+      localCountsF.push_back(0.0);
+      localCountsF.push_back(0.0);
+      localCountsF.push_back(0.0);
+      localCountsF.push_back(0.0);
+   } 
    int fc = localCountsF.size();
    std::vector<float> globalCountsF(4*fc);
    MPI_Reduce(localCountsF.data(), globalCountsF.data(), fc, MPI_FLOAT, MPI_SUM, MASTER_RANK, MPI_COMM_WORLD);
