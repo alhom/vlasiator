@@ -848,7 +848,8 @@ void calculateAcceleration(const uint popID,const int globalMaxSubcycles,const i
    // set seed, initialise generator and get value. The order is the same
    // for all cells, but varies with timestep.
    std::default_random_engine rndState;
-   rndState.seed(P::tstep);
+   //rndState.seed(P::tstep);
+   rndState.seed(P::tstep * (int)(pow(2.0, P::currentMaxTimeclass)) + P::fractionalTimestep);
    //rndState.seed(P::tstep + P::fractionalTimestep); // WARNING this formulation actually has some correlations (P::tstep + P::fractionalTimestep can do aliasing...)
    #ifndef DEBUG_TIMECLASSES
       uint map_order=std::uniform_int_distribution<>(0,2)(rndState);
