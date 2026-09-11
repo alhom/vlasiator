@@ -240,16 +240,8 @@ void handleChangingofDt(const std::vector<Real>& dtMaxGlobal, bool& isChanged, R
    isChanged = false;
 
       // reduce/increase dt if it is too high for any of the three propagators or too low for all propagators
-   if (isDtTooLarge(P::dtUpdateModifier * P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2]) ||
+   if (isDtTooLarge(P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2]) ||
       (isDtTooSmall(P::timeclassDt[P::currentMaxTimeclass], dtMaxGlobal[0],dtMaxGlobal[1],dtMaxGlobal[2]) && dtWasMinimizedToKeepTimeclassesHappy == false)) {
-
-
-      if (P::fractionalTimestep != 0) {
-         // if we need to change timestep at fractimestep not 0, we need to delay it to the next fractimestep 0
-         // hence, the above check needs to be done with pre-emption. 
-         // we can just return here, since next fractimestep 0 we will end up at the logical point.
-         return;
-      }
 
       // new dt computed
       isChanged = true;
@@ -258,8 +250,6 @@ void handleChangingofDt(const std::vector<Real>& dtMaxGlobal, bool& isChanged, R
       newDt = meanVlasovCFL * dtMaxGlobal[0];
       newDt = min(newDt, meanVlasovCFL * dtMaxGlobal[1] * P::maxSlAccelerationSubcycles);
       newDt = min(newDt, meanFieldsCFL * dtMaxGlobal[2] * P::maxFieldSolverSubcycles);
-
-      newDt *= P::dtSettingModifier;
 
       logFile << "(TIMESTEP) New dt = " << newDt << " computed on step " << P::tstep << " at " << P::t
               << "s   Maximum possible dt (not including  vlasovsolver CFL " << P::vlasovSolverMinCFL << "-"
@@ -953,7 +943,7 @@ int simulate(int argn,char* args[]) {
       computeMomentsTimer.stop();
    } else { // if we are restaring, make sure global timeclass settings are set
       //restart files dont contain P::timeclassDts, so we set that 
-      updateTimeclassDts(P::dt, false);
+      updateTimeclassDts(P::dt);
 
    }
 // std::cerr <<__FILE__<<":"<<__LINE__<<" ("<<myRank <<")\n";

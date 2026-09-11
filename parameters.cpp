@@ -74,10 +74,8 @@ Real P::dt = 0;
 Real P::dt0 = NAN;
 int P::initialMaxTimeclass = 0;
 //int P::timeclassBuffer = 0;
-bool P::dynamicTimeclasses = true;
 Real P::timeclassDomainModifier = 1.0;
-Real P::dtUpdateModifier = 1.0;
-Real P::dtSettingModifier = 1.0;
+Real P::dtUpdateModifier = 0.96;
 int P::currentMaxTimeclass = 0;
 //bool P::tcRankwise = false;
 bool P::forcedConvection = false;
@@ -419,8 +417,6 @@ bool P::addParameters() {
    RP::add("timeclasses.initial_timeclass_max", "Maximum number of timeclasses.", P::initialMaxTimeclass);
    //RP::add("timeclasses.tcRankwise", "Use timeclasses at MPI rank level insted of cell-wise timeclasses.", false);
    //RP::add("timeclasses.timeclass_buffer", "Number of buffer timeclasses.", 0);
-   RP::add("timeclasses.dynamic_timeclasses", "True if timeclass changes should abort", P::dynamicTimeclasses);
-   RP::add("timeclasses.dtSettingModifier", "modifier to setting dt lengths", P::dtSettingModifier);
    RP::add("timeclasses.dtUpdatingModifier", "modifier to updating dt lengths", P::dtUpdateModifier);
    RP::add("timeclasses.timeclass_domain_modifier", "modifier to tc domain sizes", P::timeclassDomainModifier);
    RP::add("timeclasses.tcStaticSphereRadiusLvl1", "Static timeclass sphere radius for timeclass level 1, meters", P::tcStaticSphereRadiusLvl1);
@@ -1148,6 +1144,26 @@ void Parameters::getParameters() {
    if (P::tcOverrideTimeclass > -1 && P::initialMaxTimeclass < P::tcOverrideTimeclass) {
       std::cout << "Adjusting P::InitialMaxTimeclass ("<< P::initialMaxTimeclass << ") to include tcOverrideTimeclass (" << P::tcOverrideTimeclass << ")" << std::endl;
       P::initialMaxTimeclass = P::tcOverrideTimeclass;
+   }
+
+   if (P::currentMaxTimeclass == 0) {
+      //if we are not using timeclasses, set dtUpdateModifier to 1.0, so it doesnt affect the simulation.
+      P::dtUpdateModifier = 1.0;
+   } else {
+      if (P::dtUpdateModifier > 1.0 || P::dtUpdateModifier < 0.0) {
+         std::cerr << "ERROR: Your dtUpdateModifier should be 0 < dtUpdateModifier <= 1! The simulation will now abort!\n";
+         MPI_Abort(MPI_COMM_WORLD, -1);
+      }
+
+      if (P::dtUpdateModifier >= P::vlasovSolverMaxCFL) {
+         std::cerr << "ERROR: Your dtUpdateModifier is greater of equal than vlasovSolverMaxCFL! The simulation will now abort!\n";
+         MPI_Abort(MPI_COMM_WORLD, -1);
+      }
+
+      if (P::dtUpdateModifier <= 0.5 * (P::vlasovSolverMaxCFL + P::vlasovSolverMinCFL)) {
+         std::cerr << "ERROR: Your dtUpdateModifier less or equal than 0.5 * (vlasovSolverMaxCFL + vlasovSolverMinCFL)! The simulation will now abort!\n";
+         MPI_Abort(MPI_COMM_WORLD, -1);      
+      }
    }
 
    P::timeclassDt = std::vector<Real>(P::initialMaxTimeclass+1);

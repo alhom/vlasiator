@@ -26,15 +26,18 @@
 #include "mpiconversion.h"
 
 bool isDtTooLarge(Real dt, Real rdt, Real vdt, Real fsdt){
-   return (dt > rdt * P::vlasovSolverMaxCFL ||
-           dt > vdt * P::vlasovSolverMaxCFL * P::maxSlAccelerationSubcycles ||
-           dt > fsdt * P::fieldSolverMaxCFL * P::maxFieldSolverSubcycles);
+   return (dt > P::dtUpdateModifier * rdt * P::vlasovSolverMaxCFL ||
+           dt > P::dtUpdateModifier * vdt * P::vlasovSolverMaxCFL * P::maxSlAccelerationSubcycles ||
+           dt > P::dtUpdateModifier * fsdt * P::fieldSolverMaxCFL * P::maxFieldSolverSubcycles);
 }
 
 bool isDtTooSmall(Real dt, Real rdt, Real vdt, Real fsdt){
-   return (dt < rdt * P::vlasovSolverMinCFL &&
-           dt < vdt * P::vlasovSolverMinCFL * P::maxSlAccelerationSubcycles &&
-           dt < fsdt * P::fieldSolverMinCFL * P::maxFieldSolverSubcycles);
+   const Real invDtChange = 2.0 - P::dtUpdateModifier; 
+   // P::dtUpdateModifier is in [0, 1]
+   // so is for example dtUpdateModifier is 0.95, this value is 2-0.95 = 1.05
+   return (dt < invDtChange * rdt * P::vlasovSolverMinCFL &&
+           dt < invDtChange * vdt * P::vlasovSolverMinCFL * P::maxSlAccelerationSubcycles &&
+           dt < invDtChange * fsdt * P::fieldSolverMinCFL * P::maxFieldSolverSubcycles);
 }
 
 
@@ -61,7 +64,7 @@ std::vector<CellID> checkCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesi
    return retVec;
 }
 
-void updateTimeclassDts(Real fsdt, const bool applyModifier) {
+void updateTimeclassDts(Real fsdt) {
 
    // reduce fsdt by buffer amount
 
@@ -73,11 +76,7 @@ void updateTimeclassDts(Real fsdt, const bool applyModifier) {
    //logFile << std::endl;
    //logFile << "(TC) timeclassDts set to " << std::endl;
    for(int i = 0; i <= P::currentMaxTimeclass; ++i){
-      if (applyModifier) {
-         newTimeclassDts[i] = fsdt*pow(2,P::currentMaxTimeclass - i)*P::dtSettingModifier;
-      } else {
-         newTimeclassDts[i] = fsdt*pow(2,P::currentMaxTimeclass - i);
-      }
+      newTimeclassDts[i] = fsdt*pow(2,P::currentMaxTimeclass - i);
       //logFile << newTimeclassDts[i] << "s, ";
    }
    //logFile << std::endl;
