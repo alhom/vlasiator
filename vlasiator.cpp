@@ -1155,8 +1155,8 @@ int simulate(int argn,char* args[]) {
       if (myRank == MASTER_RANK) {
          doNow[donow::SAVE] = 0;
          doNow[donow::DORC] = 0;
-         if (  (P::saveRestartWalltimeInterval >= 0.0 && P::fractionalTimestep == 0
-            && (P::saveRestartWalltimeInterval*wallTimeRestartCounter <=  MPI_Wtime()-initialWtime
+         if (  (P::saveRestartWalltimeInterval >= 0.0
+            && ((P::saveRestartWalltimeInterval*wallTimeRestartCounter <=  MPI_Wtime()-initialWtime && P::fractionalTimestep == 0)
                || (P::tstep == P::tstep_max)
                || (P::t >= P::t_max)))
             || (doBailout > 0 && P::bailout_write_restart)
