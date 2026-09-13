@@ -81,28 +81,28 @@ namespace spatial_cell {
       }
 
       // new pointers for vectors
-      velocity_block_with_content_list = new std::vector<vmesh::GlobalID>(1);
-      velocity_block_with_no_content_list = new std::vector<vmesh::GlobalID>(1);
-      velocity_block_with_content_list->clear();
-      velocity_block_with_no_content_list->clear();
+      //velocity_block_with_content_list = new std::vector<vmesh::GlobalID>(1);
+      //velocity_block_with_no_content_list = new std::vector<vmesh::GlobalID>(1);
+      //velocity_block_with_content_list->clear();
+      //velocity_block_with_no_content_list->clear();
    }
 
    SpatialCell::~SpatialCell() {
-      delete velocity_block_with_content_list;
-      delete velocity_block_with_no_content_list;
+      //delete velocity_block_with_content_list;
+      //delete velocity_block_with_no_content_list;
    }
 
    SpatialCell::SpatialCell(const SpatialCell& other) {
       // These should be empty when created, but let's play safe.
-      velocity_block_with_content_list = new std::vector<vmesh::GlobalID>(*(other.velocity_block_with_content_list));
-      velocity_block_with_no_content_list = new std::vector<vmesh::GlobalID>(*(other.velocity_block_with_no_content_list));
+      //velocity_block_with_content_list = new std::vector<vmesh::GlobalID>(*(other.velocity_block_with_content_list));
+      //velocity_block_with_no_content_list = new std::vector<vmesh::GlobalID>(*(other.velocity_block_with_no_content_list));
 
       // Member variables
       ioLocalCellId = other.ioLocalCellId;
       sysBoundaryFlag = other.sysBoundaryFlag;
       sysBoundaryLayer = other.sysBoundaryLayer;
       sysBoundaryLayerNew = other.sysBoundaryLayerNew;
-      velocity_block_with_content_list_size = other.velocity_block_with_content_list_size;
+      //velocity_block_with_content_list_size = other.velocity_block_with_content_list_size;
       initialized = other.initialized;
       mpiTransferEnabled = other.mpiTransferEnabled;
       for (unsigned int i=0; i<bvolderivatives::N_BVOL_DERIVATIVES; ++i) {
@@ -124,6 +124,7 @@ namespace spatial_cell {
       }
       if (other.populations.size()>0) {
          populations = std::vector<spatial_cell::Population>(other.populations);
+	 ghostPopulations = std::map<std::pair<const uint, const int>, spatial_cell::Population>(other.ghostPopulations);
       }
    }
    const SpatialCell& SpatialCell::operator=(const SpatialCell& other) {
@@ -158,6 +159,7 @@ namespace spatial_cell {
 
       face_neighbor_ranks.clear(); // Needs re-building after refinement
       populations = std::vector<spatial_cell::Population>(other.populations);
+      ghostPopulations = std::map<std::pair<const uint, const int>, spatial_cell::Population>(other.ghostPopulations);
 
       return *this;
    }
@@ -193,12 +195,14 @@ namespace spatial_cell {
       //  we only check for removal for blocks with no content
       std::unordered_set<vmesh::GlobalID> neighbors_have_content;
 
+      Population& pop = get_population(popID, timeclass);
+
       //add neighbor content info for velocity space neighbors to map. We loop over blocks
       //with content and raise the neighbors_have_content for
       //itself, and for all its neighbors
-      const size_t local_content_list_size = velocity_block_with_content_list->size();
+      const size_t local_content_list_size = pop.velocity_block_with_content_list->size();
       for (vmesh::LocalID block_index=0; block_index<local_content_list_size; ++block_index) {
-         vmesh::GlobalID block = velocity_block_with_content_list->at(block_index);
+         vmesh::GlobalID block = pop.velocity_block_with_content_list->at(block_index);
 
          const velocity_block_indices_t indices = SpatialCell::get_velocity_block_indices(popID,block,timeclass);
          neighbors_have_content.insert(block); //also add the cell itself
@@ -220,9 +224,10 @@ namespace spatial_cell {
       //flag for the local block with same block id
       for (std::vector<SpatialCell*>::const_iterator neighbor = spatial_neighbors.begin();
            neighbor != spatial_neighbors.end(); ++neighbor) {
-         size_t n_neigh_blocks = (*neighbor)->velocity_block_with_content_list->size();
+         Population& npop = (*neighbor)->get_population(popID,timeclass);
+         size_t n_neigh_blocks = npop.velocity_block_with_content_list->size();
          for (vmesh::LocalID block_index=0; block_index < n_neigh_blocks; ++block_index) {
-            vmesh::GlobalID block = (*neighbor)->velocity_block_with_content_list->at(block_index);
+            vmesh::GlobalID block = npop.velocity_block_with_content_list->at(block_index);
             neighbors_have_content.insert(block);
          }
       }
@@ -261,8 +266,8 @@ namespace spatial_cell {
       // better to do it in the reverse order, as then blocks at the
       // end are removed first, and we may avoid copying extra data.
       if (doDeleteEmptyBlocks) {
-         for (int block_index= this->velocity_block_with_no_content_list->size()-1; block_index>=0; --block_index) {
-            const vmesh::GlobalID blockGID = velocity_block_with_no_content_list->at(block_index);
+         for (int block_index=pop.velocity_block_with_no_content_list->size()-1; block_index>=0; --block_index) {
+            const vmesh::GlobalID blockGID = pop.velocity_block_with_no_content_list->at(block_index);
             #ifdef DEBUG_SPATIAL_CELL
             if (blockGID == invalid_global_id()) {
                cerr << "Got invalid block at " << __FILE__ << ' ' << __LINE__ << endl;
@@ -601,28 +606,28 @@ namespace spatial_cell {
          if ((SpatialCell::mpi_transfer_type & Transfer::VEL_BLOCK_WITH_CONTENT_STAGE1) !=0) {
                transfer << "VEL_BLOCK_WITH_CONTENT_STAGE1 ";
             if(!receiving){
-               transfer << this->velocity_block_with_content_list_size;
+               transfer << pop.velocity_block_with_content_list_size;
             }
 
             //Communicate size of list so that buffers can be allocated on receiving side
             if (!receiving) {
-               this->velocity_block_with_content_list_size = this->velocity_block_with_content_list->size();
+               pop.velocity_block_with_content_list_size = pop.velocity_block_with_content_list->size();
             }
-            displacements.push_back((uint8_t*) &(this->velocity_block_with_content_list_size) - (uint8_t*) this);
+            displacements.push_back((uint8_t*) &(pop.velocity_block_with_content_list_size) - (uint8_t*) this);
             block_lengths.push_back(sizeof(vmesh::LocalID));
          }
          if ((SpatialCell::mpi_transfer_type & Transfer::VEL_BLOCK_WITH_CONTENT_STAGE2) !=0) {
                   transfer << "VEL_BLOCK_WITH_CONTENT_STAGE2 ";
 
             if (receiving) {
-               this->velocity_block_with_content_list->resize(this->velocity_block_with_content_list_size);
-               transfer << this->velocity_block_with_content_list_size <<" foo.";
+               pop.velocity_block_with_content_list->resize(pop.velocity_block_with_content_list_size);
+               transfer << pop.velocity_block_with_content_list_size <<" foo.";
             }
 
             //velocity_block_with_content_list_size should first be updated, before this can be done (STAGE1)
-            if(velocity_block_with_content_list_size > 0) {
-               displacements.push_back((uint8_t*) this->velocity_block_with_content_list->data() - (uint8_t*) this);
-               block_lengths.push_back(sizeof(vmesh::GlobalID)*this->velocity_block_with_content_list_size);
+            if(pop.velocity_block_with_content_list_size > 0) {
+               displacements.push_back((uint8_t*) pop.velocity_block_with_content_list->data() - (uint8_t*) this);
+               block_lengths.push_back(sizeof(vmesh::GlobalID)*pop.velocity_block_with_content_list_size);
             } else {
                displacements.push_back(0);
                block_lengths.push_back(0);
@@ -969,15 +974,16 @@ namespace spatial_cell {
     * @see adjustVelocityBlocks */
    void SpatialCell::update_velocity_block_content_lists(const uint popID, const int timeclass) {
       debug_ghostpopulation_check(popID, timeclass);
-      velocity_block_with_content_list->clear();
-      velocity_block_with_no_content_list->clear();
+      Population& pop = get_population(activePopID, activeTimeclass);
+      pop.velocity_block_with_content_list->clear();
+      pop.velocity_block_with_no_content_list->clear();
 
       for (vmesh::LocalID block_index=0; block_index<get_velocity_mesh(popID,timeclass)->size(); ++block_index) {
          const vmesh::GlobalID globalID = get_velocity_mesh(popID,timeclass)->getGlobalID(block_index);
          if (compute_block_has_content(block_index,popID,timeclass)){
-            velocity_block_with_content_list->push_back(globalID);
+            pop.velocity_block_with_content_list->push_back(globalID);
          } else {
-            velocity_block_with_no_content_list->push_back(globalID);
+            pop.velocity_block_with_no_content_list->push_back(globalID);
          }
       }
    }
