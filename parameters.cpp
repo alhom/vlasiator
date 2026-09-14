@@ -96,6 +96,7 @@ Real P::vlasovSolverMaxCFL = 0.99;
 Real P::vlasovSolverMinCFL = 0.8;
 bool P::vlasovSolverGhostTranslate = false;
 uint P::vlasovSolverGhostTranslateExtent = 0;
+bool P::coalesceGhostComms = false;
 Real P::fieldSolverMaxCFL = 0.5;
 Real P::fieldSolverMinCFL = 0.4;
 uint P::fieldSolverSubcycles = 1;
@@ -511,6 +512,8 @@ bool P::addParameters() {
            P::vlasovAccelerateMaxwellianBoundaries);
    RP::add("vlasovsolver.GhostTranslate","Boolean for activating all-local ghost translation",P::vlasovSolverGhostTranslate);
    RP::add("vlasovsolver.GhostTranslateExtent","Stencil size in all-local ghost translation (default: VLASOV_STENCIL_WIDTH+1",P::vlasovSolverGhostTranslateExtent);
+   
+   // RP::add("vlasovsolver.coalesceGhostComms", "Coalesce ghost communications over populations, before translating", P::coalesceGhostComms);
 
    // Load balancing parameters
    RP::add("loadBalance.algorithm", "Load balancing algorithm to be used", P::loadBalanceAlgorithm);
