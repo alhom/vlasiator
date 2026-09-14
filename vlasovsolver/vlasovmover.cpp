@@ -296,7 +296,11 @@ void communicatePreSpatialGhostTranslationCoalesced(
       abort();
    }
 
-   updateRemoteVelocityBlockListsCoalesced(mpiGrid,population_indexes,neighborhood);
+   // updateRemoteVelocityBlockListsCoalesced(mpiGrid,population_indexes,neighborhood);
+   for (auto& index : population_indexes) {
+      updateRemoteVelocityBlockLists(mpiGrid, index.first, neighborhood, index.second);
+   }
+   
    // Need to re-do in case block lists of boundary cells change after
    // the block adjustment just after ACC.
 
@@ -604,26 +608,26 @@ void calculateSpatialTranslation(
                string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
                phiprof::Timer timer {profName};
                population_indexes.push_back(std::make_pair(popID, tc));
-           	   // communicatePreSpatialGhostTranslation(
-               //    mpiGrid,
-               //    tc_propagated_cells[tc], // Used for LB
-               //    nPencils,
-               //    P::timeclassDt[tc],
-               //    popID,
-               //    time,
-               //    tictoc,
-               //    tc
-               //    );
+           	   communicatePreSpatialGhostTranslation(
+                  mpiGrid,
+                  tc_propagated_cells[tc], // Used for LB
+                  nPencils,
+                  P::timeclassDt[tc],
+                  popID,
+                  time,
+                  tictoc,
+                  tc
+                  );
         	   }
          }
       }
-      phiprof::Timer timer {"Coalesced pre-GT comms"};
-  	   communicatePreSpatialGhostTranslationCoalesced(
-         mpiGrid,
-         population_indexes,
-         Timeclasses::TIC,
-         0
-         );
+      // phiprof::Timer timer {"Coalesced pre-GT comms"};
+  	   // communicatePreSpatialGhostTranslationCoalesced(
+      //    mpiGrid,
+      //    population_indexes,
+      //    Timeclasses::TIC,
+      //    0
+      //    );
 
    }
 
