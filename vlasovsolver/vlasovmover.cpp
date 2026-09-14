@@ -299,16 +299,19 @@ void communicatePreSpatialGhostTranslationCoalesced(
    }
 
    // updateRemoteVelocityBlockListsCoalesced(mpiGrid,population_indexes,neighborhood);
+   P::coalesceGhostComms = false;
    for (auto& index : population_indexes) {
       updateRemoteVelocityBlockLists(mpiGrid, index.first, neighborhood, index.second);
    }
-   
+   P::coalesceGhostComms = true;
+   // std::cerr << __FILE__<<":"<<__LINE__<< " Done updateing remote velocity block lists" << std::endl;
    // Need to re-do in case block lists of boundary cells change after
    // the block adjustment just after ACC.
 
    phiprof::Timer prepreBarrierTimer {"MPI barrier-pre-trans-comm"};
    MPI_Barrier(MPI_COMM_WORLD);
    prepreBarrierTimer.stop();
+   SpatialCell::setCommunicatedSpecies(population_indexes);
 
    phiprof::Timer transferTimer {"transfer-stencil-data-all",{"MPI"}};
    SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false);
@@ -354,17 +357,17 @@ void calculateSpatialGhostTranslation(
    if (P::currentMaxTimeclass == 0) {
      // neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
       pencilSet = &DimensionPencils;
-      std::cerr << __FILE__<<":"<<__LINE__<< " tictoc = " << tictoc<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+      // std::cerr << __FILE__<<":"<<__LINE__<< " tictoc = " << tictoc<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
    }
    else if (tictoc == Timeclasses::TIC) {
       //neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
       pencilSet = &DimensionPencils;
-      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc << (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+      // std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc << (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
    }
    else if (tictoc == Timeclasses::TOC) {
       //neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
       pencilSet = &DimensionPencils_toc;
-      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc<< (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
+      // std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc<< (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
    }
    else {
       std::cerr << __FILE__<<":"<<__LINE__<< " Unknown state: Current maxtimeclass=" << P::currentMaxTimeclass << ", tictoc = " << tictoc << std::endl;
@@ -582,7 +585,7 @@ void calculateSpatialTranslation(
 
    int myRank;
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
-
+   P::coalesceGhostComms = true;
    if (P::vlasovSolverGhostTranslate){
       std::vector<std::pair<uint, int>> population_indexes;
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
@@ -614,27 +617,31 @@ void calculateSpatialTranslation(
                string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
                phiprof::Timer timer {profName};
                population_indexes.push_back(std::make_pair(popID, tc));
-           	   communicatePreSpatialGhostTranslation(
-                  mpiGrid,
-                  tc_propagated_cells[tc], // Used for LB
-                  nPencils,
-                  P::timeclassDt[tc],
-                  popID,
-                  time,
-                  tictoc,
-                  tc
-                  );
-        	   }
+               if (!P::coalesceGhostComms) {
+                  communicatePreSpatialGhostTranslation(
+                     mpiGrid,
+                     tc_propagated_cells[tc], // Used for LB
+                     nPencils,
+                     P::timeclassDt[tc],
+                     popID,
+                     time,
+                     tictoc,
+                     tc
+                     );
+               }
+            }
          }
       }
-      // phiprof::Timer timer {"Coalesced pre-GT comms"};
-  	   // communicatePreSpatialGhostTranslationCoalesced(
-      //    mpiGrid,
-      //    population_indexes,
-      //    Timeclasses::TIC,
-      //    0
-      //    );
 
+      if (P::coalesceGhostComms) {
+         communicatePreSpatialGhostTranslationCoalesced(
+            mpiGrid,
+            population_indexes,
+            Timeclasses::TIC,
+            0
+            );
+      }
+      P::coalesceGhostComms = false;
    }
 
 

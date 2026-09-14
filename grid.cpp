@@ -599,6 +599,7 @@ void transferInParts(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGr
          }
       }
       // std::cerr << __FILE__<<":"<<__LINE__<<"\n";
+      P::coalesceGhostComms = false;
       for (size_t popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
          for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass) {
             // Set active population
