@@ -263,6 +263,61 @@ void communicatePreSpatialGhostTranslation(
    preBarrierTimer.stop();
 }
 
+
+/** Communicate the distribution function from necessary remote neighbors
+ *  before ghost translation.
+    Now does all required calculations on ghost cells,
+    coalescing all interim MPI communication into one call..
+ */
+
+void communicatePreSpatialGhostTranslationCoalesced(
+   dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+   std::vector<std::pair<uint, int>>& population_indexes,
+   const uint tictoc,
+   int tc
+   ) {
+
+   // Ghost translation, need all cell information, not just for a single direction.
+   // No need for remote target cells; pass a dummy list.
+   const vector<CellID> dummy_cells;
+   uint neighborhood;
+
+   // Select the pencil set and the required neighborhood based on the tictoc value
+   std::array<setOfPencils,3>* pencilSet;
+   if (P::currentMaxTimeclass == 0) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
+   }
+   else if (tictoc == Timeclasses::TIC) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
+   }
+   else if (tictoc == Timeclasses::TOC) {
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
+   }
+   else {
+      std::cerr << __FILE__<<":"<<__LINE__<< " Unknown state: Current maxtimeclass=" << P::currentMaxTimeclass << ", tictoc = " << tictoc << std::endl;
+      abort();
+   }
+
+   updateRemoteVelocityBlockListsCoalesced(mpiGrid,population_indexes,neighborhood);
+   // Need to re-do in case block lists of boundary cells change after
+   // the block adjustment just after ACC.
+
+   phiprof::Timer prepreBarrierTimer {"MPI barrier-pre-trans-comm"};
+   MPI_Barrier(MPI_COMM_WORLD);
+   prepreBarrierTimer.stop();
+
+   phiprof::Timer transferTimer {"transfer-stencil-data-all",{"MPI"}};
+   SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false);
+   mpiGrid.update_copies_of_remote_neighbors(neighborhood);
+   transferTimer.stop();
+
+   phiprof::Timer preBarrierTimer {"MPI barrier-post-comm-pre-trans"};
+   MPI_Barrier(MPI_COMM_WORLD);
+   preBarrierTimer.stop();
+}
+
+
+
 /** Propagates the distribution function in spatial space.
     Now does all required calculations on ghost cells,
     coalescing all interim MPI communication into one call..
@@ -349,6 +404,7 @@ void calculateSpatialGhostTranslation(
 //   MPI_Barrier(MPI_COMM_WORLD);
 //   postBarrierTimer.stop();
 
+// WARNING this is broken
    for(CellID c : local_propagated_cells)
    {
       if (mpiGrid[c]->get_timeclass_turn_r())
@@ -524,6 +580,7 @@ void calculateSpatialTranslation(
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
 
    if (P::vlasovSolverGhostTranslate){
+      std::vector<std::pair<uint, int>> population_indexes;
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       // if ghost translating, do the comms ahead of translations, which are now local ops
          for(int tc = 0; tc <= P::currentMaxTimeclass; tc++){
@@ -538,7 +595,7 @@ void calculateSpatialTranslation(
                   tictoc = Timeclasses::TOC;
                }
                else { // Other timeclasses need to get time ghost halo layers from the coarser timeclasses
-                      // to have the intermediate translation step (TIC)
+                     // to have the intermediate translation step (TIC)
                   if ((P::fractionalTimestep % mod2) == 0){
                      // Initial timeghost halo layer needs to have a larger source region
                      tictoc = Timeclasses::TIC;
@@ -549,22 +606,31 @@ void calculateSpatialTranslation(
                      tictoc = Timeclasses::TOC;
                   }
                }
-           string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
-            string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
-            phiprof::Timer timer {profName};
-	   communicatePreSpatialGhostTranslation(
-                  mpiGrid,
-                  tc_propagated_cells[tc], // Used for LB
-                  nPencils,
-                  P::timeclassDt[tc],
-                  popID,
-                  time,
-                  tictoc,
-                  tc
-                  );
-	   }
+               string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
+               string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
+               phiprof::Timer timer {profName};
+               population_indexes.push_back(std::make_pair(popID, tc));
+           	   // communicatePreSpatialGhostTranslation(
+               //    mpiGrid,
+               //    tc_propagated_cells[tc], // Used for LB
+               //    nPencils,
+               //    P::timeclassDt[tc],
+               //    popID,
+               //    time,
+               //    tictoc,
+               //    tc
+               //    );
+        	   }
          }
       }
+      phiprof::Timer timer {"Coalesced pre-GT comms"};
+  	   communicatePreSpatialGhostTranslationCoalesced(
+         mpiGrid,
+         population_indexes,
+         Timeclasses::TIC,
+         0
+         );
+
    }
 
 
@@ -597,8 +663,8 @@ void calculateSpatialTranslation(
                      tictoc = Timeclasses::TOC;
                   }
                }
-                         string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
-			 string profNamet = profName+profNamet;
+            string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
+            string profNamet = profName + tictocstr;
             phiprof::Timer timer {profNamet}; 
                calculateSpatialGhostTranslation(
                   mpiGrid,

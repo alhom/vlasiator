@@ -414,6 +414,7 @@ namespace spatial_cell {
 
       void printMeshSizes();
       static bool setCommunicatedSpecies(const uint popID, const int timeclass = -1);
+      static bool setCommunicatedSpecies(std::vector<std::pair<uint, int>> population_indexes);
 
       // Following functions adjust velocity blocks stored on the cell //
       bool add_velocity_block(const vmesh::GlobalID& block,const uint popID, const int timeclass);
@@ -507,6 +508,7 @@ namespace spatial_cell {
 
       static int activePopID;
       static int activeTimeclass;
+      static std::vector<std::pair<uint, int>> activePopIndices;
       bool initialized;
       bool mpiTransferEnabled;
 
