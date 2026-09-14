@@ -774,8 +774,13 @@ void balanceLoad(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid, 
    // new partition, re/initialize blocklists of remote cells.
    for (uint popID = 0; popID < getObjectWrapper().particleSpecies.size(); ++popID) {
       if (P::vlasovSolverGhostTranslate) {
-         for(int timeclass=0; timeclass<=P::currentMaxTimeclass;++timeclass)
-            updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST,timeclass);
+         if (P::currentMaxTimeclass == 0) {
+            updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST,-1);
+         } else {
+            for (int timeclass=0; timeclass<=P::currentMaxTimeclass;++timeclass) {
+               updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_TIMEGHOST_REQ,timeclass);
+            }
+         }
       } else {
          updateRemoteVelocityBlockLists(mpiGrid,popID, Neighborhoods::DIST_FUNC, -1);
       }
@@ -1210,7 +1215,7 @@ bool adjustVelocityBlocks(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& 
    if (doPrepareToReceiveBlocks) {
       if (P::vlasovSolverGhostTranslate) { // TODO add timeclasses for remote
          if(P::currentMaxTimeclass > 0){
-            updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST, timeclass);
+            updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_TIMEGHOST_REQ, timeclass);
          }
          else{
             updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST,-1);
@@ -2186,9 +2191,17 @@ bool adaptRefinement(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGr
 
    // Update as ghost cell refLevels may have changed
    fsgrid.updateGhostCells(technical);
-   for (size_t popID = 0; popID < getObjectWrapper().particleSpecies.size(); ++popID) {
-      for(int timeclass=0;timeclass<P::currentMaxTimeclass; ++timeclass) {
-         updateRemoteVelocityBlockLists(mpiGrid, popID, Neighborhoods::NEAREST, timeclass);
+   for (uint popID = 0; popID < getObjectWrapper().particleSpecies.size(); ++popID) {
+      if (P::vlasovSolverGhostTranslate) {
+         if (P::currentMaxTimeclass == 0) {
+            updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST,-1);
+         } else {
+            for (int timeclass=0; timeclass<=P::currentMaxTimeclass;++timeclass) {
+               updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_TIMEGHOST_REQ,timeclass);
+            }
+         }
+      } else {
+         updateRemoteVelocityBlockLists(mpiGrid,popID, Neighborhoods::DIST_FUNC, -1);
       }
    }
 
