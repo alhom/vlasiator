@@ -674,7 +674,7 @@ void calculateSpatialTranslation(
                      tictoc = Timeclasses::TOC;
                   }
                }
-            string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
+            string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
             string profNamet = profName + tictocstr;
             phiprof::Timer timer {profNamet}; 
                calculateSpatialGhostTranslation(
