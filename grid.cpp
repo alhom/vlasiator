@@ -1325,6 +1325,75 @@ void updateRemoteVelocityBlockLists(
 }
 
 /*
+Updates velocity block lists between remote neighbors and prepares local
+copies of remote neighbors for receiving velocity block data.
+*/
+void updateRemoteVelocityBlockListsCoalesced(
+   dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid,
+   std::vector<std::pair<uint, int>>& population_indexes,
+   const uint neighborhood/*=Neighborhoods::DIST_FUNC default*/
+)
+{
+   int myRank;
+   MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
+
+   SpatialCell::setCommunicatedSpecies(population_indexes);
+   // std::cerr << __FILE__<<":" << __LINE__ << " (" << myRank << ")" << "\n";
+
+   // update velocity block lists For small velocity spaces it is
+   // faster to do it in one operation, and not by first sending size,
+   // then list. For large we do it in two steps
+   phiprof::Timer updateTimer {"Velocity block list update", {"MPI"}};
+   SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_LIST_STAGE1);
+   mpiGrid.update_copies_of_remote_neighbors(neighborhood);
+   // std::cerr << __FILE__<<":" << __LINE__ << " (" << myRank << ")" <<" timeclass " << timeclass <<"\n";
+   SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_LIST_STAGE2);
+   // std::cerr << __FILE__<<":" << __LINE__ << " (" << myRank << ")" <<"\n";
+
+   mpiGrid.update_copies_of_remote_neighbors(neighborhood);
+   // std::cerr << __FILE__<<":" << __LINE__ << " (" << myRank << ")" <<"\n";
+   updateTimer.stop();
+
+   // Prepare spatial cells for receiving velocity block data
+   phiprof::Timer receivesTimer {"Preparing receives"};
+   const std::vector<uint64_t> incoming_cells = mpiGrid.get_remote_cells_on_process_boundary(neighborhood);
+
+#ifndef USE_GPU
+   // TODO: using #pragma omp parallel for sometimes causes a deadlock somewhere
+   // inside this loop on GPUs. Underlying cause yet to be identified.
+   #pragma omp parallel for
+#endif
+   for (unsigned int i = 0; i < incoming_cells.size(); ++i) {
+      uint64_t cell_id = incoming_cells[i];
+      SpatialCell* cell = mpiGrid[cell_id];
+      if (cell == NULL) {
+         #ifdef DEBUG_VLASIATOR
+         for (const auto& cell: mpiGrid.local_cells) {
+            if (cell.id == cell_id) {
+               cerr << __FILE__ << ":" << __LINE__ << std::endl;
+               abort();
+            }
+            for (const auto& neighbor: cell.neighbors_of) {
+               if (neighbor.id == cell_id) {
+                  cerr << __FILE__ << ":" << __LINE__ << std::endl;
+                  abort();
+               }
+            }
+         }
+         #endif
+         continue;
+      }
+      for (auto popindex : population_indexes) {
+         cell->prepare_to_receive_blocks(popindex.first, popindex.second);
+      }
+   }
+   // std::cerr << __FILE__<<":" << __LINE__ <<"\n";
+
+
+   receivesTimer.stop(incoming_cells.size(), "SpatialCells");
+}
+
+/*
   Set stencils. These are the stencils (in 2D, real ones in 3D of
   course). x are stencil neighbor to cell local cell o:
 
