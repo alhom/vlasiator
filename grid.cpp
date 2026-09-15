@@ -733,7 +733,7 @@ void balanceLoad(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid, 
       // if (P::propagateVlasovAcceleration)
       // When using the FS-SPLIT functionality, Jaro Hokkanen reported issues with using the regular
       // CellParams::LBWEIGHTCOUNTER, so use of blockscounts + 1 might be required.
-      mpiGrid.set_cell_weight(cells[i], (Real)1 + mpiGrid[cells[i]]->parameters[CellParams::LBWEIGHTCOUNTER] * ((int)pow(P::timeclassLBmantissa, mpiGrid[cells[i]]->parameters[CellParams::TIMECLASS])));
+      mpiGrid.set_cell_weight(cells[i], (Real)1 + mpiGrid[cells[i]]->parameters[CellParams::LBWEIGHTCOUNTER]);
    }
 
    phiprof::Timer initLBTimer {"dccrg.initialize_balance_load"};
