@@ -297,8 +297,8 @@ bool trans_map_1d_amr(const dccrg::Dccrg<spatial_cell::SpatialCell,dccrg::Cartes
             // Read only central IDs for each pencil
             const std::vector<CellID> centerIds = DimensionPencils[dimension].getIds(ip);
             cuint myPencilCount = std::count(centerIds.begin(), centerIds.end(), localPropagatedCells[i]);
-            nPencils[i] += myPencilCount;
-            nPencils[nPencils.size()-1] += myPencilCount;
+            nPencils.at(i) += myPencilCount;
+            nPencils.at(nPencils.size()-1) += myPencilCount;
          }
       }
    }

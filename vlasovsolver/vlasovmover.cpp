@@ -450,7 +450,7 @@ void calculateSpatialTranslation(
    vector<set<CellID>> tc_propagated_cell_sets = vector<set<CellID>>();
    vector<set<CellID>> tc_target_cell_sets = vector<set<CellID>>();
 
-   vector<uint> nPencils;
+   vector<vector<uint>> nPencils(P::currentMaxTimeclass+1); // one for each timeclass
    Real time=0.0;
 
    // If dt=0 we are either initializing or distribution functions are not translated.
@@ -507,10 +507,7 @@ void calculateSpatialTranslation(
       }
    }
 
-   if (P::prepareForRebalance == true) {
-      // One more element to count the sums
-      nPencils.resize(local_propagated_cells.size()+1, 0);
-   }
+
    // TC propagation lists, TODO move out of here somewhere sensible and less often called
    computeTimer.stop();
    if (P::currentMaxTimeclass > 0) {
@@ -575,6 +572,13 @@ void calculateSpatialTranslation(
          }
       }
       return;
+   }
+   
+   if (P::prepareForRebalance == true) {
+      // One more element to count the sums
+      for(int tc = 0; tc <= P::currentMaxTimeclass; tc++) {
+         nPencils.at(tc).resize(tc_propagated_cells.at(tc).size()+1, 0);
+      }
    }
 
    int myRank;
@@ -674,7 +678,7 @@ void calculateSpatialTranslation(
                calculateSpatialGhostTranslation(
                   mpiGrid,
                   tc_propagated_cells[tc], // Used for LB
-                  nPencils,
+                  nPencils.at(tc),
                   P::timeclassDt[tc],
                   popID,
                   time,
@@ -688,7 +692,7 @@ void calculateSpatialTranslation(
                   remoteTargetCellsx,
                   remoteTargetCellsy,
                   remoteTargetCellsz,
-                  nPencils,
+                  nPencils.at(tc),
                   P::timeclassDt[tc],//dt,
                   popID,
                   time
