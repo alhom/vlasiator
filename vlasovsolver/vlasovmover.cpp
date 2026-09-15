@@ -336,9 +336,9 @@ void communicatePreSpatialGhostTranslationCoalesced(
    mpiGrid.update_copies_of_remote_neighbors(neighborhood);
    transferTimer.stop();
 
-   phiprof::Timer preBarrierTimer {"MPI barrier-post-comm-pre-trans"};
-   MPI_Barrier(MPI_COMM_WORLD);
-   preBarrierTimer.stop();
+   //phiprof::Timer preBarrierTimer {"MPI barrier-post-comm-pre-trans"};
+   //MPI_Barrier(MPI_COMM_WORLD);
+   //preBarrierTimer.stop();
 }
 
 
@@ -605,6 +605,7 @@ void calculateSpatialTranslation(
    MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
    P::coalesceGhostComms = true;
    if (P::vlasovSolverGhostTranslate){
+      phiprof::Timer pretrans {"Pre-ghostTranslate comms"};
       std::vector<std::pair<uint, int>> population_indexes;
       for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       // if ghost translating, do the comms ahead of translations, which are now local ops
@@ -632,10 +633,10 @@ void calculateSpatialTranslation(
                   }
                }
                string tictocstr = (tictoc == Timeclasses::TIC ? "tic" : "toc");
-               string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
-               phiprof::Timer timer {profName};
+               //string profName = "pre-translate comm "+getObjectWrapper().particleSpecies[popID].name+" tc "+std::to_string(tc) + tictocstr;
+               //phiprof::Timer timer {profName};
                population_indexes.push_back(std::make_pair(popID, tc));
-               if (!P::coalesceGhostComms) {
+/*               if (!P::coalesceGhostComms) {
                   communicatePreSpatialGhostTranslation(
                      mpiGrid,
                      tc_propagated_cells[tc], // Used for LB
@@ -646,11 +647,12 @@ void calculateSpatialTranslation(
                      tictoc,
                      tc
                      );
-               }
+               }*/
             }
          }
       }
-
+      pretrans.stop();
+      phiprof::Timer ccomms {"Coalesced comms"};
       if (P::coalesceGhostComms) {
          communicatePreSpatialGhostTranslationCoalesced(
             mpiGrid,
@@ -660,6 +662,7 @@ void calculateSpatialTranslation(
             );
       }
       P::coalesceGhostComms = false;
+      ccomms.stop();
    }
 
 
@@ -801,6 +804,11 @@ void calculateSpatialTranslation(
       if ((P::fractionalTimestep % mod) == 0) {
          calculateMoments_R(mpiGrid,tc_propagated_cells.at(tc),true);
       }
+   }
+   if (P::vlasovSolverGhostTranslate)
+      phiprof::Timer preBarrierTimer {"MPI barrier-post-trans"};
+      MPI_Barrier(MPI_COMM_WORLD);
+      preBarrierTimer.stop();
    }
 }
 
