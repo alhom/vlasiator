@@ -235,11 +235,11 @@ void calculateSpatialGhostTranslation(
       // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
    }
    else {
-      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
+      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_REQ;
       // std::cerr << __FILE__<<":"<<__LINE__<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
    }
    
-   updateRemoteVelocityBlockLists(mpiGrid,popID,Neighborhoods::VLASOV_SOLVER_GHOST, tc);
+   updateRemoteVelocityBlockLists(mpiGrid,popID,neighborhood, tc);
    // Need to re-do in case block lists of boundary cells change after
    // the block adjustment just after ACC.
 
@@ -249,7 +249,7 @@ void calculateSpatialGhostTranslation(
 
    phiprof::Timer transferTimer {"transfer-stencil-data-all",{"MPI"}};
    SpatialCell::set_mpi_transfer_type(Transfer::VEL_BLOCK_DATA,false);
-   mpiGrid.update_copies_of_remote_neighbors(Neighborhoods::VLASOV_SOLVER_GHOST);
+   mpiGrid.update_copies_of_remote_neighbors(neighborhood);
    transferTimer.stop();
 
    phiprof::Timer preBarrierTimer {"MPI barrier-pre-trans"};
