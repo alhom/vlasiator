@@ -228,7 +228,6 @@ void communicatePreSpatialGhostTranslation(
    // No need for remote target cells; pass a dummy list.
    const vector<CellID> dummy_cells;
    uint neighborhood;
-<<<<<<< HEAD
 
    // Select the pencil set and the required neighborhood based on the tictoc value
    std::array<setOfPencils,3>* pencilSet;
@@ -237,33 +236,14 @@ void communicatePreSpatialGhostTranslation(
    }
    else if (tictoc == Timeclasses::TIC) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
-<<<<<<< HEAD
    }
    else if (tictoc == Timeclasses::TOC) {
       neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
-=======
-      pencilSet = &DimensionPencils;
-      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc << (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
-   }
-   else if (tictoc == Timeclasses::TOC) {
-      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
-      pencilSet = &DimensionPencils_toc;
-      std::cerr << __FILE__<<":"<<__LINE__<< "tc " << tc<< (tictoc==Timeclasses::TIC?" tic":" toc")<< ", pencilSet->Nx = " << (*pencilSet)[0].N << ", pencilSet->Ny = " << (*pencilSet)[1].N << ", pencilSet->Nz = " << (*pencilSet)[2].N << std::endl;
->>>>>>> 83fed2f13 (Config and P:: parameter for enabling tic-toc)
    }
    else {
       std::cerr << __FILE__<<":"<<__LINE__<< " Unknown state: Current maxtimeclass=" << P::currentMaxTimeclass << ", tictoc = " << tictoc << std::endl;
       abort();
    }
-=======
-   if (P::currentMaxTimeclass == 0) {
-      neighborhood = Neighborhoods::VLASOV_SOLVER_GHOST;
-   } else if (tictoc == Timeclasses::TIC) {
-      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_OUTER_HALO;
-   } else {
-      neighborhood = Neighborhoods::VLASOV_SOLVER_TIMEGHOST_EXACT_HALO;
-   }
->>>>>>> fac377b39 (Groundwork for two-phase timeclass translation (tic/toc))
 
    updateRemoteVelocityBlockLists(mpiGrid,popID,neighborhood, tc);
    // Need to re-do in case block lists of boundary cells change after
@@ -807,10 +787,10 @@ void calculateSpatialTranslation(
          calculateMoments_R(mpiGrid,tc_propagated_cells.at(tc),true);
       }
    }
-   if (P::vlasovSolverGhostTranslate)
-      phiprof::Timer preBarrierTimer {"MPI barrier-post-trans"};
+   if (P::vlasovSolverGhostTranslate){
+      phiprof::Timer postBarrierTimer {"MPI barrier-post-trans"};
       MPI_Barrier(MPI_COMM_WORLD);
-      preBarrierTimer.stop();
+      postBarrierTimer.stop();
    }
 }
 
