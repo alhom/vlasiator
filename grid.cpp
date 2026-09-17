@@ -1256,8 +1256,11 @@ void deallocateRemoteCellBlocks(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geome
       uint64_t cell_id=incoming_cells[i];
       SpatialCell* cell = mpiGrid[cell_id];
       if (cell != NULL) {
-         for (uint popID = 0; popID < getObjectWrapper().particleSpecies.size(); ++popID)
-            cell->clear(popID, true); // flag true shrinks allocation
+         for (uint popID = 0; popID < getObjectWrapper().particleSpecies.size(); ++popID) {
+            for (int timeclass = 0; timeclass <= P::currentMaxTimeclass; ++timeclass) {
+               cell->clear(popID, true, timeclass); // flag true shrinks allocation
+            }
+         }
       }
    }
    memory_purge(); // Purge jemalloc allocator to actually release memory

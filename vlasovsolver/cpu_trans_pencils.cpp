@@ -1793,7 +1793,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
       // Sets already include check for do_translate_cell
       propagatedCells.assign(ghostTranslate_active[dimension].begin(),ghostTranslate_active[dimension].end());
       // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
-      if (P::currentMaxTimeclass >= 0) {
+      if (P::currentMaxTimeclass > 0) {
          // std::cerr<< __FILE__<<":"<<__LINE__<<"\n";
          for (int i = 0; i <= P::currentMaxTimeclass; ++i){
             tc_propagatedCells.push_back(vector<CellID>());

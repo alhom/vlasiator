@@ -1001,8 +1001,6 @@ int simulate(int argn,char* args[]) {
    while(P::tstep <= P::tstep_max  &&
          P::t-P::dt <= P::t_max+DT_EPSILON &&
          wallTimeRestartCounter <= P::exitAfterRestarts) {
-
-      timeclassDebugAssertions(mpiGrid);
       
       addTimedBarrier("barrier-loop-start");
 
