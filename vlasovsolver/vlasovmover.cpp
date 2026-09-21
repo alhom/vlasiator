@@ -675,9 +675,10 @@ void calculateSpatialTranslation(
                      tictoc = Timeclasses::TOC;
                   }
                }
-            string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
-            string profNamet = profName + tictocstr;
-            phiprof::Timer timer {profNamet}; 
+               string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
+               string profNamet = profName + tictocstr;
+               phiprof::Timer timer {profNamet}; 
+               // std::cerr << "rank " << myRank << ", time " << P::t << " " << tc_propagated_cells[tc].size() << " cells: calculateSpatialTranslation tc " << tc << tictocstr << " by dt " << P::timeclassDt[tc] <<"\n";
                calculateSpatialGhostTranslation(
                   mpiGrid,
                   tc_propagated_cells[tc], // Used for LB

@@ -413,4 +413,7 @@ extern std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_sourc
 extern ghostmaptype ghostTranslate_source;
 extern ghostmaptype ghostTranslate_active;
 
+extern vector<vector<CellID>> tc_propagationTargets_tic;
+extern vector<vector<CellID>> tc_propagationTargets_toc;
+
 #endif
