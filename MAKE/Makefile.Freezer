@@ -54,7 +54,7 @@ CXXFLAGS += -DUSE_JEMALLOC -DJEMALLOC_NO_DEMANGLE
 testpackage: CXXFLAGS += -DUSE_JEMALLOC -DJEMALLOC_NO_DEMANGLE
 
 #======== Libraries ===========
-LIBRARY_PREFIX = $(CURDIR)/libraries
+LIBRARY_PREFIX = $(CURDIR)/libraries-Freezer
 
 INC_BOOST = -isystem /usr/include/boost
 LIB_BOOST = -L/usr/include/boost -lboost_program_options
