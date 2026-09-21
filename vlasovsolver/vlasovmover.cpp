@@ -411,11 +411,9 @@ void calculateSpatialGhostTranslation(
 //   MPI_Barrier(MPI_COMM_WORLD);
 //   postBarrierTimer.stop();
 
-// WARNING this is broken
    for(CellID c : local_propagated_cells)
    {
-      if (mpiGrid[c]->get_timeclass_turn_r())
-         mpiGrid[c]->parameters[CellParams::TIME_R] += dt;
+         mpiGrid[c]->get_population(popID, tc).T_R += dt;
    }
 
    return;
