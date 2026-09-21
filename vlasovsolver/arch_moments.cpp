@@ -242,6 +242,18 @@ void calculateMoments_R(
          const Real mass = getObjectWrapper().particleSpecies[popID].mass;
          const Real charge = getObjectWrapper().particleSpecies[popID].charge;
 
+         // before updating, save the previous moments to the _PREV variables
+         pop.RHO_R_PREV_PREV = pop.RHO_R_PREV;
+         pop.RHO_R_PREV = pop.RHO_R;
+         for (uint i=0; i<3; ++i) {
+            pop.V_R_PREV_PREV[i] = pop.V_R_PREV[i];
+            pop.V_R_PREV[i] = pop.V_R[i];
+         }
+         for (uint i=0; i<6; ++i) {
+            pop.P_R_PREV_PREV[i] = pop.P_R_PREV[i];
+            pop.P_R_PREV[i] = pop.P_R[i];
+         }
+
          // Temporary array where the moments for this species are accumulated
          Real array[nMom1] = {0};
 
@@ -414,6 +426,18 @@ void calculateMoments_V(
 
          const Real mass = getObjectWrapper().particleSpecies[popID].mass;
          const Real charge = getObjectWrapper().particleSpecies[popID].charge;
+
+         // before updating, save the previous moments to the _PREV variables
+         pop.RHO_V_PREV_PREV = pop.RHO_V_PREV;
+         pop.RHO_V_PREV = pop.RHO_V;
+         for (uint i=0; i<3; ++i) {
+            pop.V_V_PREV_PREV[i] = pop.V_V_PREV[i];
+            pop.V_V_PREV[i] = pop.V_V[i];
+         }
+         for (uint i=0; i<6; ++i) {
+            pop.P_V_PREV_PREV[i] = pop.P_V_PREV[i];
+            pop.P_V_PREV[i] = pop.P_V[i];
+         }
 
          // Temporary array for storing moments
          Real array[nMom1] = {0};

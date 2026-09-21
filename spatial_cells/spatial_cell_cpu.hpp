@@ -70,12 +70,25 @@ namespace spatial_cell {
       Real V_R[3];
       Real RHO_V;
       Real V_V[3];
+
       Real P[6];
       Real P_R[6];
       Real P_V[6];
+
       Real RHO_R_PREV;
       Real V_R_PREV[3];
-      Real P_R_PREV[3];
+      Real P_R_PREV[6];
+      Real RHO_V_PREV;
+      Real V_V_PREV[3];
+      Real P_V_PREV[6];
+
+      Real RHO_R_PREV_PREV;
+      Real V_R_PREV_PREV[3];
+      Real P_R_PREV_PREV[6];
+      Real RHO_V_PREV_PREV;
+      Real V_V_PREV_PREV[3];
+      Real P_V_PREV_PREV[6];
+
       Real RHOLOSSADJUST = 0.0;      /*!< Counter for particle number loss from the destroying blocks in blockadjustment*/
       Real max_dt[2];                                                /**< Element[0] is max_r_dt, element[1] max_v_dt.*/
       Real velocityBlockMinValue;
@@ -106,14 +119,17 @@ namespace spatial_cell {
          blockContainer = new vmesh::VelocityBlockContainer();
          // Set values to zero in case of zero-block populations
          RHO = RHO_R = RHO_V = RHOLOSSADJUST = velocityBlockMinValue = ACCSUBCYCLES = N_blocks = 0;
+         RHO_R_PREV = RHO_V_PREV = RHO_R_PREV_PREV = RHO_V_PREV_PREV = 0;
          for (uint i=0; i<2; ++i) {
             max_dt[i] = 0;
          }
          for (uint i=0; i<3; ++i) {
             V[i] = V_R[i] = V_V[i] = 0;
+            V_R_PREV[i] = V_V_PREV[i] = V_R_PREV_PREV[i] = V_V_PREV_PREV[i] = 0;
          }
          for (uint i=0; i<6; i++) {
             P[i] = P_R[i] = P_V[i] = 0;
+            P_R_PREV[i] = P_V_PREV[i] = P_R_PREV_PREV[i] = P_V_PREV_PREV[i] = 0;
          }
       }
       ~Population() {
@@ -128,6 +144,10 @@ namespace spatial_cell {
          RHO = other.RHO;
          RHO_R = other.RHO_R;
          RHO_V = other.RHO_V;
+         RHO_R_PREV = other.RHO_R_PREV;
+         RHO_V_PREV = other.RHO_V_PREV;
+         RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
+         RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -139,11 +159,19 @@ namespace spatial_cell {
             V[i] = other.V[i];
             V_R[i] = other.V_R[i];
             V_V[i] = other.V_V[i];
+            V_R_PREV[i] = other.V_R_PREV[i];
+            V_V_PREV[i] = other.V_V_PREV[i];
+            V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
+            V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
             P_R[i] = other.P_R[i];
             P_V[i] = other.P_V[i];
+            P_R_PREV[i] = other.P_R_PREV[i];
+            P_V_PREV[i] = other.P_V_PREV[i];
+            P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
+            P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
       }
 
@@ -158,6 +186,10 @@ namespace spatial_cell {
          RHO = other.RHO;
          RHO_R = other.RHO_R;
          RHO_V = other.RHO_V;
+         RHO_R_PREV = other.RHO_R_PREV;
+         RHO_V_PREV = other.RHO_V_PREV;
+         RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
+         RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -169,11 +201,19 @@ namespace spatial_cell {
             V[i] = other.V[i];
             V_R[i] = other.V_R[i];
             V_V[i] = other.V_V[i];
+            V_R_PREV[i] = other.V_R_PREV[i];
+            V_V_PREV[i] = other.V_V_PREV[i];
+            V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
+            V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
             P_R[i] = other.P_R[i];
             P_V[i] = other.P_V[i];
+            P_R_PREV[i] = other.P_R_PREV[i];
+            P_V_PREV[i] = other.P_V_PREV[i];
+            P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
+            P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
          return *this;
       }
@@ -193,10 +233,18 @@ namespace spatial_cell {
          RHO *= factor;
          RHO_R *= factor;
          RHO_V *= factor;
+         RHO_R_PREV *= factor;
+         RHO_V_PREV *= factor;
+         RHO_R_PREV_PREV *= factor;
+         RHO_V_PREV_PREV *= factor;
          for (uint i=0; i<3; ++i) {
             P[i] *= factor;
             P_R[i] *= factor;
             P_V[i] *= factor;
+            P_R_PREV[i] *= factor;
+            P_V_PREV[i] *= factor;
+            P_R_PREV_PREV[i] *= factor;
+            P_V_PREV_PREV[i] *= factor;
          }
          // Now loop over whole velocity space and scale the values
          for (vmesh::LocalID blockLID=0; blockLID < vmesh->size(); ++blockLID) {

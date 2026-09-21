@@ -459,26 +459,38 @@ namespace SBC {
       }
 
       if(copyMomentsOnly) {
-         to->get_population(popID).RHO = from->get_population(popID).RHO;
+         to->get_population(popID).RHO = from->get_population(popID).RHO;         
          if (copy_V_moments) {
             to->get_population(popID).RHO_V = from->get_population(popID).RHO_V;
+            to->get_population(popID).RHO_V_PREV = from->get_population(popID).RHO_V_PREV;
+            to->get_population(popID).RHO_V_PREV_PREV = from->get_population(popID).RHO_V_PREV_PREV;
          } else {
             to->get_population(popID).RHO_R = from->get_population(popID).RHO_R;
+            to->get_population(popID).RHO_R_PREV = from->get_population(popID).RHO_R_PREV;
+            to->get_population(popID).RHO_R_PREV_PREV = from->get_population(popID).RHO_R_PREV_PREV;
          }
          for (uint i=0; i<3; i++) {
             to->get_population(popID).V[i] = from->get_population(popID).V[i];
             if (copy_V_moments) {
                to->get_population(popID).V_V[i] = from->get_population(popID).V_V[i];
+               to->get_population(popID).V_V_PREV[i] = from->get_population(popID).V_V_PREV[i];
+               to->get_population(popID).V_V_PREV_PREV[i] = from->get_population(popID).V_V_PREV_PREV[i];
             } else {
                to->get_population(popID).V_R[i] = from->get_population(popID).V_R[i];
+               to->get_population(popID).V_R_PREV[i] = from->get_population(popID).V_R_PREV[i];
+               to->get_population(popID).V_R_PREV_PREV[i] = from->get_population(popID).V_R_PREV_PREV[i];
             }
          }
          for (uint i=0; i<6; i++) {
             to->get_population(popID).P[i] = from->get_population(popID).P[i];
             if (copy_V_moments) {
                to->get_population(popID).P_V[i] = from->get_population(popID).P_V[i];
+               to->get_population(popID).P_V_PREV[i] = from->get_population(popID).P_V_PREV[i];
+               to->get_population(popID).P_V_PREV_PREV[i] = from->get_population(popID).P_V_PREV_PREV[i];
             } else {
                to->get_population(popID).P_R[i] = from->get_population(popID).P_R[i];
+               to->get_population(popID).P_R_PREV[i] = from->get_population(popID).P_R_PREV[i];
+               to->get_population(popID).P_R_PREV_PREV[i] = from->get_population(popID).P_R_PREV_PREV[i];
             }
          }
       } else {
