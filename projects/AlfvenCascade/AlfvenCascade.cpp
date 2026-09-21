@@ -264,7 +264,7 @@ AlfvenCascade::~AlfvenCascade() {}
 
          fsgrid.parallel_for([](int timerId) -> phiprof::Timer { return phiprof::Timer{timerId}; },
                               phiprof::initializeTimer("setProjectBField"), technical,
-                              [=](const fsgrid::Coordinates &coordinates, const fsgrid::FsStencil& stencil, cuint sysBoundaryFlag, cuint sysBoundaryLayer) {
+                              [=, this](const fsgrid::Coordinates &coordinates, const fsgrid::FsStencil& stencil, cuint sysBoundaryFlag, cuint sysBoundaryLayer) {
             const std::array<Real, 3> xyz = coordinates.getPhysicalCoords(stencil.i, stencil.j, stencil.k);
             const std::array<Real, 3> gridSpacing = coordinates.physicalGridSpacing;
             auto& cell = perb[stencil.ooo()];
