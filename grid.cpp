@@ -897,13 +897,22 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
       }
 
       getGhostNeighborsforTC(mpiGrid, localCells);
+      tc_propagationTargets_tic.clear();
+      tc_propagationTargets_toc.clear();
 
       for(int i = 0; i <= P::currentMaxTimeclass; ++i){
-         std::vector<CellID> tc_act_cells;
+         std::vector<CellID> tc_act_cells; // -> propagationTargets lists
+         tc_propagationTargets_tic.push_back(vector<CellID>());
+         tc_propagationTargets_toc.push_back(vector<CellID>());
+
          for (const CellID cell : localCells) { // TODO do we get rid of these req_ghost checks after all?
             if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i){
-               tc_act_cells.push_back(cell);
+               tc_propagationTargets_tic.at(i).push_back(cell);
+               tc_propagationTargets_toc.at(i).push_back(cell);
+            }else if (mpiGrid[cell]->requested_timeclass_ghosts.count(i) == 1) {
+               tc_propagationTargets_tic.at(i).push_back(cell);
             }
+            
             // if (mpiGrid[cell]->parameters[CellParams::TIMECLASS] == i || mpiGrid[cell]->requested_timeclass_ghosts.count(i) == 1) {
             //    tc_act_cells.push_back(cell);
             // }
@@ -913,6 +922,8 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
          //       tc_act_cells.push_back(cell);
          //    }
          // }
+         
+         // No .at here - will serve to initialize the empty maps on the first encounter
          timeghost_source_tic[i].clear();
          timeghost_active_tic[i].clear();
          timeghost_source_toc[i].clear();
@@ -922,17 +933,17 @@ void prepareAMRLists(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGri
          // TODO get rid of tc-ghost-filtering?
          // if (i>0){ // base timeclass does not do the tic update // try first to replicate previous
             
-            prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source_tic[i], timeghost_active_tic[i], searchLength, activeSearchLength, i);
+         prepareGhostTranslationCellLists(mpiGrid, tc_propagationTargets_tic.at(i), timeghost_source_tic.at(i), timeghost_active_tic.at(i), searchLength, activeSearchLength, i);
          // }
          searchLength = P::timeclassExactHaloExtent;
          activeSearchLength = 1;
-         prepareGhostTranslationCellLists(mpiGrid, tc_act_cells, timeghost_source_toc[i], timeghost_active_toc[i], searchLength, activeSearchLength, i);
+         prepareGhostTranslationCellLists(mpiGrid, tc_propagationTargets_toc.at(i), timeghost_source_toc.at(i), timeghost_active_toc.at(i), searchLength, activeSearchLength, i);
          
          
          #ifdef DEBUG_TIMECLASSES
          for (int dim = 0; dim < 3; ++dim) {
-            std::cerr << "timeghost_active_tic[" << i << "][" << dim << "]: " << timeghost_active_tic[i][dim].size() << "\n";
-            for (const CellID cell : timeghost_active_tic[i][dim]) {
+            std::cerr << "timeghost_active_tic[" << i << "][" << dim << "]: " << timeghost_active_tic.at(i)[dim].size() << "\n";
+            for (const CellID cell : timeghost_active_tic.at(i)[dim]) {
                std::cerr << " " << cell << " ";
             }
               

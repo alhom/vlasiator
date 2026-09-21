@@ -31,6 +31,10 @@ ghostmaptype ghostTranslate_active = {{0,ghostTranslate_active_x},{1,ghostTransl
 std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_tic, timeghost_active_tic;
 std::map<uint, std::map<uint,std::unordered_set<CellID>>> timeghost_source_toc, timeghost_active_toc;
 
+// Cell lists for propagation targets for timeclass phases (tic/toc; correspond to localCells for GhostTranslate)
+vector<vector<CellID>> tc_propagationTargets_tic;
+vector<vector<CellID>> tc_propagationTargets_toc;
+
 std::array<setOfPencils,3> DimensionPencils;
 std::array<setOfPencils,3> DimensionPencils_toc;
 
@@ -603,7 +607,8 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
                                         std::vector<uint> path,
                                         Realf* sourceDZ,
                                         Realf* targetRatios,
-                                        int timeclass
+                                        int timeclass,
+                                        uint tictoc
                                         ){
 
    // These neighborhoods now include the AMR addition beyond the regular vlasov stencil
@@ -780,8 +785,16 @@ void computeSpatialSourceCellsForPencil(const dccrg::Dccrg<SpatialCell,dccrg::Ca
          targetRatios[i]=0.0;
          continue;
       }
-      if (P::vlasovSolverGhostTranslate) {
+      if (P::vlasovSolverGhostTranslate && P::currentMaxTimeclass == 0) {
          if (!check_is_written_to(mpiGrid, ids[i], dimension, ghostTranslate_source, getLocalCells())) {
+            targetRatios[i]=0.0;
+            continue;
+         }
+      }
+      else if (P::vlasovSolverGhostTranslate && P::currentMaxTimeclass > 0) {
+         const auto& source = tictoc == Timeclasses::TIC ? timeghost_source_tic.at(timeclass) : timeghost_source_toc.at(timeclass);
+         const std::vector<CellID>& locals = tictoc == Timeclasses::TIC ? tc_propagationTargets_tic.at(timeclass) : tc_propagationTargets_toc.at(timeclass);
+         if (!check_is_written_to(mpiGrid, ids[i], dimension, source, locals)) {
             targetRatios[i]=0.0;
             continue;
          }
@@ -1854,6 +1867,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
                   tc_propagatedCells[i].assign(timeghost_active_toc[i][dimension].begin(),timeghost_active_toc[i][dimension].end());
                }
             }
+
          }
       } else {
          for (size_t c=0; c<localCells.size(); ++c) {
@@ -1988,7 +2002,7 @@ void prepareSeedIdsAndPencils(const dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Ge
          CellID *pencilIds = (*pencilSet)[dimension].ids.data() + (*pencilSet)[dimension].idsStart[i];
          Realf* pencilDZ = (*pencilSet)[dimension].sourceDZ.data() + (*pencilSet)[dimension].idsStart[i];
          Realf* pencilAreaRatio = (*pencilSet)[dimension].targetRatios.data() + (*pencilSet)[dimension].idsStart[i];
-         computeSpatialSourceCellsForPencil(mpiGrid,pencilIds,L,dimension,(*pencilSet)[dimension].path[i],pencilDZ,pencilAreaRatio,(*pencilSet)[dimension].timeclasses[i]);
+         computeSpatialSourceCellsForPencil(mpiGrid,pencilIds,L,dimension,(*pencilSet)[dimension].path[i],pencilDZ,pencilAreaRatio,(*pencilSet)[dimension].timeclasses[i], tictoc);
       }
       findSourceRatiosTimer.stop();
    
