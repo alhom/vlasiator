@@ -197,7 +197,7 @@ vector<std::string> P::loadBalanceKeys;
 vector<std::string> P::loadBalanceValues;
 std::map<std::string, std::string> P::loadBalanceOptions {{"IMBALANCE_TOL","1.05"}};
 uint P::rebalanceInterval = 10;
-int P::timeclassLBmantissa = 2;
+Real P::timeclassLBmantissa = 2;
 
 vector<string> P::outputVariableList;
 vector<string> P::diagnosticVariableList;
