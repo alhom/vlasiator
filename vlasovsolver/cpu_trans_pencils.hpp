@@ -156,7 +156,7 @@ struct setOfPencils {
          for (auto id = ids.begin() + idsStart[i]; id < ids.begin() + idsStart[i] + lengthOfPencils[i]; ++id) {
             // We don't need to consider source and target cells of the pencil separately
             // as all pencils with source/target cell C must be in the same bin as all pencils with target C
-            if (*id && allTargetCells.contains(*id)) {
+            if (*id && allTargetCells.count(*id)>0) {
                targetCellsInBin[i].insert(*id);
             }
          }
@@ -168,12 +168,12 @@ struct setOfPencils {
       do {
          binsToDelete.clear();
          for (auto& [binIndex1, cellsInBin1] : targetCellsInBin) {
-            if (binsToDelete.contains(binIndex1)) {
+            if (binsToDelete.count(binIndex1)>0) {
                continue;
             }
 
             for (auto& [binIndex2, cellsInBin2] : targetCellsInBin) {
-               if (binIndex1 == binIndex2 || binsToDelete.contains(binIndex2)) {
+               if (binIndex1 == binIndex2 || binsToDelete.count(binIndex2)>0) {
                   continue;
                }
                if(binTimeclasses[binIndex1] != binTimeclasses[binIndex2]){
@@ -182,7 +182,7 @@ struct setOfPencils {
 
                // Check for overlapping cells
                for (auto cell : cellsInBin2) {
-                  if (cellsInBin1.contains(cell)) {
+                  if (cellsInBin1.count(cell)>0) {
                      binsToDelete.insert(binIndex2);
 
                      // Insert all cells from bin2 to bin1
@@ -226,7 +226,7 @@ struct setOfPencils {
       gpuMemoryManager.createPointer(host_binSize);
       gpuMemoryManager.createPointer(dev_binStart);
       gpuMemoryManager.createPointer(dev_binSize);
-      
+
       gpuMemoryManager.allocate(dev_pencilsInBin, sumOfLengths*sizeof(uint));
       gpuMemoryManager.hostAllocate(host_binStart, activeBins.size()*sizeof(uint));
       gpuMemoryManager.hostAllocate(host_binSize, activeBins.size()*sizeof(uint));
@@ -297,7 +297,7 @@ struct setOfPencils {
       // so that we don't add duplicates.
       std::vector<int> existingSteps;
 
-#pragma omp parallel for
+      #pragma omp parallel for
       for (uint theirPencilId = 0; theirPencilId < this->N; ++theirPencilId) {
          if(theirPencilId == myPencilId) {
             continue;
@@ -321,7 +321,7 @@ struct setOfPencils {
 
                      if(samePath) {
                         uint theirStep = theirPath.at(myPath.size());
-#pragma omp critical
+                        #pragma omp critical
                         {
                            existingSteps.push_back(theirStep);
                         }

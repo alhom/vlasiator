@@ -444,23 +444,25 @@ namespace spatial_cell {
    
    bool SpatialCell::cellTimeclassIsCorrect() {
 
-      Real cellDt;
+      Real cellDtLimit;
       if (this->parameters[CellParams::MAXVDT] != 0.0) {
-         cellDt = min(this->parameters[CellParams::MAXRDT], this->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
+         cellDtLimit = min(this->parameters[CellParams::MAXRDT], this->parameters[CellParams::MAXVDT] * P::maxSlAccelerationSubcycles);
       } else {
-         cellDt = this->parameters[CellParams::MAXRDT];
+         cellDtLimit = this->parameters[CellParams::MAXRDT];
       }
+
+      cellDtLimit *= P::vlasovSolverMaxCFL;
 
       // if we want to change cell timeclasses before the actual limit is reached
       if (P::dtUpdateModifier != 1.0) {
-         if (cellDt > P::dtUpdateModifier*P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
+         if (P::dtUpdateModifier * cellDtLimit > P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
             return true;
          } else {
             return false;
          }
       }
 
-      if (cellDt > P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
+      if (cellDtLimit > P::timeclassDt[this->parameters[CellParams::TIMECLASS]]) {
          return true;
       } else {
          return false;
@@ -501,6 +503,9 @@ namespace spatial_cell {
       } else {
          cellMaxDt = this->parameters[CellParams::MAXRDT];
       }
+
+      // we want to use the mean of the two CFL limits, like how the base dt is set
+      cellMaxDt *= 0.5 * (P::vlasovSolverMaxCFL + P::vlasovSolverMinCFL);
 
       if (this->cellIsTimeclassRelevant()) {
          assert(cellMaxDt > 0.0 && "cellMaxDt is zero, this should not happen");

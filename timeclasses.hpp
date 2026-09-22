@@ -34,16 +34,18 @@ bool isDtTooSmall(Real dt, Real rdt, Real vdt, Real fsdt);
 
 std::vector<CellID> checkCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
-void updateTimeclassDts(Real fsdt, const bool applyModifier = true);
+void updateTimeclassDts(Real fsdt);
 
-void increaseTimeclass(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
-                              const std::vector<CellID>& cellsToIncreaseTimeclass,
-                              bool& additionalTimeclassCreated);
+// void increaseTimeclass(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
+//                               const std::vector<CellID>& cellsToIncreaseTimeclass,
+//                               bool& additionalTimeclassCreated);
 
 void calculateGlobalTcVariables(Real fsdt, Real globalMaxDt);
 
 void initiateAllCellTimeclasses(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 
 void timeclassDebugAssertions(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
+
+Real getNewSmallestDtToKeepTimeclassesHappy(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid, const std::vector<CellID> badCells);
 
 #endif

@@ -70,12 +70,25 @@ namespace spatial_cell {
       Real V_R[3];
       Real RHO_V;
       Real V_V[3];
+
       Real P[6];
       Real P_R[6];
       Real P_V[6];
+
       Real RHO_R_PREV;
       Real V_R_PREV[3];
-      Real P_R_PREV[3];
+      Real P_R_PREV[6];
+      Real RHO_V_PREV;
+      Real V_V_PREV[3];
+      Real P_V_PREV[6];
+
+      Real RHO_R_PREV_PREV;
+      Real V_R_PREV_PREV[3];
+      Real P_R_PREV_PREV[6];
+      Real RHO_V_PREV_PREV;
+      Real V_V_PREV_PREV[3];
+      Real P_V_PREV_PREV[6];
+
       Real RHOLOSSADJUST = 0.0;      /*!< Counter for particle number loss from the destroying blocks in blockadjustment*/
       Real max_dt[2];                                                /**< Element[0] is max_r_dt, element[1] max_v_dt.*/
       Real velocityBlockMinValue;
@@ -90,6 +103,9 @@ namespace spatial_cell {
                                    * in this spatial cell. Cells are identified by their unique
                                    * global IDs.*/
       vmesh::VelocityBlockContainer *blockContainer;  /**< Velocity block data.*/
+      std::vector<char> compressed_state_buffer;                     /**< Used by OCTREE and ZFP to store comprresed state representation of the VDF of this sc*/
+      float mlp_error = {std::numeric_limits<float>::max()};         /**< Stores the loss function error of the MLP that was used for compression*/
+      uint32_t mlp_epochs = {0};                                     /**< Store the number of epochs that the MLP was trained for*/
 
       /**< Temporary storage of acceleration transform intersections and sybcycling dt.*/
       Real intersection_z,intersection_z_di,intersection_z_dj,intersection_z_dk;
@@ -103,14 +119,17 @@ namespace spatial_cell {
          blockContainer = new vmesh::VelocityBlockContainer();
          // Set values to zero in case of zero-block populations
          RHO = RHO_R = RHO_V = RHOLOSSADJUST = velocityBlockMinValue = ACCSUBCYCLES = N_blocks = 0;
+         RHO_R_PREV = RHO_V_PREV = RHO_R_PREV_PREV = RHO_V_PREV_PREV = 0;
          for (uint i=0; i<2; ++i) {
             max_dt[i] = 0;
          }
          for (uint i=0; i<3; ++i) {
             V[i] = V_R[i] = V_V[i] = 0;
+            V_R_PREV[i] = V_V_PREV[i] = V_R_PREV_PREV[i] = V_V_PREV_PREV[i] = 0;
          }
          for (uint i=0; i<6; i++) {
             P[i] = P_R[i] = P_V[i] = 0;
+            P_R_PREV[i] = P_V_PREV[i] = P_R_PREV_PREV[i] = P_V_PREV_PREV[i] = 0;
          }
       }
       ~Population() {
@@ -125,6 +144,10 @@ namespace spatial_cell {
          RHO = other.RHO;
          RHO_R = other.RHO_R;
          RHO_V = other.RHO_V;
+         RHO_R_PREV = other.RHO_R_PREV;
+         RHO_V_PREV = other.RHO_V_PREV;
+         RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
+         RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -136,11 +159,19 @@ namespace spatial_cell {
             V[i] = other.V[i];
             V_R[i] = other.V_R[i];
             V_V[i] = other.V_V[i];
+            V_R_PREV[i] = other.V_R_PREV[i];
+            V_V_PREV[i] = other.V_V_PREV[i];
+            V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
+            V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
             P_R[i] = other.P_R[i];
             P_V[i] = other.P_V[i];
+            P_R_PREV[i] = other.P_R_PREV[i];
+            P_V_PREV[i] = other.P_V_PREV[i];
+            P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
+            P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
       }
 
@@ -155,6 +186,10 @@ namespace spatial_cell {
          RHO = other.RHO;
          RHO_R = other.RHO_R;
          RHO_V = other.RHO_V;
+         RHO_R_PREV = other.RHO_R_PREV;
+         RHO_V_PREV = other.RHO_V_PREV;
+         RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
+         RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -166,11 +201,19 @@ namespace spatial_cell {
             V[i] = other.V[i];
             V_R[i] = other.V_R[i];
             V_V[i] = other.V_V[i];
+            V_R_PREV[i] = other.V_R_PREV[i];
+            V_V_PREV[i] = other.V_V_PREV[i];
+            V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
+            V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
             P_R[i] = other.P_R[i];
             P_V[i] = other.P_V[i];
+            P_R_PREV[i] = other.P_R_PREV[i];
+            P_V_PREV[i] = other.P_V_PREV[i];
+            P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
+            P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
          return *this;
       }
@@ -190,10 +233,18 @@ namespace spatial_cell {
          RHO *= factor;
          RHO_R *= factor;
          RHO_V *= factor;
+         RHO_R_PREV *= factor;
+         RHO_V_PREV *= factor;
+         RHO_R_PREV_PREV *= factor;
+         RHO_V_PREV_PREV *= factor;
          for (uint i=0; i<3; ++i) {
             P[i] *= factor;
             P_R[i] *= factor;
             P_V[i] *= factor;
+            P_R_PREV[i] *= factor;
+            P_V_PREV[i] *= factor;
+            P_R_PREV_PREV[i] *= factor;
+            P_V_PREV_PREV[i] *= factor;
          }
          // Now loop over whole velocity space and scale the values
          for (vmesh::LocalID blockLID=0; blockLID < vmesh->size(); ++blockLID) {
@@ -217,7 +268,7 @@ namespace spatial_cell {
             // Get local ID of the target block. If the block doesn't exist, create it.
             vmesh::GlobalID toBlockLID = vmesh->getLocalID(incBlockGID);
             if (toBlockLID == vmesh->invalidLocalID()) {
-               bool success = vmesh->push_back(incBlockGID);
+               vmesh->push_back(incBlockGID);
                toBlockLID = blockContainer->push_back_and_zero();
                Real* parameters = blockContainer->getParameters(toBlockLID);
                vmesh->getBlockInfo(incBlockGID, parameters+BlockParams::VXCRD);
@@ -977,7 +1028,8 @@ namespace spatial_cell {
    }
 
    /** Adds a vector of velocity blocks to the population, sets the parameters, and fills the data
-       with phase-space densities from the provided buffer (which was read from a file).
+       with phase-space densities from the provided buffer (which was read from a file). The copy
+       operation is skipped if the avgBuffer is nullptr
    */
    template <typename fileReal> void SpatialCell::add_velocity_blocks(const uint popID, const std::vector<vmesh::GlobalID>& blocks,fileReal* avgBuffer, const int timeclass) {
       debug_ghostpopulation_check(popID, timeclass);
@@ -1014,9 +1066,11 @@ namespace spatial_cell {
       }
 
       //copy avgs data, here a conversion may happen between float and double
-      Realf *cellBlockData = this->get_velocity_blocks(popID, timeclass)->getData(startLID);
-      for(uint64_t i = 0; i< WID3 * nBlocks ; i++){
-         cellBlockData[i] = avgBuffer[i];
+      if (avgBuffer){
+         Realf *cellBlockData = this->get_velocity_blocks(popID, timeclass)->getData(startLID);
+         for(uint64_t i = 0; i< WID3 * nBlocks ; i++){
+            cellBlockData[i] = avgBuffer[i];
+         }
       }
    }
 

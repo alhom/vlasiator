@@ -64,7 +64,7 @@ void calculateCellMoments(
 /*!
   \brief Compute real-time 1st order accurate moments from the moments after propagation in velocity and spatial space
 */
- 
+
 void calculateInterpolatedVelocityMoments(
    dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid,
    const int cp_rhom,
@@ -114,8 +114,8 @@ void updateParticlePopulations(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometr
 
 /*!
   \brief Compute 0th, 1st and 2nd velocity moments (RHO,VX,VY,VZ,P_11,P_22,P_33 and *_DT2) for all cells in the grid directly from distribution function. The simulation should be at a true time-step! This is at the moment only called at initialisation.
-  \param mpiGrid Grid of spatial cells for which moments are computed 
-  
+  \param mpiGrid Grid of spatial cells for which moments are computed
+
 */
 void calculateInitialVelocityMoments(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid);
 

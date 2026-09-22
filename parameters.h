@@ -65,10 +65,8 @@ struct Parameters {
    static int currentMaxTimeclass;
    static int initialMaxTimeclass; 
    //static int timeclassBuffer; /* Buffer timeclasses that are not initialized but exist, better not to use */
-   static bool dynamicTimeclasses; /* If true, timeclasses are updated dynamically during the simulation*/
    static Real timeclassDomainModifier; /* If using CFL-based timeclasses, this adjusts the TC domain initialization. Example, if the parameter is 0.5, the timeclass domains are set as if the CFL limit was half of its actual value in each cell */
    static Real dtUpdateModifier; /* If using CFL-based timeclasses, this adjusts the timestep updates to happen by a certain factor before the limit. Somewhat redundant to the other CFL limit parameters. */
-   static Real dtSettingModifier; /* Sets timeclass DTs times this factor.*/
    static int timeclassLBmantissa;
    static bool tc_leapfrog_init;
    static int tc_test_type; /* Allows for different test scenarios for timeclass initialization. 0 (default) is CFL-based timeclasses, 3 is static spheres given by the next 3 parameters */
@@ -123,6 +121,9 @@ struct Parameters {
    static std::vector<Real> systemWriteTimeInterval; /*!< Interval in simusecond for output for each class*/
    static std::vector<int>
        systemWriteDistributionWriteStride; /*!< Every this many cells write out their velocity space in each class. */
+   static bool systemWriteDistributionCompressed; /*Will apply ASTERIX compression to VDFs in bulk files*/
+   static bool systemWriteRestartCompressed;      /*Will apply ASTERIX compression to VDFs in restart files*/
+   static bool systemWriteRecoveryCompressed;     /*Will apply ASTERIX compression to VDFs in recovery files*/
    static std::vector<int>
        systemWriteDistributionWriteXlineStride; /*!< Every this many lines of cells along the x direction write out
                                                    their velocity space in each class. */
@@ -199,6 +200,9 @@ struct Parameters {
 
    static std::string loadBalanceAlgorithm; /*!< Algorithm to be used for load balance.*/
    static std::map<std::string, std::string> loadBalanceOptions;  // Other Load balancing options
+   
+   static std::vector<std::string> loadBalanceKeys;
+   static std::vector<std::string> loadBalanceValues;
    static uint rebalanceInterval;           /*!< Load rebalance interval (steps). */
    static bool prepareForRebalance; /**< If true, propagators should measure their time consumption in preparation
                                      * for mesh repartitioning.*/
@@ -277,10 +281,35 @@ struct Parameters {
    static int PADmubins; // Number of bins in mu for pitch-angle diffusion
    static std::string PADnu0; // Path to txt file for nu0
    static Realf PADfudge; // Fudge factore for diffusion   
+   static std::vector<std::string> mpiioKeysWrite;
+   static std::vector<std::string> mpiioValuesWrite;
+   static std::vector<std::string> mpiioKeysRestartRead;
+   static std::vector<std::string> mpiioValuesRestartRead;
+   static std::vector<std::string> mpiioKeysRestartWrite;
+   static std::vector<std::string> mpiioValuesRestartWrite;
 
-   static std::array<FsGridTools::Task_t,3> manualFsGridDecomposition;
-   static std::array<FsGridTools::Task_t,3> overrideReadFsGridDecomposition;
-   
+   static std::array<fsgrid::Task_t,3> manualFsGridDecomposition;
+   static std::array<fsgrid::Task_t,3> overrideReadFsGridDecomposition;
+   //Asterix  VDF Compression
+   enum ASTERIX_COMPRESSION_METHODS{
+           NONE,
+           ZFP,
+           OCTREE,
+           MLP,
+           MLP_MULTI,
+   };
+   static std::string mlpLayer;
+   static std::vector<std::size_t> mlp_arch; /* Hidden Layers in fMLP*/
+   static std::size_t mlp_fourier_order;       /* Maximum fourier order in fMLP */
+   static std::size_t mlp_max_epochs;
+   static Real compression_interval;
+   static Real mlp_tollerance;
+   static std::size_t max_vdfs_per_nn;
+   static Real octree_tolerance;
+   static bool doCompress;
+   static std::string method_str;
+   static ASTERIX_COMPRESSION_METHODS vdf_compression_method;
+
    static bool computeCurvature; /*<! Boolean flag, if true the curvature of magnetic field is computed. */
 
    /*! \brief Add the global parameters.

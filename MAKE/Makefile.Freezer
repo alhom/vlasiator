@@ -56,8 +56,8 @@ testpackage: CXXFLAGS += -DUSE_JEMALLOC -DJEMALLOC_NO_DEMANGLE
 #======== Libraries ===========
 LIBRARY_PREFIX = $(CURDIR)/libraries
 
-INC_BOOST = -isystem /usr/include/boost
-LIB_BOOST = -L/usr/include/boost -lboost_program_options
+
+
 
 INC_ZOLTAN = -isystem $(LIBRARY_PREFIX)/include
 LIB_ZOLTAN = -I$(LIBRARY_PREFIX)/lib -lzoltan -Wl,-rpath=$(LIBRARY_PREFIX)/lib
