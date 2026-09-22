@@ -683,19 +683,21 @@ void calculateSpatialTranslation(
             if (P::vlasovSolverGhostTranslate) {
                // Local translation without interim communication
                uint tictoc = Timeclasses::TIC;
-               if (tc == 0) { // we are the coarsest timeclass, so we always have fine timeclass data to fetch and sync
-                  tictoc = Timeclasses::TOC;   
-               }
-               else { // Other timeclasses need to get time ghost halo layers from the coarser timeclasses
-                      // to have the intermediate translation step (TIC)
-                  if ((P::fractionalTimestep % mod2) == 0){
-                     // Initial timeghost halo layer needs to have a larger source region
-                     tictoc = Timeclasses::TIC;
-                  }
-                  else{
-                     // Subsequent timeghost halo layers can do with a smaller layer, using the translation
-                     // targets from the TIC
+               if(P::timeclassTictoc){
+                  if (tc == 0) { // we are the coarsest timeclass, so we always have fine timeclass data to fetch and sync
                      tictoc = Timeclasses::TOC;
+                  }
+                  else { // Other timeclasses need to get time ghost halo layers from the coarser timeclasses
+                        // to have the intermediate translation step (TIC)
+                     if ((P::fractionalTimestep % mod2) == 0){
+                        // Initial timeghost halo layer needs to have a larger source region
+                        tictoc = Timeclasses::TIC;
+                     }
+                     else{
+                        // Subsequent timeghost halo layers can do with a smaller layer, using the translation
+                        // targets from the TIC
+                        tictoc = Timeclasses::TOC;
+                     }
                   }
                }
                string tictocstr = (tictoc == Timeclasses::TIC ? " tic" : " toc");
