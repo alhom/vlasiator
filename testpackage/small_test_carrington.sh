@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH -t 01:30:00        # Run time (hh:mm:ss)
+#SBATCH -t 05:10:00        # Run time (hh:mm:ss)
 #SBATCH --job-name=ctestpackage
 ##SBATCH -A spacephysics
 #SBATCH --constraint="carrington"
 # test short medium 20min1d 3d
 #SBATCH -p short
-#SBATCH --exclusive
+##SBATCH --exclusive
 #SBATCH --nodes=1
 #SBATCH -c 4                 # CPU cores per task
 #SBATCH -n 16                  # number of tasks
-#SBATCH --mem-per-cpu=5G
+#SBATCH --mem=320G
 #SBATCH --hint=multithread
 
 # If 1, the reference vlsv files are generated
@@ -20,8 +20,8 @@ create_verification_files=0
 reference_dir="/turso/group/spacephysics/vlasiator/testpackage/"
 cd $SLURM_SUBMIT_DIR
 
-bin="/proj/USERNAME/BINARYNAME"
-diffbin="/turso/group/spacephysics/vlasiator/testpackage/vlsvdiff_DP_carrington"
+bin="/turso/home/mjalho/timeclasses/vlasiator-tc/vlasiator"
+diffbin="/turso/home/mjalho/timeclasses/vlsvdiff_DP"
 
 #compare agains which revision
 #reference_revision="CI_reference"
