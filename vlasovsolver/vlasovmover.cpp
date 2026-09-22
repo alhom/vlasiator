@@ -391,6 +391,21 @@ void calculateSpatialGhostTranslation(
 //   MPI_Barrier(MPI_COMM_WORLD);
 //   preBarrierTimer.stop();
 
+   // Create temporary copies of copy-timeghosts so they are not overwritten and invalidated by the mapping
+   // on the fringes. This placement tries to minimize the temporary memory footprint.
+
+
+   std::map<CellID, Population> copy_ghosts;
+   if (P::currentMaxTimeclass > 0){
+      phiprof::Timer copyghostOuter {"copy-ghost temporaries"};
+      phiprof::Timer copyghostInner {"gather copies"};
+      for (auto c : local_propagated_cells) {
+         if(mpiGrid[c]->requested_timeclass_copy_ghosts.count(tc)> 0){
+            copy_ghosts[c] = mpiGrid[c]->get_population(popID, tc);
+         }
+      }
+   }
+
    //#warning TODO: Implement also 2D / non-AMR ghost translation?
    // ------------- SLICE - map dist function in Z --------------- //
    phiprof::Timer mappingZTimer {"compute-mapping-z"};
@@ -414,6 +429,14 @@ void calculateSpatialGhostTranslation(
    for(CellID c : local_propagated_cells)
    {
          mpiGrid[c]->get_population(popID, tc).T_R += dt;
+   }
+
+   if(P::currentMaxTimeclass > 0 ){
+      phiprof::Timer copyghostOuter {"copy-ghost temporaries"};
+      phiprof::Timer copyghostInner {"restore copies"};
+      for (auto c : copy_ghosts) {
+         mpiGrid[c.first]->get_population(popID, tc) = c.second;
+      }
    }
 
    return;
