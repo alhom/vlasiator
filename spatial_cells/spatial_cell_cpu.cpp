@@ -393,7 +393,13 @@ namespace spatial_cell {
    bool SpatialCell::get_timeclass_turn_v(int tc) const {
       // If on max timeclass, we propagate on each loop.
       int mod = 1 << (P::currentMaxTimeclass - (int)tc);
-      bool ret = ((P::fractionalTimestep % mod) == 0);
+      bool ret;
+      if(P::tc_propagate_mode_forward){
+         ret = ((P::fractionalTimestep % mod) == 0); // the simple, not-very-leapfroggy mode
+      }else{
+         ret = ((P::fractionalTimestep % mod) == (int)mod/2);
+      }
+
       return ret;
    }
 
@@ -402,7 +408,10 @@ namespace spatial_cell {
    }
 
    bool SpatialCell::get_timeclass_turn_r(int timeclass) const {
-      return this->get_timeclass_turn_v(timeclass);
+      int mod = 1 << (P::currentMaxTimeclass - (int)timeclass);
+      bool ret;
+      ret = ((P::fractionalTimestep % mod) == 0); // the simple, not-very-leapfroggy mode
+      return ret;
    }
 
    /* Check if the cell has native timeclass or any sort of timeclass ghost request

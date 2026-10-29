@@ -107,6 +107,7 @@ uint P::diagnosticInterval = numeric_limits<uint>::max();
 bool P::writeInitialState = false;
 bool P::writeFullBGB = false;
 bool P::tc_leapfrog_init = false;
+bool P::tc_propagate_mode_forward = false;
 
 bool P::tcDebugBox = false;
 int P::tcOverrideTimeclass = -1;
@@ -428,6 +429,7 @@ bool P::addParameters() {
    RP::add("timeclasses.tcStaticSphereRadiusLvl3", "Static timeclass sphere radius for timeclass level 3, meters", P::tcStaticSphereRadiusLvl3);
    RP::add("gridbuilder.forcedConvection", "Force a convection velocity of 200 km/s along +x [false]", P::forcedConvection);
    RP::add("timeclasses.timeclassTictoc", "Use tic-toc translation for timeclasses [false]", P::timeclassTictoc);
+   RP::add("timeclasses.no_leapfrog", "Disable timeclass leapfrogging [false]", P::tc_propagate_mode_forward);
 
    RP::add("timeclasses.tc_test_type", "Enumerated tc test", P::tc_test_type);
    RP::add(

@@ -69,6 +69,8 @@ struct Parameters {
    static Real dtUpdateModifier; /* If using CFL-based timeclasses, this adjusts the timestep updates to happen by a certain factor before the limit. Somewhat redundant to the other CFL limit parameters. */
    static int timeclassLBmantissa;
    static bool tc_leapfrog_init;
+   static bool tc_propagate_mode_forward;
+
    static int tc_test_type; /* Allows for different test scenarios for timeclass initialization. 0 (default) is CFL-based timeclasses, 3 is static spheres given by the next 3 parameters */
    static Real tcStaticSphereRadiusLvl1;
    static Real tcStaticSphereRadiusLvl2;
