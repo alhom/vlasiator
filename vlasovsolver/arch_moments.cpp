@@ -214,7 +214,7 @@ void calculateMoments_R(
                // cell->parameters[CellParams::RHOM_R + i] = 0.0;
             cell->moments_R.rhom = 0.0;
             cell->moments_R.rhoq = 0.0;
-            cell->moments_R.t = 0.0;
+            //cell->moments_R.t = 0.0;
             for (int i=0; i<3; ++i) {
                cell->moments_R.V[i]=0;
             }

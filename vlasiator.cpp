@@ -925,9 +925,7 @@ int simulate(int argn,char* args[]) {
          CellParams::T
       );
 
-      //initializeTrueMomentSets(mpiGrid);
-
-      //updateParticlePopulations(mpiGrid, false, 0);
+      initializeTrueMomentSets(mpiGrid);
 
       computeMomentsTimer.stop();
    } else { // if we are restaring, make sure global timeclass settings are set
@@ -1691,7 +1689,7 @@ int simulate(int argn,char* args[]) {
          CellParams::T
       );
       
-      //updateParticlePopulations(mpiGrid, P::t+P::dt);
+      updateParticlePopulations(mpiGrid, P::t+P::dt);
 
       // momentsTimer.stop();
 

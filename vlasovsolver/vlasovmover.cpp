@@ -297,7 +297,7 @@ void calculateSpatialTranslation(
    for(CellID c : local_propagated_cells)
    {
       if(mpiGrid[c]->get_timeclass_turn_r())
-         mpiGrid[c]->parameters[CellParams::T_R] += dt;
+         mpiGrid[c]->moments_R.t += dt;
    }
    phiprof::Timer btpostimer {"barrier-trans-post-trans",{"Barriers","MPI"}};
    MPI_Barrier(MPI_COMM_WORLD);
@@ -811,7 +811,7 @@ void calculateSpatialTranslation(
                // SC->parameters[CellParams::P_12_R_PREV] = SC->parameters[CellParams::P_12_R];
                // SC->parameters[CellParams::T_R_PREV] = SC->parameters[CellParams::T_R];
 
-               mpiGrid[c]->parameters[CellParams::T_R] += P::timeclassDt[mpiGrid[c]->parameters[CellParams::TIMECLASS]];
+               mpiGrid[c]->moments_R.t += P::timeclassDt[mpiGrid[c]->parameters[CellParams::TIMECLASS]];
                
             }
          }
@@ -832,7 +832,7 @@ void calculateSpatialTranslation(
       if(cell->get_timeclass_turn_r() && dt > 0.0){
          // cell->parameters[CellParams::T_R_PREV_PREV] = cell->parameters[CellParams::T_R_PREV];
          // cell->parameters[CellParams::T_R_PREV] = cell->parameters[CellParams::T_R];
-         cell->parameters[CellParams::T_R] += dt*P::timeclassDt[cell->parameters[CellParams::TIMECLASS]];
+         cell->moments_R.t += dt*P::timeclassDt[cell->parameters[CellParams::TIMECLASS]];
       }
    }
    
@@ -1669,7 +1669,7 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
 
    for (auto cell : cellsToPropagateSet){
       if(mpiGrid[cell]->get_timeclass_turn_v()){
-         mpiGrid[cell]->parameters[CellParams::T_V] += dt*mpiGrid[cell]->get_tc_dt();
+         mpiGrid[cell]->moments_V.t += dt*mpiGrid[cell]->get_tc_dt();
       }
    }
    
@@ -1795,6 +1795,14 @@ Real interpolation(std::vector<Real> x, std::vector<Real> y, const Real t, const
    if (t < x[0]*(1.0 - 1e-6) || t > x[x.size()-1]*(1.0 + 1e-6)) {
       std::cerr << "The target time is outside the range of the x values!\n";
       std::cerr << "t = " << t << ", x[0] = " << x[0] << ", x[x.size()-1] = " << x[x.size()-1] << "\n";
+      std::cerr << "x = [";
+      for (uint i=0; i<x.size(); ++i) {
+         std::cerr << x[i];
+         if (i < x.size()-1) {
+            std::cerr << ", ";
+         }
+      }
+      std::cerr << "]\n";
       assert(false);
    }
 
