@@ -59,6 +59,9 @@ namespace spatial_cell {
       this->moments_R.rhoq = 0.0;      
       this->moments_V.rhoq = 0.0;
 
+      this->moments_R.t = 0.0;
+      this->moments_V.t = 0.0;
+
       for (uint coord=0; coord<3; coord++) {
          this->moments_R.V[coord] = 0.0;
          this->moments_V.V[coord] = 0.0;
@@ -74,6 +77,8 @@ namespace spatial_cell {
 
          this->cellTrueMoments[p].rhom = 0.0;
          this->cellTrueMoments[p].rhoq = 0.0;
+
+         this->cellTrueMoments[p].t = 0.0;
 
          for (uint coord=0; coord<3; coord++) {
             this->cellTrueMoments[p].V[coord] = 0.0;
@@ -361,8 +366,8 @@ namespace spatial_cell {
    }
 
    void SpatialCell::addNewMomentSet(const MomentSet momentSet) {
-      std::rotate(this->cellTrueMoments.rbegin(), this->cellTrueMoments.rbegin() + 1, this->cellTrueMoments.rend());
-      this->cellTrueMoments[0] = momentSet;
+      std::rotate(this->cellTrueMoments.begin(), this->cellTrueMoments.begin() + 1, this->cellTrueMoments.end());
+      this->cellTrueMoments.back() = momentSet;
    }
 
    /*!

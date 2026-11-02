@@ -191,8 +191,8 @@ void calculateMoments_R(
    phiprof::Timer computeMomentsTimer {"Compute _R moments"};
    std::vector<CellID> cells;
    for (size_t c=0; c<allcells.size(); ++c) {
-         SpatialCell* cell = mpiGrid[allcells[c]];
-         if (cell->get_timeclass_turn_r()) cells.push_back(allcells[c]);
+      SpatialCell* cell = mpiGrid[allcells[c]];
+      if (cell->get_timeclass_turn_r()) cells.push_back(allcells[c]);
    } 
    for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
       #pragma omp parallel for schedule(dynamic,1)
@@ -235,7 +235,7 @@ void calculateMoments_R(
          Population &pop = cell->get_population(popID);
          if (nBlocks == 0) {
             pop.moments_R.rho = 0;
-            pop.moments_R.t = cell->parameters[CellParams::T_R];
+            //pop.moments_R.t = cell->parameters[CellParams::T_R];
             for (int i=0; i<3; ++i) {
                pop.moments_R.V[i]=0;
             }
@@ -268,7 +268,7 @@ void calculateMoments_R(
                                    nBlocks);
          // Store species' contribution to bulk velocity moments
          pop.moments_R.rho = array[0];
-         pop.moments_R.t = cell->parameters[CellParams::T_R];
+         //pop.moments_R.t = cell->parameters[CellParams::T_R];
          for (uint i=0; i<3; i++) {
             pop.moments_R.V[i] = divideIfNonZero(array[i+1], array[0]);
          }
@@ -276,7 +276,7 @@ void calculateMoments_R(
          // pop.V_R[1] = divideIfNonZero(array[2], array[0]);
          // pop.V_R[2] = divideIfNonZero(array[3], array[0]);
 
-         cell->moments_R.t = cell->parameters[CellParams::T_R];
+         //cell->moments_R.t = cell->parameters[CellParams::T_R];
          cell->moments_R.rhom += array[0]*mass;
          for (uint i=0; i<3; i++) {
             cell->moments_R.V[i] += array[i+1]*mass;
@@ -430,7 +430,7 @@ void calculateMoments_V(
 
             cell->moments_V.rhom = 0.0;
             cell->moments_V.rhoq = 0.0;
-            cell->moments_V.t = 0.0;
+            //cell->moments_V.t = 0.
             for (int i=0; i<3; ++i) {
                cell->moments_V.V[i]=0.0;
             }
@@ -450,7 +450,7 @@ void calculateMoments_V(
          Population &pop = cell->get_population(popID);
          if (nBlocks == 0) {
             pop.moments_V.rho = 0;
-            pop.moments_V.t = cell->parameters[CellParams::T_V];
+            //pop.moments_V.t = cell->parameters[CellParams::T_V];
             for (int i=0; i<3; ++i) {
                pop.moments_V.V[i]=0;
             }
@@ -484,12 +484,13 @@ void calculateMoments_V(
                                    nBlocks);
          // Store species' contribution to bulk velocity moments
          pop.moments_V.rho = array[0];
+         //pop.moments_V.t = cell->parameters[CellParams::T_V];
 
          for (uint i=0; i<3; i++) {
             pop.moments_V.V[i] = divideIfNonZero(array[i+1], array[0]);
          }
 
-         cell->moments_V.t = cell->parameters[CellParams::T_V];
+         //cell->moments_V.t = cell->parameters[CellParams::T_V];
          cell->moments_V.rhom += array[0]*mass;
          for (uint i=0; i<3; i++) {
             cell->moments_V.V[i] += array[i+1] * mass;

@@ -99,7 +99,7 @@ namespace spatial_cell {
       // Real V_V_PREV_PREV[3];
       // Real P_V_PREV_PREV[6];
 
-      // the first element is newest, and they get older with time
+      // the first element is oldest, and they get newer with time
       std::array<MomentSet, TC_INTERPOLATION_POINTS> populationTrueMoments;
 
       MomentSet moments_R;
@@ -163,6 +163,8 @@ namespace spatial_cell {
 
          moments_R.rho = 0.0;
          moments_V.rho = 0.0;
+         moments_R.t = 0.0;
+         moments_V.t = 0.0;
          for (uint coord=0; coord<3; coord++) {
             moments_R.V[coord] = 0.0;
             moments_V.V[coord] = 0.0;
@@ -176,6 +178,7 @@ namespace spatial_cell {
             populationTrueMoments[p] = MomentSet();
 
             populationTrueMoments[p].rho = 0.0;
+            populationTrueMoments[p].t = 0.0;
             for (uint coord=0; coord<3; coord++) {
                populationTrueMoments[p].V[coord] = 0.0;
             }
@@ -309,8 +312,8 @@ namespace spatial_cell {
       Population& operator=(const Population&& other) = delete; // Move assignment not implemented
 
       void addNewMomentSet(MomentSet momentSet) {
-         std::rotate(populationTrueMoments.rbegin(), populationTrueMoments.rbegin() + 1, populationTrueMoments.rend());
-         populationTrueMoments[0] = momentSet;
+         std::rotate(populationTrueMoments.begin(), populationTrueMoments.begin() + 1, populationTrueMoments.end());
+         populationTrueMoments.back() = momentSet;
       }
 
       void ResizeClear(const uint newSize) {

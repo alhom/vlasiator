@@ -520,13 +520,13 @@ void initializeDataReducers(DataReducer * outputReducer, DataReducer * diagnosti
             for(unsigned int i =0; i < getObjectWrapper().particleSpecies.size(); i++) {
                species::Species& species=getObjectWrapper().particleSpecies[i];
                const std::string& pop = species.name;
-               outputReducer->addOperator(new DRO::DataReductionOperatorPopulations<Real>(pop + ss.str() + "/vg_t_r", i, offsetof(spatial_cell::Population, moments_R.t), 1, timeclass));
+               outputReducer->addOperator(new DRO::DataReductionOperatorPopulations<Real>(pop + ss.str() + "/vg_t_r", i, (offsetof(spatial_cell::Population, moments_R) + offsetof(MomentSet, t)), 1, timeclass));
                outputReducer->addMetadata(outputReducer->size()-1,"s","$\\mathrm{s}$","$t_\\mathrm{r,"+pop+ss.str()+"}$","1.0");
             }
             for(unsigned int i =0; i < getObjectWrapper().particleSpecies.size(); i++) {
                species::Species& species=getObjectWrapper().particleSpecies[i];
                const std::string& pop = species.name;
-               outputReducer->addOperator(new DRO::DataReductionOperatorPopulations<Real>(pop + ss.str() + "/vg_t_v", i, offsetof(spatial_cell::Population, moments_V.t), 1, timeclass));
+               outputReducer->addOperator(new DRO::DataReductionOperatorPopulations<Real>(pop + ss.str() + "/vg_t_v", i, (offsetof(spatial_cell::Population, moments_V) + offsetof(MomentSet, t)), 1, timeclass));
                outputReducer->addMetadata(outputReducer->size()-1,"s","$\\mathrm{s}$","$t_\\mathrm{v,"+pop+ss.str()+"}$","1.0");
             }
             for(unsigned int i =0; i < getObjectWrapper().particleSpecies.size(); i++) {
