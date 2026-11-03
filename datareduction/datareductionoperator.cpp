@@ -144,8 +144,10 @@ namespace DRO {
          momentSetPtr = reinterpret_cast<const char*>(&(cell->moments_R));      
       } else if (_RVT == "V") {
          momentSetPtr = reinterpret_cast<const char*>(&(cell->moments_V));      
-      } else if (_RVT == "T") {
+      } else if (_RVT == "LAST") {
          momentSetPtr = reinterpret_cast<const char*>(&(cell->cellTrueMoments[cell->cellTrueMoments.size()-1]));      
+      } else if (_RVT == "ALL") {
+         momentSetPtr = reinterpret_cast<const char*>(&(cell->cellTrueMoments[0]));      
       } else {
          momentSetPtr = nullptr;
          string message = "Invalid moment set specified!\n";
