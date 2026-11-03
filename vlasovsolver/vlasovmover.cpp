@@ -1917,7 +1917,7 @@ void updateParticlePopulations(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometr
 
                for (uint i=0; i<(uint)P::tcInterpolationPoints; i++) {
                   timestamps.push_back(pop.populationTrueMoments[i].t);
-                  rhos.push_back(pop.populationTrueMoments[i].rhom);
+                  rhos.push_back(pop.populationTrueMoments[i].rho);
                   for (uint j=0; j<3; j++) {
                      Vs[j].push_back(pop.populationTrueMoments[i].V[j]);
                   }
