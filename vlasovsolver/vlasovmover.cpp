@@ -785,32 +785,6 @@ void calculateSpatialTranslation(
                const CellID cellID = tc_propagated_cells.at(tc).at(c);
                SpatialCell* SC = mpiGrid[cellID];
 
-               // SC->parameters[CellParams::RHOM_R_PREV_PREV] = SC->parameters[CellParams::RHOM_R_PREV];
-               // SC->parameters[CellParams::VX_R_PREV_PREV] = SC->parameters[CellParams::VX_R_PREV];
-               // SC->parameters[CellParams::VY_R_PREV_PREV] = SC->parameters[CellParams::VY_R_PREV];
-               // SC->parameters[CellParams::VZ_R_PREV_PREV] = SC->parameters[CellParams::VZ_R_PREV];
-               // SC->parameters[CellParams::RHOQ_R_PREV_PREV] = SC->parameters[CellParams::RHOQ_R_PREV];
-               // SC->parameters[CellParams::P_11_R_PREV_PREV] = SC->parameters[CellParams::P_11_R_PREV];
-               // SC->parameters[CellParams::P_22_R_PREV_PREV] = SC->parameters[CellParams::P_22_R_PREV];
-               // SC->parameters[CellParams::P_33_R_PREV_PREV] = SC->parameters[CellParams::P_33_R_PREV];
-               // SC->parameters[CellParams::P_23_R_PREV_PREV] = SC->parameters[CellParams::P_23_R_PREV];
-               // SC->parameters[CellParams::P_13_R_PREV_PREV] = SC->parameters[CellParams::P_13_R_PREV];
-               // SC->parameters[CellParams::P_12_R_PREV_PREV] = SC->parameters[CellParams::P_12_R_PREV];
-               // SC->parameters[CellParams::T_R_PREV_PREV] = SC->parameters[CellParams::T_R_PREV];
-
-               // SC->parameters[CellParams::RHOM_R_PREV] = SC->parameters[CellParams::RHOM_R];
-               // SC->parameters[CellParams::VX_R_PREV] = SC->parameters[CellParams::VX_R];
-               // SC->parameters[CellParams::VY_R_PREV] = SC->parameters[CellParams::VY_R];
-               // SC->parameters[CellParams::VZ_R_PREV] = SC->parameters[CellParams::VZ_R];
-               // SC->parameters[CellParams::RHOQ_R_PREV] = SC->parameters[CellParams::RHOQ_R];
-               // SC->parameters[CellParams::P_11_R_PREV] = SC->parameters[CellParams::P_11_R];
-               // SC->parameters[CellParams::P_22_R_PREV] = SC->parameters[CellParams::P_22_R];
-               // SC->parameters[CellParams::P_33_R_PREV] = SC->parameters[CellParams::P_33_R];
-               // SC->parameters[CellParams::P_23_R_PREV] = SC->parameters[CellParams::P_23_R];
-               // SC->parameters[CellParams::P_13_R_PREV] = SC->parameters[CellParams::P_13_R];
-               // SC->parameters[CellParams::P_12_R_PREV] = SC->parameters[CellParams::P_12_R];
-               // SC->parameters[CellParams::T_R_PREV] = SC->parameters[CellParams::T_R];
-
                mpiGrid[c]->moments_R.t += P::timeclassDt[mpiGrid[c]->parameters[CellParams::TIMECLASS]];
                
             }
@@ -830,8 +804,6 @@ void calculateSpatialTranslation(
    for (size_t c=0; c<localCells.size(); ++c) {
       auto cell = mpiGrid[localCells[c]];
       if(cell->get_timeclass_turn_r() && dt > 0.0){
-         // cell->parameters[CellParams::T_R_PREV_PREV] = cell->parameters[CellParams::T_R_PREV];
-         // cell->parameters[CellParams::T_R_PREV] = cell->parameters[CellParams::T_R];
          cell->moments_R.t += dt*P::timeclassDt[cell->parameters[CellParams::TIMECLASS]];
       }
    }
@@ -1005,41 +977,6 @@ void calculateSpatialTranslation(
          }
       }
    }
-
-   // This loop saves the _R-moments before updating into a previous buffer so they can be used for interpolating
-   // for timeclasses.
-   // for (int tc=0; tc <= P::currentMaxTimeclass; tc++) {
-   //    for (size_t c=0; c<tc_propagated_cells.at(tc).size(); ++c) {
-   //       const CellID cellID = tc_propagated_cells.at(tc).at(c);
-   //       SpatialCell* SC = mpiGrid[cellID];
-   //       if(SC->get_timeclass_turn_r()){
-   //          SC->parameters[CellParams::RHOM_R_PREV_PREV] = SC->parameters[CellParams::RHOM_R_PREV];
-   //          SC->parameters[CellParams::VX_R_PREV_PREV] = SC->parameters[CellParams::VX_R_PREV];
-   //          SC->parameters[CellParams::VY_R_PREV_PREV] = SC->parameters[CellParams::VY_R_PREV];
-   //          SC->parameters[CellParams::VZ_R_PREV_PREV] = SC->parameters[CellParams::VZ_R_PREV];
-   //          SC->parameters[CellParams::RHOQ_R_PREV_PREV] = SC->parameters[CellParams::RHOQ_R_PREV];
-   //          SC->parameters[CellParams::P_11_R_PREV_PREV] = SC->parameters[CellParams::P_11_R_PREV];
-   //          SC->parameters[CellParams::P_22_R_PREV_PREV] = SC->parameters[CellParams::P_22_R_PREV];
-   //          SC->parameters[CellParams::P_33_R_PREV_PREV] = SC->parameters[CellParams::P_33_R_PREV];
-   //          SC->parameters[CellParams::P_23_R_PREV_PREV] = SC->parameters[CellParams::P_23_R_PREV];
-   //          SC->parameters[CellParams::P_13_R_PREV_PREV] = SC->parameters[CellParams::P_13_R_PREV];
-   //          SC->parameters[CellParams::P_12_R_PREV_PREV] = SC->parameters[CellParams::P_12_R_PREV];
-
-   //          SC->parameters[CellParams::RHOM_R_PREV] = SC->parameters[CellParams::RHOM_R];
-   //          SC->parameters[CellParams::VX_R_PREV] = SC->parameters[CellParams::VX_R];
-   //          SC->parameters[CellParams::VY_R_PREV] = SC->parameters[CellParams::VY_R];
-   //          SC->parameters[CellParams::VZ_R_PREV] = SC->parameters[CellParams::VZ_R];
-   //          SC->parameters[CellParams::RHOQ_R_PREV] = SC->parameters[CellParams::RHOQ_R];
-   //          SC->parameters[CellParams::P_11_R_PREV] = SC->parameters[CellParams::P_11_R];
-   //          SC->parameters[CellParams::P_22_R_PREV] = SC->parameters[CellParams::P_22_R];
-   //          SC->parameters[CellParams::P_33_R_PREV] = SC->parameters[CellParams::P_33_R];
-   //          SC->parameters[CellParams::P_23_R_PREV] = SC->parameters[CellParams::P_23_R];
-   //          SC->parameters[CellParams::P_13_R_PREV] = SC->parameters[CellParams::P_13_R];
-   //          SC->parameters[CellParams::P_12_R_PREV] = SC->parameters[CellParams::P_12_R];
-   //       }
-   //    }
-   // }
-   // Mapping complete, update moments and maximum dt limits //
 
    //calculating moments based on timeclass
    for (int tc=0; tc <= P::currentMaxTimeclass; tc++) {

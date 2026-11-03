@@ -76,28 +76,8 @@ namespace spatial_cell {
    struct Population {
       Real RHO;
       Real V[3];
-      //Real RHO_R;
-      //Real V_R[3];
-      //Real RHO_V;
-      //Real V_V[3];
       Real P[6];
-      //Real P_R[6];
-      //Real P_V[6];
       Real T;
-
-      // Real RHO_R_PREV;
-      // Real V_R_PREV[3];
-      // Real P_R_PREV[6];
-      // Real RHO_V_PREV;
-      // Real V_V_PREV[3];
-      // Real P_V_PREV[6];
-
-      // Real RHO_R_PREV_PREV;
-      // Real V_R_PREV_PREV[3];
-      // Real P_R_PREV_PREV[6];
-      // Real RHO_V_PREV_PREV;
-      // Real V_V_PREV_PREV[3];
-      // Real P_V_PREV_PREV[6];
 
       // the first element is oldest, and they get newer with time
       std::array<MomentSet, TC_INTERPOLATION_POINTS> populationTrueMoments;
@@ -141,20 +121,17 @@ namespace spatial_cell {
          blockContainer = new vmesh::VelocityBlockContainer();
          // Set values to zero in case of zero-block populations
          RHO = RHOLOSSADJUST = velocityBlockMinValue = ACCSUBCYCLES = N_blocks = 0;
-         //RHO_R_PREV = RHO_V_PREV = RHO_R_PREV_PREV = RHO_V_PREV_PREV = 0;
          for (uint i=0; i<2; ++i) {
             max_dt[i] = 0;
          }
          for (uint i=0; i<3; ++i) {
             V[i] = 0;
-            //V_R_PREV[i] = V_V_PREV[i] = V_R_PREV_PREV[i] = V_V_PREV_PREV[i] = 0;
          }
          for (uint i=0; i<6; i++) {
             P[i] = 0;
-            //P_R_PREV[i] = P_V_PREV[i] = P_R_PREV_PREV[i] = P_V_PREV_PREV[i] = 0;
          }
          state = LastPropagationState::UNINITIALIZED;
-         T = 0; //T_R = T_V = T_R_PREV = T_V_PREV = T_R_PREV_PREV = T_V_PREV_PREV = 0.0;
+         T = 0;
          velocity_block_with_content_list = new std::vector<vmesh::GlobalID>(1);
          velocity_block_with_no_content_list = new std::vector<vmesh::GlobalID>(1);
          velocity_block_with_content_list->clear();
@@ -199,12 +176,6 @@ namespace spatial_cell {
          blockContainer = new vmesh::VelocityBlockContainer(*(other.blockContainer));
 
          RHO = other.RHO;
-         // RHO_R = other.RHO_R;
-         // RHO_V = other.RHO_V;
-         // RHO_R_PREV = other.RHO_R_PREV;
-         // RHO_V_PREV = other.RHO_V_PREV;
-         // RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
-         // RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -214,31 +185,13 @@ namespace spatial_cell {
          }
          for (uint i=0; i<3; ++i) {
             V[i] = other.V[i];
-         //    V_R[i] = other.V_R[i];
-         //    V_V[i] = other.V_V[i];
-         //    V_R_PREV[i] = other.V_R_PREV[i];
-         //    V_V_PREV[i] = other.V_V_PREV[i];
-         //    V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
-         //    V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
-         //    P_R[i] = other.P_R[i];
-         //    P_V[i] = other.P_V[i];
-         //    P_R_PREV[i] = other.P_R_PREV[i];
-         //    P_V_PREV[i] = other.P_V_PREV[i];
-         //    P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
-         //    P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
 
          state = other.state;
          T = other.T;
-         // T_R = other.T_R;
-         // T_V = other.T_V;
-         // T_R_PREV = other.T_R_PREV;
-         // T_V_PREV = other.T_V_PREV;
-         // T_R_PREV_PREV = other.T_R_PREV_PREV;
-         // T_V_PREV_PREV = other.T_V_PREV_PREV;
          populationTrueMoments = other.populationTrueMoments;
          moments_R = other.moments_R;
          moments_V = other.moments_V;
@@ -258,12 +211,6 @@ namespace spatial_cell {
          blockContainer = new vmesh::VelocityBlockContainer(*(other.blockContainer));
 
          RHO = other.RHO;
-         // RHO_R = other.RHO_R;
-         // RHO_V = other.RHO_V;
-         // RHO_R_PREV = other.RHO_R_PREV;
-         // RHO_V_PREV = other.RHO_V_PREV;
-         // RHO_R_PREV_PREV = other.RHO_R_PREV_PREV;
-         // RHO_V_PREV_PREV = other.RHO_V_PREV_PREV;
          RHOLOSSADJUST = other.RHOLOSSADJUST;
          velocityBlockMinValue = other.velocityBlockMinValue;
          ACCSUBCYCLES = other.ACCSUBCYCLES;
@@ -273,31 +220,13 @@ namespace spatial_cell {
          }
          for (uint i=0; i<3; ++i) {
             V[i] = other.V[i];
-         //    V_R[i] = other.V_R[i];
-         //    V_V[i] = other.V_V[i];
-         //    V_R_PREV[i] = other.V_R_PREV[i];
-         //    V_V_PREV[i] = other.V_V_PREV[i];
-         //    V_R_PREV_PREV[i] = other.V_R_PREV_PREV[i];
-         //    V_V_PREV_PREV[i] = other.V_V_PREV_PREV[i];
          }
          for (uint i=0; i<6; i++) {
             P[i] = other.P[i];
-         //    P_R[i] = other.P_R[i];
-         //    P_V[i] = other.P_V[i];
-         //    P_R_PREV[i] = other.P_R_PREV[i];
-         //    P_V_PREV[i] = other.P_V_PREV[i];
-         //    P_R_PREV_PREV[i] = other.P_R_PREV_PREV[i];
-         //    P_V_PREV_PREV[i] = other.P_V_PREV_PREV[i];
          }
 
          state = other.state;
          T = other.T;
-         // T_R = other.T_R;
-         // T_V = other.T_V;
-         // T_R_PREV = other.T_R_PREV;
-         // T_V_PREV = other.T_V_PREV;
-         // T_R_PREV_PREV = other.T_R_PREV_PREV;
-         // T_V_PREV_PREV = other.T_V_PREV_PREV;
          populationTrueMoments = other.populationTrueMoments;
          moments_R = other.moments_R;
          moments_V = other.moments_V;
@@ -326,12 +255,6 @@ namespace spatial_cell {
       }
       void Scale(creal factor) {
          RHO *= factor;
-         // RHO_R *= factor;
-         // RHO_V *= factor;
-         // RHO_R_PREV *= factor;
-         // RHO_V_PREV *= factor;
-         // RHO_R_PREV_PREV *= factor;
-         // RHO_V_PREV_PREV *= factor;
 
          for (uint i=0; i<3; ++i) {
             V[i] *= factor;
@@ -339,12 +262,6 @@ namespace spatial_cell {
 
          for (uint i=0; i<6; ++i) {
             P[i] *= factor;
-         //    P_R[i] *= factor;
-         //    P_V[i] *= factor;
-         //    P_R_PREV[i] *= factor;
-         //    P_V_PREV[i] *= factor;
-         //    P_R_PREV_PREV[i] *= factor;
-         //    P_V_PREV_PREV[i] *= factor;
          }
 
          moments_R.rho *= factor;
