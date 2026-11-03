@@ -20,6 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <cstdint>
 #include <unordered_set>
 
 #include "spatial_cell_wrapper.hpp"
@@ -887,6 +888,18 @@ namespace spatial_cell {
 
             displacements.push_back((uint8_t*) &(this->parameters[0]) - (uint8_t*) this);
             block_lengths.push_back(sizeof(Real) * CellParams::N_SPATIAL_CELL_PARAMS);
+
+            // also send here the cell's momentSets_R and _V and the vector of true moments
+
+            displacements.push_back((uint8_t*) &(this->moments_R) - (uint8_t*) this);
+            block_lengths.push_back(sizeof(MomentSet));
+
+            displacements.push_back((uint8_t*) &(this->moments_V) - (uint8_t*) this);
+            block_lengths.push_back(sizeof(MomentSet));
+
+            displacements.push_back((uint8_t*) &(this->cellTrueMoments[0]) - (uint8_t*) this);
+            block_lengths.push_back(sizeof(MomentSet) * this->cellTrueMoments.size());
+
          }
 
          // send spatial cell dimensions and coordinates
