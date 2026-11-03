@@ -67,8 +67,6 @@ void bailout(
 
 #define MASTER_RANK 0
 
-#define TC_INTERPOLATION_POINTS 4
-
 /* Maximum number of blocks in each dimension in velocity space. The
    size of velocity space defined in cfg can at maximum be this large
 */

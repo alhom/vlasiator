@@ -56,6 +56,8 @@ Spatial cell class for Vlasiator that supports a variable number of velocity blo
    #endif
 #endif
 
+typedef Parameters P;
+
 enum LastPropagationState {
    UNINITIALIZED,
    ACCELERATED,
@@ -80,7 +82,7 @@ namespace spatial_cell {
       Real T;
 
       // the first element is oldest, and they get newer with time
-      std::array<MomentSet, TC_INTERPOLATION_POINTS> populationTrueMoments;
+      std::vector<MomentSet> populationTrueMoments;
 
       MomentSet moments_R;
       MomentSet moments_V;
@@ -151,8 +153,8 @@ namespace spatial_cell {
             moments_V.P[coord] = 0.0;
          }
 
-         for (uint p=0; p<populationTrueMoments.size(); p++) {
-            populationTrueMoments[p] = MomentSet();
+         for (uint p=0; p<(uint)P::tcInterpolationPoints; p++) {
+            populationTrueMoments.push_back(MomentSet());
 
             populationTrueMoments[p].rho = 0.0;
             populationTrueMoments[p].t = 0.0;
@@ -527,7 +529,7 @@ namespace spatial_cell {
       *   varying timeclass synchronizations. This keeps track which levels are requested of this
       *   cell. Populations struct contains mappings of these timeclasses to ghost vmeshes. */
 
-      std::array<MomentSet, TC_INTERPOLATION_POINTS> cellTrueMoments;
+      std::vector<MomentSet> cellTrueMoments;
 
       MomentSet moments_R;
       MomentSet moments_V;

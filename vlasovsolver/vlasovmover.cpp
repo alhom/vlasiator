@@ -1753,25 +1753,36 @@ Real interpolation(std::vector<Real> x, std::vector<Real> y, const Real t, const
          }
       }
       std::cerr << "]\n";
+      //assert(false);
+   }
+
+   if (interpolationType == "linear") {
+   
+      for (uint i=0; i<x.size()-1; ++i) {
+
+         if (areEqualFloat(t, x[i])) {
+            return y[i];
+         }
+
+         if (t >= x[i] && t <= x[i+1]) {
+            return y[i] + (y[i+1] - y[i]) * (t - x[i]) / (x[i+1] - x[i]);
+         }
+      }
+
+      // If we reach this point, the target time is not within any interval of the x values
+      // then we linearly extrapolate using the last two points
+      // or the first two points if t < x[0]
+      if (t < x[0]) {
+         return y[0] + (y[1] - y[0]) * (t - x[0]) / (x[1] - x[0]);
+      } else if (t > x[x.size()-1]) {
+         return y[x.size()-2] + (y[x.size()-1] - y[x.size()-2]) * (t - x[x.size()-2]) / (x[x.size()-1] - x[x.size()-2]);
+      }
+   } else {
+      std::cerr << "Interpolation type " << interpolationType << " not implemented!\n";
       assert(false);
    }
 
-   if (interpolationType != "linear") {
-      assert(false && "Only linear interpolation is currently implemented!\n");
-   }
-
-   for (uint i=0; i<x.size()-1; ++i) {
-
-      if (areEqualFloat(t, x[i])) {
-         return y[i];
-      }
-
-      if (t >= x[i] && t <= x[i+1]) {
-         return y[i] + (y[i+1] - y[i]) * (t - x[i]) / (x[i+1] - x[i]);
-      }
-   }
-
-   assert(false && "The target time is not within any interval of the x values!\n");
+   // for compiler
    return 0.0;
 }
 
@@ -1815,23 +1826,35 @@ void interpolateMomentsForTimeclasses(
 
       } else { // this block if timeclass != maxTC
 
-         std::array<Real, TC_INTERPOLATION_POINTS> timestamps;
-         std::array<Real, TC_INTERPOLATION_POINTS> rhoms;
-         std::array<Real, TC_INTERPOLATION_POINTS> rhoqs;
-         std::array<std::array<Real, TC_INTERPOLATION_POINTS>, 3> Vs;
-         std::array<std::array<Real, TC_INTERPOLATION_POINTS>, 6> Ps;
+         std::vector<Real> timestamps;
+         std::vector<Real> rhoms;
+         std::vector<Real> rhoqs;
+         std::array<std::vector<Real>, 3> Vs;
+         std::array<std::vector<Real>, 6> Ps;
 
-         for (uint i=0; i<TC_INTERPOLATION_POINTS; i++) {
-            timestamps[i] = SC->cellTrueMoments[i].t;
-            rhoms[i] = SC->cellTrueMoments[i].rhom;
-            rhoqs[i] = SC->cellTrueMoments[i].rhoq;
+         for (uint i=0; i<(uint)P::tcInterpolationPoints; i++) {
+            timestamps.push_back(SC->cellTrueMoments[i].t);
+            rhoms.push_back(SC->cellTrueMoments[i].rhom);
+            rhoqs.push_back(SC->cellTrueMoments[i].rhoq);
             for (uint j=0; j<3; j++) {
-               Vs[j][i] = SC->cellTrueMoments[i].V[j];
+               Vs[j].push_back(SC->cellTrueMoments[i].V[j]);
             }
             for (uint j=0; j<6; j++) {
-               Ps[j][i] = SC->cellTrueMoments[i].P[j];
+               Ps[j].push_back(SC->cellTrueMoments[i].P[j]);
             }
          }
+
+         // for (uint i=0; i<P::tcInterpolationPoints; i++) {
+         //    timestamps[i] = SC->cellTrueMoments[i].t;
+         //    rhoms[i] = SC->cellTrueMoments[i].rhom;
+         //    rhoqs[i] = SC->cellTrueMoments[i].rhoq;
+         //    for (uint j=0; j<3; j++) {
+         //       Vs[j][i] = SC->cellTrueMoments[i].V[j];
+         //    }
+         //    for (uint j=0; j<6; j++) {
+         //       Ps[j][i] = SC->cellTrueMoments[i].P[j];
+         //    }
+         // }
 
          SC->parameters[cp_rhom] = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(rhoms.begin(), rhoms.end()), target_time);
          SC->parameters[cp_rhoq] = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(rhoqs.begin(), rhoqs.end()), target_time);
@@ -1887,21 +1910,32 @@ void updateParticlePopulations(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometr
             for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
                spatial_cell::Population& pop = SC->get_population(popID,timeclass);
 
-               std::array<Real, TC_INTERPOLATION_POINTS> timestamps;
-               std::array<Real, TC_INTERPOLATION_POINTS> rhos;
-               std::array<std::array<Real, TC_INTERPOLATION_POINTS>, 3> Vs;
-               std::array<std::array<Real, TC_INTERPOLATION_POINTS>, 6> Ps;
+               std::vector<Real> timestamps;
+               std::vector<Real> rhos;
+               std::array<std::vector<Real>, 3> Vs;
+               std::array<std::vector<Real>, 6> Ps;
 
-               for (uint i=0; i<TC_INTERPOLATION_POINTS; i++) {
-                  timestamps[i] = pop.populationTrueMoments[i].t;
-                  rhos[i] = pop.populationTrueMoments[i].rhom;
+               for (uint i=0; i<(uint)P::tcInterpolationPoints; i++) {
+                  timestamps.push_back(pop.populationTrueMoments[i].t);
+                  rhos.push_back(pop.populationTrueMoments[i].rhom);
                   for (uint j=0; j<3; j++) {
-                     Vs[j][i] = pop.populationTrueMoments[i].V[j];
+                     Vs[j].push_back(pop.populationTrueMoments[i].V[j]);
                   }
                   for (uint j=0; j<6; j++) {
-                     Ps[j][i] = pop.populationTrueMoments[i].P[j];
+                     Ps[j].push_back(pop.populationTrueMoments[i].P[j]);
                   }
                }
+
+               // for (uint i=0; i<(uint)P::tcInterpolationPoints; i++) {
+               //    timestamps[i] = pop.populationTrueMoments[i].t;
+               //    rhos[i] = pop.populationTrueMoments[i].rhom;
+               //    for (uint j=0; j<3; j++) {
+               //       Vs[j][i] = pop.populationTrueMoments[i].V[j];
+               //    }
+               //    for (uint j=0; j<6; j++) {
+               //       Ps[j][i] = pop.populationTrueMoments[i].P[j];
+               //    }
+               // }
 
                pop.RHO = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(rhos.begin(), rhos.end()), target_time);
                for (uint i=0; i<3; i++) {

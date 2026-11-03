@@ -1944,7 +1944,7 @@ bool exec_readGrid(dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid
 
    if(success) { success=readCellMomentSet(file,fileCells,localCellStartOffset,localCells,"moments_r",13,mpiGrid); }
    if(success) { success=readCellMomentSet(file,fileCells,localCellStartOffset,localCells,"moments_v",13,mpiGrid); }
-   if(success) { success=readCellMomentSet(file,fileCells,localCellStartOffset,localCells,"truemomentsvector",13 * TC_INTERPOLATION_POINTS,mpiGrid); }
+   if(success) { success=readCellMomentSet(file,fileCells,localCellStartOffset,localCells,"truemomentsvector",13 * P::tcInterpolationPoints,mpiGrid); }
 
    if(success) { success=readCellParamsVariable(file,fileCells,localCellStartOffset,localCells,"LB_weight",CellParams::LBWEIGHTCOUNTER,1,mpiGrid); }
    if(success) { success=readCellParamsVariable(file,fileCells,localCellStartOffset,localCells,"timeclass",CellParams::TIMECLASS,1,mpiGrid); }

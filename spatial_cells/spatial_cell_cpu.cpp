@@ -73,8 +73,8 @@ namespace spatial_cell {
       }
 
       // initialize moment sets to 0
-      for (uint p=0; p<this->cellTrueMoments.size(); p++) {
-         this->cellTrueMoments[p] = MomentSet();
+      for (uint p=0; p<(uint)P::tcInterpolationPoints; p++) {
+         this->cellTrueMoments.push_back(MomentSet());
 
          this->cellTrueMoments[p].rhom = 0.0;
          this->cellTrueMoments[p].rhoq = 0.0;

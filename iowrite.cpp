@@ -2260,7 +2260,7 @@ bool writeRestart(
 
    restartReducer.addOperator(new DRO::DataReductionOperatorCellMomentSet("moments_r",0,13, "R"));
    restartReducer.addOperator(new DRO::DataReductionOperatorCellMomentSet("moments_v",0,13, "V"));
-   restartReducer.addOperator(new DRO::DataReductionOperatorCellMomentSet("truemomentsvector",0,13 * TC_INTERPOLATION_POINTS, "ALL"));   
+   restartReducer.addOperator(new DRO::DataReductionOperatorCellMomentSet("truemomentsvector",0,13 * P::tcInterpolationPoints, "ALL"));   
   
    restartReducer.addOperator(new DRO::DataReductionOperatorCellParams("timeclass",CellParams::TIMECLASS,1));
    restartReducer.addOperator(new DRO::DataReductionOperatorCellParams("timeclass_dt",CellParams::TIMECLASSDT,1));
