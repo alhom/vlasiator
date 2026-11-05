@@ -1399,6 +1399,127 @@ bool readCellParamsVariable(vlsv::ParallelReader& file, const vector<CellID>& fi
    return false;
 }
 
+
+template <typename fileReal>
+static bool _readCellMomentSetFromCellParams(vlsv::ParallelReader& file, const vector<uint64_t>& fileCells,
+                                    const uint64_t localCellStartOffset, const uint64_t localCells,
+                                    const string& variableName, const size_t cellParamsIndex,
+                                    const size_t expectedVectorSize,
+                                    dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid) {
+   uint64_t arraySize;
+   uint64_t vectorSize;
+   vlsv::datatype::type dataType;
+   uint64_t byteSize;
+   list<pair<string, string>> attribs;
+   fileReal* buffer;
+   bool success = true;
+
+   attribs.push_back(make_pair("name", variableName));
+   attribs.push_back(make_pair("mesh", "SpatialGrid"));
+
+   if (file.getArrayInfo("VARIABLE", attribs, arraySize, vectorSize, dataType, byteSize) == false) {
+      logFile << "(RESTART)  ERROR: Failed to read DCCRG ArrayInfo" << endl << write;
+      return false;
+   }
+
+   if (vectorSize != expectedVectorSize) {
+      logFile << "(RESTART)  vectorsize wrong " << endl << write;
+      return false;
+   }
+
+   buffer = ::new fileReal[vectorSize * localCells];
+   if (file.readArray("VARIABLE", attribs, localCellStartOffset, localCells, (char*)buffer) == false) {
+      logFile << "(RESTART)  ERROR: Failed to read " << variableName << endl << write;
+      return false;
+   }
+
+   // !! this does not set timestamps, as that data does not exist in cellparams necessaraly. needs to be done somewhere else
+
+   for (uint i = 0; i < localCells; i++) {
+      uint cell = fileCells[localCellStartOffset + i];
+      for (uint j = 0; j < vectorSize; j++) {
+         //mpiGrid[cell]->parameters[cellParamsIndex + j] = buffer[i * vectorSize + j];
+         for (uint mset = 0; mset < (uint)P::tcInterpolationPoints; mset++) {
+            switch (cellParamsIndex) {
+               case CellParams::RHOM:
+                  mpiGrid[cell]->cellTrueMoments[mset].rhom = buffer[i * vectorSize + j];
+                  break;
+               case CellParams::RHOQ:
+                  mpiGrid[cell]->cellTrueMoments[mset].rhoq = buffer[i * vectorSize + j];
+                  break;
+               case CellParams::VX:
+                  mpiGrid[cell]->cellTrueMoments[mset].V[j] = buffer[i * vectorSize + j];
+                  break;
+               case CellParams::P_11:
+                  mpiGrid[cell]->cellTrueMoments[mset].P[j] = buffer[i * vectorSize + j];
+                  break;
+            }
+         }
+      }
+   }
+
+   delete[] buffer;
+   return success;
+}
+
+// for reading a restart file that has a set of true moments in the cell params: reads that data and fills the 
+// cell's true moment set vector's appropriate place with that data
+// !! cant read _R or _V parameters, however
+
+bool readCellMomentSetFromCellParams(vlsv::ParallelReader& file, const vector<CellID>& fileCells,
+                            const uint64_t localCellStartOffset, const uint64_t localCells, const string& variableName,
+                            const size_t cellParamsIndex, const size_t expectedVectorSize,
+                            dccrg::Dccrg<SpatialCell, dccrg::Cartesian_Geometry>& mpiGrid) {
+   uint64_t arraySize;
+   uint64_t vectorSize;
+   vlsv::datatype::type dataType;
+   uint64_t byteSize;
+   list<pair<string, string>> attribs;
+
+   attribs.push_back(make_pair("name", variableName));
+   attribs.push_back(make_pair("mesh", "SpatialGrid"));
+
+   if (file.getArrayInfo("VARIABLE", attribs, arraySize, vectorSize, dataType, byteSize) == false) {
+      logFile << "(RESTART)  ERROR: Failed to read DCCRG ArrayInfo" << endl << write;
+      return false;
+   }
+
+   // Call _readCellParamsVariable
+   if (dataType == vlsv::datatype::type::FLOAT) {
+      switch (byteSize) {
+      case sizeof(double):
+         return _readCellMomentSetFromCellParams<double>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+         break;
+      case sizeof(float):
+         return _readCellMomentSetFromCellParams<float>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+         break;
+      }
+   // } else if (dataType == vlsv::datatype::type::UINT) {
+   //    switch (byteSize) {
+   //    case sizeof(uint32_t):
+   //       return _readCellParamsVariable<uint32_t>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+   //       break;
+   //    case sizeof(uint64_t):
+   //       return _readCellParamsVariable<uint64_t>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+   //       break;
+   //    }
+   // } else if (dataType == vlsv::datatype::type::INT) {
+   //    switch (byteSize) {
+   //    case sizeof(int32_t):
+   //       return _readCellParamsVariable<int32_t>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+   //       break;
+   //    case sizeof(int64_t):
+   //       return _readCellParamsVariable<int64_t>(file, fileCells, localCellStartOffset, localCells, variableName, cellParamsIndex, expectedVectorSize, mpiGrid);
+   //       break;
+   //    }
+   } else {
+      logFile << "(RESTART)  ERROR: Failed to read data type at readCellMomentSetFromCellParams" << endl << write;
+      return false;
+   }
+   // For compiler purposes
+   return false;
+}
+
 bool readCellMomentSet(vlsv::ParallelReader& file, const vector<CellID>& fileCells,
                             const uint64_t localCellStartOffset, const uint64_t localCells, const string& variableName,
                             const size_t expectedVectorSize,
