@@ -785,7 +785,7 @@ void calculateSpatialTranslation(
                const CellID cellID = tc_propagated_cells.at(tc).at(c);
                SpatialCell* SC = mpiGrid[cellID];
 
-               mpiGrid[c]->moments_R.t += P::timeclassDt[mpiGrid[c]->parameters[CellParams::TIMECLASS]];
+               SC->moments_R.t += P::timeclassDt[SC->parameters[CellParams::TIMECLASS]];
                
             }
          }
@@ -800,7 +800,7 @@ void calculateSpatialTranslation(
       }
       return;
    }
-   
+
    for (size_t c=0; c<localCells.size(); ++c) {
       auto cell = mpiGrid[localCells[c]];
       if(cell->get_timeclass_turn_r() && dt > 0.0){
@@ -1647,7 +1647,7 @@ void calculateAcceleration(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& 
 
 
 void initializeTrueMomentSets(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry>& mpiGrid) {
-  
+ 
    //this function assumes that the first moment set exist, calculated at init
    const vector<CellID>& cells = getLocalCells();
    for (size_t c=0; c<cells.size(); ++c) {
@@ -1806,22 +1806,14 @@ void interpolateMomentsForTimeclasses(
 
       if (P::currentMaxTimeclass == 0 || timeclass == P::currentMaxTimeclass) {
 
-         // look in the cell's trueMomentSets; a set with the correct timestamp should exist
-         for (const MomentSet &ms : SC->cellTrueMoments) {
-            if (areEqualFloat(ms.t, target_time)) {
-               SC->parameters[cp_rhom] = ms.rhom;
-               SC->parameters[cp_rhoq] = ms.rhoq;
-               SC->parameters[cp_t] = ms.t;
-
-               for (uint i=0; i<3; i++) {
-                  SC->parameters[cp_vx + i] = ms.V[i];
-               }
-
-               for (uint i=0; i<6; i++) {
-                  SC->parameters[cp_p11 + i] = ms.P[i];
-               }
-               break;
-            }
+         SC->parameters[cp_rhom] = 0.5 * (SC->moments_R.rhom + SC->moments_V.rhom);
+         SC->parameters[cp_rhoq] = 0.5 * (SC->moments_R.rhoq + SC->moments_V.rhoq);
+         SC->parameters[cp_t] = min(SC->moments_R.t, SC->moments_V.t);
+         for (uint i=0; i<3; i++) {
+            SC->parameters[cp_vx + i] = 0.5 * (SC->moments_R.V[i] + SC->moments_V.V[i]);
+         }
+         for (uint i=0; i<6; i++) {
+            SC->parameters[cp_p11 + i] = 0.5 * (SC->moments_R.P[i] + SC->moments_V.P[i]);
          }
 
       } else { // this block if timeclass != maxTC
@@ -1882,27 +1874,20 @@ void updateParticlePopulations(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometr
       for (int timeclass = 0; timeclass <=P::currentMaxTimeclass; timeclass++){
    
          if (P::currentMaxTimeclass == 0 || timeclass == P::currentMaxTimeclass) {
-   
+      
             for (uint popID=0; popID<getObjectWrapper().particleSpecies.size(); ++popID) {
                spatial_cell::Population& pop = SC->get_population(popID, timeclass);
-               // look for a true moment set with matching timestamp, it should exist
-               for (const MomentSet &ms : pop.populationTrueMoments) {
-                  if (areEqualFloat(ms.t, target_time)) {
-                     pop.RHO = ms.rho;
-                     pop.T = ms.t;
 
-                     for (uint i=0; i<3; i++) {
-                        pop.V[i] = ms.V[i];
-                     }
+               pop.RHO = 0.5 * (pop.moments_R.rho + pop.moments_V.rho);
+               pop.T = min(pop.moments_R.t, pop.moments_V.t);
 
-                     for (uint i=0; i<6; i++) {
-                        pop.P[i] = ms.P[i];
-                     }
-                     break;
-                  }
+               for (uint i=0; i<3; i++) {
+                  pop.V[i] = 0.5 * (pop.moments_R.V[i] + pop.moments_V.V[i]);
                }
 
-
+               for (uint i=0; i<6; i++) {
+                  pop.P[i] = 0.5 * (pop.moments_R.P[i] + pop.moments_V.P[i]);
+               }
             }
    
          } else {
