@@ -1692,7 +1692,7 @@ void initializeTrueMomentSets(dccrg::Dccrg<SpatialCell,dccrg::Cartesian_Geometry
       }
 
       // set the timestamp to go backwards in time
-      const Real dt = P::timeclassDt[SC->get_tc()];
+      const Real dt = P::timeclassDt[SC->get_tc()]*0.5;
       for (uint mset = 0; mset < (uint)P::tcInterpolationPoints; ++mset) {
          SC->timestamps[mset] -= dt*(SC->timestamps.size()-1-mset);
       }
