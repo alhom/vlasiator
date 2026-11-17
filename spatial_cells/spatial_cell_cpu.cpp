@@ -676,10 +676,8 @@ namespace spatial_cell {
                   const uint _activePopId = index.first;
                   const int _activeTimeclass = index.second;
                   Population& _pop = get_population(_activePopId, _activeTimeclass);
-                  if (!receiving) {
-                     _pop.N_blocks = get_velocity_blocks(_activePopId, _activeTimeclass)->size();
-                  }
-                  // STAGE1 should have been done, otherwise we have problems...
+
+				   // STAGE1 should have been done, otherwise we have problems...
                   if (receiving) {
                      //mpi_number_of_blocks transferred earlier
                      get_velocity_mesh(_activePopId, _activeTimeclass)->setNewSize(_pop.N_blocks);
