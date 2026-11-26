@@ -1092,10 +1092,10 @@ int simulate(int argn,char* args[]) {
 
       // write system, loop through write classes
       for (uint i = 0; i < P::systemWriteTimeInterval.size(); i++) {
-         // if (true || (P::systemWriteTimeInterval[i] >= 0.0 &&
-         //     P::t >= P::systemWrites[i] * P::systemWriteTimeInterval[i] - DT_EPSILON)) {
-            if (P::systemWriteTimeInterval[i] >= 0.0 &&
-                P::t >= P::systemWrites[i] * P::systemWriteTimeInterval[i] - DT_EPSILON) {
+         if (true || (P::systemWriteTimeInterval[i] >= 0.0 &&
+             P::t >= P::systemWrites[i] * P::systemWriteTimeInterval[i] - DT_EPSILON)) {
+            // if (P::systemWriteTimeInterval[i] >= 0.0 &&
+            //     P::t >= P::systemWrites[i] * P::systemWriteTimeInterval[i] - DT_EPSILON) {
             // If we have only just restarted, the bulk file should already exist from the previous slot.
             if ((P::tstep == P::tstep_min) && (P::tstep>0)) {
                P::systemWrites[i]++;

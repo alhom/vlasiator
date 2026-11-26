@@ -1865,7 +1865,15 @@ void interpolateMomentsForTimeclasses(
             }
          }
 
+         
          SC->parameters[cp_rhom] = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(rhoms.begin(), rhoms.end()), target_time);
+         if (SC->parameters[CellParams::CELLID] == 3840){
+            cerr << __FILE__<<":"<<__LINE__ << ", cell 3840 interpolation sources for target_time " << target_time<< "\n";
+            for (uint i=0; i<(uint)P::tcInterpolationPoints; i++) {
+               cerr << "timestamp " << timestamps[i] << ", rhom " << rhoms[i] << "\n";
+            }
+            cerr  << "result: " << SC->parameters[cp_rhom] << "\n";
+         }
          SC->parameters[cp_rhoq] = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(rhoqs.begin(), rhoqs.end()), target_time);
          for (uint i=0; i<3; i++) {
             SC->parameters[cp_vx + i] = interpolation(std::vector<Real>(timestamps.begin(), timestamps.end()), std::vector<Real>(Vs[i].begin(), Vs[i].end()), target_time);
