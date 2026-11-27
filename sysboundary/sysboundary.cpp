@@ -738,7 +738,7 @@ void SysBoundary::applySysBoundaryVlasovConditions(dccrg::Dccrg<SpatialCell, dcc
             }
          }
          #pragma omp parallel for
-         for (uint i = 0; i < localCells.size(); i++) {
+         for (uint i = 0; i < timeclassCells.size(); i++) {
             cuint sysBoundaryType = mpiGrid[timeclassCells[i]]->sysBoundaryFlag;
             this->getSysBoundary(sysBoundaryType)
                ->vlasovBoundaryCondition(mpiGrid, timeclassCells[i], popID, calculate_V_moments);

@@ -208,7 +208,7 @@ namespace SBC {
          templateCell.parameters[CellParams::P_11_V + i] = templateCell.parameters[CellParams::P_11+i];
       }
 
-      int n = P::tcInterpolationPoints;
+      int n = 1;
       if(P::t > 0) {n = 1;}
       for(int i = 0; i < n; ++i){
          templateCell.addNewValuesToTrueMoments(rhom, rhoq, 
